@@ -12,13 +12,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
       - name: Install dependencies
         run: npm install
       - name: Install Remotion browser
-        run: npx remotion browser ensure
+        run: npx --yes remotion browser ensure
       - name: Generate JSON
-        run: npx tsx src/scripts/1_generateJson.ts
+        run: npx --yes tsx src/scripts/1_generateJson.ts
       - name: Render video
         run: npm run render:cloud
       - name: Upload rendered video
