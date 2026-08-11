@@ -37,6 +37,7 @@ const main = async (): Promise<void> => {
     outputLocation,
     inputProps: {sceneData: parsedJson},
     codec: "h264",
+    crf: 16,
   });
 
   console.log(`Render completed successfully: ${outputLocation}`);
