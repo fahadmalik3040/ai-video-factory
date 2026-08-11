@@ -19,6 +19,8 @@ jobs:
         run: npx --yes remotion browser ensure
       - name: Generate JSON
         run: npx --yes tsx src/scripts/1_generateJson.ts
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       - name: Render video
         run: npm run render:cloud
       - name: Upload rendered video

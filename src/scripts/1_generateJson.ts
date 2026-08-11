@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import csv from "csv-parser";
-import {puter} from "@heyputer/puter.js";
+import OpenAI from "openai";
+import "dotenv/config";
 import {SceneSchema} from "../config/ZodSchema.ts";
 
 type PromptRow = {
@@ -18,13 +19,18 @@ const sceneStructure = `{
   "theme": "science | cyber | finance",
   "durationInFrames": "positive integer up to 36000",
   "fps": "integer from 1 to 120",
-  "camera": { "type": "orbit | pan | push-in", "speed": "positive number", "distance": "positive number", "fov": "number from 10 to 120" },
-  "lighting": { "keyIntensity": "number from 0 to 100", "fillIntensity": "number from 0 to 100", "rimIntensity": "number from 0 to 100", "colorTheme": "#RRGGBB" },
-  "particles": { "count": "integer from 0 to 100000", "speed": "number from 0 to 100", "color": "#RRGGBB", "shape": "circle | square | star | sphere | spark" },
-  "audio": { "bgmStyle": "string", "sfxTypes": ["string"] },
+  "camera": {"type": "orbit | pan | push-in", "speed": "positive number", "distance": "positive number", "fov": "number from 10 to 120"},
+  "lighting": {"keyIntensity": "number from 0 to 100", "fillIntensity": "number from 0 to 100", "rimIntensity": "number from 0 to 100", "colorTheme": "#RRGGBB"},
+  "particles": {"count": "integer from 0 to 100000", "speed": "number from 0 to 100", "color": "#RRGGBB", "shape": "circle | square | star | sphere | spark"},
+  "audio": {"bgmStyle": "string", "sfxTypes": ["string"]},
   "seed": "non-negative integer",
   "modelQuery": "string"
 }`;
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://api.hcnsec.cn/v1",
+});
 
 const readFirstPrompt = (): Promise<PromptRow> =>
   new Promise((resolve, reject) => {
@@ -46,20 +52,6 @@ const readFirstPrompt = (): Promise<PromptRow> =>
       .on("error", reject);
   });
 
-const extractText = (response: unknown): string => {
-  const content = (response as {message?: {content?: unknown}}).message?.content;
-
-  if (typeof content === "string") {
-    return content;
-  }
-
-  if (Array.isArray(content)) {
-    return content.map((part) => String(part)).join("");
-  }
-
-  throw new Error("Puter returned a response without text content.");
-};
-
 const stripMarkdownFence = (text: string): string =>
   text
     .trim()
@@ -67,41 +59,48 @@ const stripMarkdownFence = (text: string): string =>
     .replace(/\s*```$/i, "")
     .trim();
 
-const generateSceneData = async () => {
+const main = async (): Promise<void> => {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is required. Configure it in .env or GitHub Actions secrets.");
+  }
+
   console.log("Reading the first prompt from data/prompts.csv...");
   const promptRow = await readFirstPrompt();
-  const systemInstruction =
-    "You are a strict JSON generator. Output ONLY raw JSON matching this structure. No markdown formatting, no backticks, no conversational text.";
-  const fullPrompt = `${systemInstruction}\n\nRequired structure:\n${sceneStructure}\n\nCreate one high-quality procedural 3D video scene for this prompt:\n${promptRow.prompt}\n\nTags: ${promptRow.tags ?? "none"}`;
+  const prompt = `You are a strict JSON generator. Output ONLY raw JSON matching this structure. No markdown, backticks, or conversational text.\n\nRequired structure:\n${sceneStructure}\n\nCreate one coherent procedural 3D video scene for:\n${promptRow.prompt}\n\nTags: ${promptRow.tags ?? "none"}`;
 
   let attempt = 1;
   while (attempt <= maxAttempts) {
     try {
-      const model = attempt === maxAttempts ? "deepseek/deepseek-v4-pro" : "openai/gpt-5.5";
-      console.log(`Generating scene JSON (attempt ${attempt}/${maxAttempts}) with ${model}...`);
+      console.log(`Requesting scene JSON from proxy (attempt ${attempt}/${maxAttempts})...`);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        temperature: 0.2,
+        messages: [{role: "user", content: prompt}],
+      });
 
-      const response = await puter.ai.chat(fullPrompt, {model});
-      const rawText = stripMarkdownFence(extractText(response));
-      const sceneData = SceneSchema.parse(JSON.parse(rawText));
+      const content = completion.choices[0]?.message.content;
+      if (!content) {
+        throw new Error("The proxy returned no completion content.");
+      }
 
+      const sceneData = SceneSchema.parse(JSON.parse(stripMarkdownFence(content)));
       fs.writeFileSync(outputPath, JSON.stringify(sceneData, null, 2), "utf8");
       console.log(`Validated scene data saved to ${outputPath}`);
-      break;
+      return;
     } catch (error) {
-      console.error(`Attempt ${attempt} failed:`, error);
+      console.error(`Proxy generation attempt ${attempt} failed:`, error);
 
       if (attempt === maxAttempts) {
         throw new Error("Unable to generate valid scene JSON after 3 attempts.");
       }
 
-      console.log("Waiting 3 seconds before retrying...");
       await new Promise((resolve) => setTimeout(resolve, 3_000));
       attempt += 1;
     }
   }
 };
 
-generateSceneData().catch((error: unknown) => {
+main().catch((error: unknown) => {
   console.error("Scene JSON generation failed:", error);
   process.exitCode = 1;
 });

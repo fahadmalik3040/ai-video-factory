@@ -6,7 +6,6 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@heyputer/puter.js": "^2.6.0",
     "@react-three/drei": "^10.7.8",
     "@remotion/cli": "^4.0.507",
     "@remotion/renderer": "^4.0.508",
@@ -14,6 +13,7 @@
     "@remotion/three": "4.0.507",
     "csv-parser": "^3.2.1",
     "dotenv": "^17.4.2",
+    "openai": "^7.4.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "remotion": "4.0.507",
