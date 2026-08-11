@@ -6,15 +6,23 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@remotion/cli": "4.0.507",
+    "@heyputer/puter.js": "^2.6.0",
+    "@react-three/drei": "^10.7.8",
+    "@remotion/cli": "^4.0.507",
+    "@remotion/renderer": "^4.0.508",
+    "@remotion/tailwind-v4": "4.0.507",
+    "@remotion/three": "4.0.507",
+    "csv-parser": "^3.2.1",
+    "dotenv": "^17.4.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "remotion": "4.0.507",
-    "@remotion/tailwind-v4": "4.0.507",
-    "tailwindcss": "4.0.0"
+    "tailwindcss": "4.0.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@remotion/eslint-config-flat": "4.0.507",
+    "@types/node": "^26.2.0",
     "@types/react": "19.2.7",
     "@types/web": "0.0.166",
     "eslint": "9.19.0",
@@ -25,7 +33,8 @@
     "dev": "remotion studio",
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "render:cloud": "tsx src/scripts/2_renderLocal.ts"
   },
   "sideEffects": [
     "*.css"

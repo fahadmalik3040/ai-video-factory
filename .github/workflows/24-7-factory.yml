@@ -1,0 +1,28 @@
+name: 24/7 AI Video Factory
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  render-video:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install
+      - name: Install Remotion browser
+        run: npx remotion browser ensure
+      - name: Generate JSON
+        run: npx tsx src/scripts/1_generateJson.ts
+      - name: Render video
+        run: npm run render:cloud
+      - name: Upload rendered video
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-video
+          path: out/
