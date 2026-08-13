@@ -87,7 +87,7 @@ const main = async (): Promise<void> => {
       fs.writeFileSync(outputPath, JSON.stringify(sceneData, null, 2), "utf8");
       console.log(`Validated scene data saved to ${outputPath}`);
       return;
-    } catch (error) {
+    } catch {
       console.log(`Model ${model} failed, trying next...`);
     }
   }
