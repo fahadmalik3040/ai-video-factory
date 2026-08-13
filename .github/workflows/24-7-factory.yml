@@ -17,6 +17,8 @@ jobs:
         run: npm install
       - name: Install Remotion browser
         run: npx --yes remotion browser ensure
+      - name: Catch Live Trends
+        run: npx --yes tsx src/scripts/0_trendCatcher.ts
       - name: Generate JSON
         run: npx --yes tsx src/scripts/1_generateJson.ts
         env:
