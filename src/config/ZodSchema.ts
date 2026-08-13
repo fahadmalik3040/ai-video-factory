@@ -27,6 +27,8 @@ export const AudioSchema = z.object({
 });
 
 export const SceneSchema = z.object({
+  title: z.string(),
+  seoTags: z.array(z.string()).max(50),
   theme: z.enum(["science", "cyber", "finance"]),
   durationInFrames: z.number().int().positive().max(36_000),
   fps: z.number().int().min(1).max(120),

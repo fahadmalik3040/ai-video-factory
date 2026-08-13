@@ -1,20 +1,75 @@
 {
-  "title": "AI Revolution",
-   "scenes": [
-       {
-           "sceneNumber": 1,
-           "visualPrompt": "A futuristic laboratory with AI systems and robots in the background",
-           "audioScript": "In a world where technology advances at an unprecedented rate, Artificial Intelligence has become the cornerstone of innovation, transforming industries and redefining the future of humanity."
-       },
-       {
-           "sceneNumber": 2,
-           "visualPrompt": "A cityscape with autonomous vehicles and drones flying overhead",
-           "audioScript": "From autonomous vehicles to intelligent drones, AI is integrating into our daily lives, making tasks more efficient, safer, and smarter, paving the way for a new era of technological symbiosis."
-       },
-       {
-           "sceneNumber": 3,
-           "visualPrompt": "A group of people from diverse backgrounds interacting with AI-powered devices",
-           "audioScript": "As AI continues to evolve, it's not just about the technology itself, but about how it connects us, enhances our capabilities, and opens up new possibilities for humanity to thrive in a world where the boundaries between man and machine are constantly blurring."
-       }
-   ]
+  "title": "Neon Dreams: Futuristic Electric Truck Factory Comes to Life",
+  "seoTags": [
+    "electric truck",
+    "futuristic factory",
+    "neon lights",
+    "robotic arms",
+    "Fathom EV",
+    "LED screen",
+    "cityscape at sunset",
+    "cinematic sequence",
+    "vibrant city at night",
+    "grid pattern",
+    "coding symbols",
+    "AI-powered technology",
+    "vehicle development",
+    "technology",
+    "innovation",
+    "industry",
+    "manufacturing",
+    "sustainability",
+    "energy efficiency",
+    "transportation",
+    "automotive",
+    "engineering",
+    "design",
+    "future",
+    "modern",
+    "urban",
+    "nightlife",
+    "city lights",
+    "traffic",
+    "highway",
+    "vehicles",
+    "trucks",
+    "electric vehicles",
+    "ev trucks",
+    "nev",
+    "new energy vehicles",
+    "environmentally friendly",
+    "eco friendly",
+    "green technology"
+  ],
+  "theme": "science",
+  "durationInFrames": 300,
+  "fps": 30,
+  "camera": {
+    "type": "orbit",
+    "speed": 2,
+    "distance": 10,
+    "fov": 60
+  },
+  "lighting": {
+    "keyIntensity": 70,
+    "fillIntensity": 40,
+    "rimIntensity": 50,
+    "colorTheme": "#00ffff"
+  },
+  "particles": {
+    "count": 5000,
+    "speed": 10,
+    "color": "#ff8c00",
+    "shape": "sphere"
+  },
+  "audio": {
+    "bgmStyle": "ambient_cinematic",
+    "sfxTypes": [
+      "whoosh",
+      "robotic_beeps",
+      "engine_hum"
+    ]
+  },
+  "seed": 12345,
+  "modelQuery": "futuristic electric truck factory with neon lights and robotic arms"
 }
