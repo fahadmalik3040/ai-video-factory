@@ -1,11 +1,20 @@
 {
-  "theme": "science",
-  "durationInFrames": 300,
-  "fps": 30,
-  "camera": {"type": "orbit", "speed": 1, "distance": 6, "fov": 45},
-  "lighting": {"keyIntensity": 2, "fillIntensity": 0.4, "rimIntensity": 1, "colorTheme": "#22d3ee"},
-  "particles": {"count": 200, "speed": 0.5, "color": "#67e8f9", "shape": "spark"},
-  "audio": {"bgmStyle": "ambient futuristic", "sfxTypes": ["soft hum"]},
-  "seed": 42,
-  "modelQuery": "glowing DNA double helix"
+  "title": "AI Revolution",
+   "scenes": [
+       {
+           "sceneNumber": 1,
+           "visualPrompt": "A futuristic laboratory with AI systems and robots in the background",
+           "audioScript": "In a world where technology advances at an unprecedented rate, Artificial Intelligence has become the cornerstone of innovation, transforming industries and redefining the future of humanity."
+       },
+       {
+           "sceneNumber": 2,
+           "visualPrompt": "A cityscape with autonomous vehicles and drones flying overhead",
+           "audioScript": "From autonomous vehicles to intelligent drones, AI is integrating into our daily lives, making tasks more efficient, safer, and smarter, paving the way for a new era of technological symbiosis."
+       },
+       {
+           "sceneNumber": 3,
+           "visualPrompt": "A group of people from diverse backgrounds interacting with AI-powered devices",
+           "audioScript": "As AI continues to evolve, it's not just about the technology itself, but about how it connects us, enhances our capabilities, and opens up new possibilities for humanity to thrive in a world where the boundaries between man and machine are constantly blurring."
+       }
+   ]
 }
