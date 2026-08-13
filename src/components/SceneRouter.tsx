@@ -1,6 +1,7 @@
 import { ThreeCanvas } from '@remotion/three';
 import React from 'react';
 import ScienceScene from '../scenes/ScienceScene';
+import { AudioEngine } from '../engine/audio/AudioEngine';
 
 export const SceneRouter = ({ sceneData }: any) => {
   return (
@@ -8,6 +9,7 @@ export const SceneRouter = ({ sceneData }: any) => {
       <ThreeCanvas width={3840} height={2160}>
          <ScienceScene data={sceneData} />
       </ThreeCanvas>
+      <AudioEngine category={sceneData?.theme} />
     </div>
   );
 };

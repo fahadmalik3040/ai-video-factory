@@ -4,6 +4,7 @@ import {SceneRouter} from "./components/SceneRouter";
 import generatedSceneData from "../data/sceneData.json";
 
 const fallbackSceneData: SceneData = {
+  title: "Futuristic 3D Procedural Scene",
   theme: "science",
   durationInFrames: 300,
   fps: 30,
@@ -15,9 +16,7 @@ const fallbackSceneData: SceneData = {
     colorTheme: "#22d3ee",
   },
   particles: {count: 200, speed: 0.5, color: "#67e8f9", shape: "spark"},
-  audio: {bgmStyle: "ambient futuristic", sfxTypes: ["soft hum"]},
-  seed: 42,
-  modelQuery: "glowing DNA double helix",
+  seoTags: ["futuristic", "3d", "procedural", "animation"],
 };
 
 const parsedSceneData = SceneSchema.safeParse(generatedSceneData);
