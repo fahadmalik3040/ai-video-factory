@@ -1,35 +1,13 @@
-import React from "react";
-import {ThreeCanvas} from "@remotion/three";
-import type {SceneData} from "../config/ZodSchema";
-import {ScienceScene} from "../scenes/ScienceScene";
-import {AudioEngine} from "../engine/audio/AudioEngine";
+import { ThreeCanvas } from '@remotion/three';
+import React from 'react';
+import ScienceScene from '../scenes/ScienceScene';
 
-type SceneRouterProps = {
-  sceneData: SceneData;
-};
-
-export const SceneRouter: React.FC<SceneRouterProps> = ({sceneData}) => {
-  const renderScene = () => {
-    switch (sceneData.theme) {
-      case "science":
-        return <ScienceScene data={sceneData} />;
-      default:
-        return (
-          <>
-            <ambientLight intensity={0.5} />
-            <mesh rotation={[0.3, 0.5, 0]}>
-              <boxGeometry args={[2, 2, 2]} />
-              <meshStandardMaterial color="#64748b" />
-            </mesh>
-          </>
-        );
-    }
-  };
-
+export const SceneRouter = ({ sceneData }: any) => {
   return (
-    <>
-      <ThreeCanvas width={1920} height={1080}>{renderScene()}</ThreeCanvas>
-      <AudioEngine audioData={sceneData.audio} />
-    </>
+    <div style={{ position: 'absolute', width: '100%', height: '100%', backgroundColor: '#050505' }}>
+      <ThreeCanvas width={3840} height={2160}>
+         <ScienceScene data={sceneData} />
+      </ThreeCanvas>
+    </div>
   );
 };

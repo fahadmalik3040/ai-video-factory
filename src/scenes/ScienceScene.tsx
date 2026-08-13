@@ -27,3 +27,5 @@ export const ScienceScene: React.FC<ScienceSceneProps> = ({data}) => {
     </>
   );
 };
+
+export default ScienceScene;
