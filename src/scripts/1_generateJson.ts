@@ -13,7 +13,6 @@ type PromptRow = {
 const projectRoot = process.cwd();
 const promptsPath = path.join(projectRoot, "data", "prompts.csv");
 const outputPath = path.join(projectRoot, "data", "sceneData.json");
-const maxAttempts = 3;
 
 const sceneStructure = `{
   "theme": "science | cyber | finance",
@@ -64,16 +63,17 @@ const main = async (): Promise<void> => {
     throw new Error("OPENAI_API_KEY is required. Configure it in .env or GitHub Actions secrets.");
   }
 
+  const models = ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"];
+
   console.log("Reading the first prompt from data/prompts.csv...");
   const promptRow = await readFirstPrompt();
   const prompt = `You are a strict JSON generator. Output ONLY raw JSON matching this structure. No markdown, backticks, or conversational text.\n\nRequired structure:\n${sceneStructure}\n\nCreate one coherent procedural 3D video scene for:\n${promptRow.prompt}\n\nTags: ${promptRow.tags ?? "none"}`;
 
-  let attempt = 1;
-  while (attempt <= maxAttempts) {
+  for (const model of models) {
     try {
-      console.log(`Requesting scene JSON from proxy (attempt ${attempt}/${maxAttempts})...`);
+      console.log(`Requesting scene JSON from proxy using model ${model}...`);
       const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model,
         temperature: 0.2,
         messages: [{role: "user", content: prompt}],
       });
@@ -88,16 +88,11 @@ const main = async (): Promise<void> => {
       console.log(`Validated scene data saved to ${outputPath}`);
       return;
     } catch (error) {
-      console.error(`Proxy generation attempt ${attempt} failed:`, error);
-
-      if (attempt === maxAttempts) {
-        throw new Error("Unable to generate valid scene JSON after 3 attempts.");
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 3_000));
-      attempt += 1;
+      console.log(`Model ${model} failed, trying next...`);
     }
   }
+
+  throw new Error("All models failed to generate valid scene JSON.");
 };
 
 main().catch((error: unknown) => {
