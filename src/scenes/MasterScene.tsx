@@ -9,7 +9,9 @@ export const MasterScene = ({ data }: any) => {
   const frame = useCurrentFrame();
   const groupRef = useRef<THREE.Group>(null);
   
-  const colorTheme = data?.lighting?.colorTheme || "#00ffff";
+  const rawColor = data?.lighting?.colorTheme;
+  const isHex = typeof rawColor === 'string' && /^#([0-9A-F]{3}){1,2}$/i.test(rawColor);
+  const colorTheme = isHex ? rawColor : "#00ffff";
   const title = data?.title || "FUTURE A.I.";
 
   useFrame(() => {
