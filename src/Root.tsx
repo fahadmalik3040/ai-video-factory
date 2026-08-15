@@ -28,7 +28,7 @@ const RemotionRoot: React.FC = () => {
       id="MainVideo"
       component={SceneRouter}
       durationInFrames={sceneData.durationInFrames || 300}
-      fps={sceneData.fps || 30}
+      fps={24}
       width={3840}
       height={2160}
       defaultProps={{sceneData}}

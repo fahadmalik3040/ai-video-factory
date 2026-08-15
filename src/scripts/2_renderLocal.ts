@@ -38,6 +38,12 @@ const main = async (): Promise<void> => {
     inputProps: {sceneData: parsedJson},
     codec: "h264",
     crf: 16,
+    concurrency: 1,
+    timeoutInMilliseconds: 300000,
+    chromiumOptions: {
+      disableWebSecurity: true,
+      ignoreCertificateErrors: true,
+    },
   });
 
   console.log(`Render completed successfully: ${outputLocation}`);
