@@ -1,7 +1,7 @@
 {
   "title": "Futuristic Electric Vehicle Factory",
    "theme": "technology",
-   "durationInFrames": 5400,
+   "durationInFrames": 1200,
    "fps": 30,
    "camera": {
       "type": "dolly",

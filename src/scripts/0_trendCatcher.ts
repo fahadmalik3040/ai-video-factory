@@ -18,7 +18,7 @@ async function catchTrends() {
     const payload = {
       model: "llama-3.3-70b-versatile",
       messages: [
-        { role: "system", content: "You are an elite stock footage prompt engineer. Output strictly a single CSV line: prompt,category,colorTheme,complexity,motionStyle" },
+        { role: "system", content: "You are an elite stock footage prompt engineer. You are generating prompts for a Procedural 3D WebGL motion graphics engine, NOT a photorealistic AI video generator. Focus ONLY on abstract elements: neon grids, glowing particles, HUD interfaces, geometric floating data nodes, cinematic lighting, wireframes. Output strictly a single CSV line: prompt,category,colorTheme,complexity,motionStyle" },
         { role: "user", content: `Headlines: ${headlines}. Hot Keywords: ${hotKeywords}. Create 1 highly cinematic 3D procedural video prompt matching these trends. No headers.` }
       ]
     };

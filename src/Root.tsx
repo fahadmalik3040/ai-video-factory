@@ -6,7 +6,7 @@ import generatedSceneData from "../data/sceneData.json";
 const fallbackSceneData: SceneData = {
   title: "Futuristic 3D Procedural Scene",
   theme: "science",
-  durationInFrames: 300,
+  durationInFrames: 1200,
   fps: 30,
   camera: {type: "orbit", speed: 1, distance: 6, fov: 45},
   lighting: {

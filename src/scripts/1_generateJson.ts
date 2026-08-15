@@ -11,7 +11,7 @@ async function generate() {
     model: "llama-3.3-70b-versatile",
     messages: [
       { role: "system", content: "You are an autonomous JSON script generator. Output STRICT JSON only." },
-      { role: "user", content: `Based on this CSV data: ${promptContent}\nGenerate a 3-scene video script. Output strictly matching this JSON schema: { title: string, theme: "science"|"cyber"|"finance"|"technology", durationInFrames: number, fps: number, camera: { type: string, speed: number, distance: number, fov: number }, lighting: { keyIntensity: number, fillIntensity: number, rimIntensity: number, colorTheme: string }, particles: { count: number, speed: number, color: string, shape: string }, seoTags: string[] } (ensure exactly 50 trending stock video tags).` }
+      { role: "user", content: `Based on this CSV data: ${promptContent}\nGenerate a 3-scene video script. Output strictly matching this JSON schema: { title: string, theme: "science"|"cyber"|"finance"|"technology", durationInFrames: number, fps: number, camera: { type: string, speed: number, distance: number, fov: number }, lighting: { keyIntensity: number, fillIntensity: number, rimIntensity: number, colorTheme: string }, particles: { count: number, speed: number, color: string, shape: string }, seoTags: string[] } (ensure exactly 50 trending stock video tags). CRITICAL: Set durationInFrames strictly between 900 and 1500 (which is 30 to 50 seconds at 30fps). Visual prompts must be heavily focused on abstract 3D geometries, particle systems, and data-flows, not humans or real-world physics.` }
     ],
     response_format: { type: "json_object" }
   };
