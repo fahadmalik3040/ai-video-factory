@@ -43,7 +43,9 @@ const main = async (): Promise<void> => {
     chromiumOptions: {
       disableWebSecurity: true,
       ignoreCertificateErrors: true,
-    },
+      gl: "angle",
+      args: ["--use-gl=angle", "--enable-webgl", "--disable-software-rasterizer"],
+    } as any,
   });
 
   console.log(`Render completed successfully: ${outputLocation}`);
