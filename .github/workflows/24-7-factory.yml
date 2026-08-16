@@ -7,7 +7,10 @@ on:
 jobs:
   mass-production:
     runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: "--max_old_space_size=6144"
     strategy:
+      fail-fast: false
       matrix:
         worker: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] # 10 parallel servers x 8 times/day = 80+ videos (Expandable to 25 workers)
     
