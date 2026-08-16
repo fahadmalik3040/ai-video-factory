@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useCurrentFrame } from 'remotion';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Text, MeshTransmissionMaterial, Float, Environment, Sparkles, Icosahedron } from '@react-three/drei';
+import { Text, Float, Environment, Sparkles, Icosahedron } from '@react-three/drei';
 import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from '@react-three/postprocessing';
 
 export const MasterScene = ({ data }: any) => {
@@ -32,7 +32,7 @@ export const MasterScene = ({ data }: any) => {
       <pointLight position={[-10, -10, -10]} intensity={1} color="#ff0055" />
 
       <group ref={groupRef}>
-        {/* 2. THE HERO TEXT (REAL GLASS / TRANSMISSION) */}
+        {/* 2. THE HERO TEXT */}
         <Float speed={1.5} rotationIntensity={0.5} floatIntensity={2}>
           <Text
             position={[0, 0, 0]}
@@ -43,15 +43,10 @@ export const MasterScene = ({ data }: any) => {
             anchorY="middle"
           >
             {title.toUpperCase()}
-            {/* The absolute peak of WebGL materials: Refractive Glass */}
-            <MeshTransmissionMaterial 
-              backside 
-              thickness={1.5} 
+            <meshPhysicalMaterial 
               roughness={0.05} 
-              transmission={1} 
+              transmission={0.9} 
               ior={1.5} 
-              chromaticAberration={0.05} 
-              anisotropy={0.1} 
               color="#ffffff" 
             />
           </Text>
@@ -73,8 +68,8 @@ export const MasterScene = ({ data }: any) => {
         <Sparkles count={3000} scale={25} size={2} speed={0.4} opacity={0.6} color={colorTheme} />
       </group>
 
-      {/* 5. HOLLYWOOD-LEVEL POST-PROCESSING PIPELINE */}
-      <EffectComposer multisampling={4}>
+      {/* 5. HOLLYWOOD-LEVEL POST-PROCESSING PIPELINE (STABLE FOR HEADLESS RENDERING) */}
+      <EffectComposer {...({ disableNormalPass: true, multisampling: 0 } as any)}>
         {/* Depth of Field (Bokeh): Makes foreground sharp, background blurry */}
         <DepthOfField focusDistance={0} focalLength={0.02} bokehScale={5} height={480} />
         {/* High-end Bloom for glowing emissive materials */}
