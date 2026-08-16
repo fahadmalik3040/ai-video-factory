@@ -3,7 +3,6 @@ import { useCurrentFrame } from 'remotion';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Text, Float, Environment, Sparkles, Icosahedron } from '@react-three/drei';
-import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from '@react-three/postprocessing';
 
 export const MasterScene = ({ data }: any) => {
   const frame = useCurrentFrame();
@@ -25,7 +24,7 @@ export const MasterScene = ({ data }: any) => {
   return (
     <>
       {/* 1. REAL-WORLD LIGHTING & REFLECTIONS */}
-      <color attach="background" args={['#010105']} />
+      <color attach="background" args={['#020202']} />
       <Environment preset="city" />
       <ambientLight intensity={0.2} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} color={colorTheme} />
@@ -64,20 +63,9 @@ export const MasterScene = ({ data }: any) => {
           </Icosahedron>
         </Float>
 
-        {/* 4. PREMIUM GPU PARTICLES */}
-        <Sparkles count={3000} scale={25} size={2} speed={0.4} opacity={0.6} color={colorTheme} />
+        {/* 4. PREMIUM GPU PARTICLES WITH NATIVE ADDITIVE BLENDING */}
+        <Sparkles count={3000} scale={25} size={3} speed={0.4} opacity={0.8} color={colorTheme} />
       </group>
-
-      {/* 5. HOLLYWOOD-LEVEL POST-PROCESSING PIPELINE (STABLE FOR HEADLESS RENDERING) */}
-      <EffectComposer {...({ disableNormalPass: true, multisampling: 0 } as any)}>
-        {/* Depth of Field (Bokeh): Makes foreground sharp, background blurry */}
-        <DepthOfField focusDistance={0} focalLength={0.02} bokehScale={5} height={480} />
-        {/* High-end Bloom for glowing emissive materials */}
-        <Bloom luminanceThreshold={0.2} mipmapBlur intensity={1.5} radius={0.7} />
-        {/* Cinematic Film Grain & Vignette */}
-        <Noise opacity={0.04} />
-        <Vignette eskil={false} offset={0.1} darkness={1.1} />
-      </EffectComposer>
     </>
   );
 };
