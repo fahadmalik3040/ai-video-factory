@@ -1,32 +1,35 @@
-name: 24/7 AI Video Factory
-
+name: 24/7 AI Video Factory (Mass Production)
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 */3 * * *' # Runs every 3 hours (8 times a day)
   workflow_dispatch:
 
 jobs:
-  render-video:
+  mass-production:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        worker: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] # 10 parallel servers x 8 times/day = 80+ videos (Expandable to 25 workers)
+    
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
-      - name: Install dependencies
+          node-version: 20
+      
+      - name: Install Dependencies
         run: npm install
-      - name: Install Remotion browser
-        run: npx --yes remotion browser ensure
-      - name: Catch Live Trends
-        run: npx --yes tsx src/scripts/0_trendCatcher.ts
-      - name: Generate JSON
-        run: npx --yes tsx src/scripts/1_generateJson.ts
+        
+      - name: Phase 1 & 2 - Generate Trends & JSON
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      - name: Render video
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: npx --yes tsx src/scripts/1_generateJson.ts
+        
+      - name: Phase 3 & 4 - 4K Render Engine
         run: npm run render:cloud
-      - name: Upload rendered video
-        uses: actions/upload-artifact@v4
-        with:
-          name: rendered-video
-          path: out/
+        
+      - name: Phase 5 - Drive Upload & SEO
+        env:
+          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
+          GDRIVE_PARENT_ID: ${{ secrets.GDRIVE_PARENT_ID }}
+        run: npx --yes tsx src/scripts/5_uploadDrive.ts
