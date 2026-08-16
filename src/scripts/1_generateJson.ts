@@ -32,11 +32,16 @@ async function generate() {
     
     fs.writeFileSync('data/sceneData.json', jsonContent);
     
-    // Save SEO Metadata for Shutterstock
-    const metadataText = `TITLE:\n${parsedData.title}\n\nTAGS (50):\n${parsedData.seoTags.join(", ")}`;
+    // SAFE FALLBACKS: Prevent crashes if AI hallucinates and misses keys
+    const safeTitle = parsedData.title || "Cinematic 3D Abstract Animation";
+    const safeTags = Array.isArray(parsedData.seoTags) && parsedData.seoTags.length > 0 
+      ? parsedData.seoTags 
+      : ["cinematic", "abstract", "technology", "3d", "motion graphics", "background", "loop", "data", "scifi", "4k"];
+      
+    const metadataText = `TITLE:\n${safeTitle}\n\nTAGS:\n${safeTags.join(", ")}`;
     fs.writeFileSync('out/metadata.txt', metadataText);
     
-    console.log("✅ JSON & SEO METADATA GENERATED SUCCESSFULLY!");
+    console.log("✅ JSON & SEO METADATA GENERATED SAFELY!");
   } catch (error) {
     console.error("❌ Generation failed:", error);
     process.exit(1);
