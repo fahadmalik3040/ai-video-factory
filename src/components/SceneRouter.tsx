@@ -1,5 +1,4 @@
 import { ThreeCanvas } from '@remotion/three';
-import React from 'react';
 import { MasterScene } from '../scenes/MasterScene';
 import { PerspectiveCamera } from '@react-three/drei';
 import { AudioEngine } from '../engine/audio/AudioEngine';

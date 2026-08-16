@@ -1,4 +1,3 @@
-import React from 'react';
 import { Audio } from 'remotion';
 
 export const AudioEngine = ({ category }: { category?: string }) => {

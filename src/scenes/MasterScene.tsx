@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { useCurrentFrame } from 'remotion';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -74,7 +74,7 @@ export const MasterScene = ({ data }: any) => {
       </group>
 
       {/* 5. HOLLYWOOD-LEVEL POST-PROCESSING PIPELINE */}
-      <EffectComposer disableNormalPass multisampling={4}>
+      <EffectComposer multisampling={4}>
         {/* Depth of Field (Bokeh): Makes foreground sharp, background blurry */}
         <DepthOfField focusDistance={0} focalLength={0.02} bokehScale={5} height={480} />
         {/* High-end Bloom for glowing emissive materials */}

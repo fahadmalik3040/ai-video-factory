@@ -1,3 +1,4 @@
+import React from "react";
 import {Composition} from "remotion";
 import {SceneSchema, type SceneData} from "./config/ZodSchema";
 import {SceneRouter} from "./components/SceneRouter";
