@@ -24,6 +24,13 @@ async function generate() {
     });
 
     const data = await response.json();
+    
+    // BULLETPROOF CHECK: If Groq returned an error payload instead of choices
+    if (!data.choices || !data.choices[0]) {
+      console.error("🚨 GROQ API UNEXPECTED RESPONSE:", JSON.stringify(data, null, 2));
+      throw new Error("Missing 'choices' in Groq API response. API likely returned an error.");
+    }
+
     const jsonContent = data.choices[0].message.content;
     const parsedData = JSON.parse(jsonContent);
     
