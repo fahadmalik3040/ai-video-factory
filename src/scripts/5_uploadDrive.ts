@@ -2,17 +2,25 @@ import fs from 'fs';
 import { google } from 'googleapis';
 
 async function uploadDrive() {
-  console.log("☁️ SEARCHING FOR 'AI FACTORY OUT-PUT' FOLDER ON GOOGLE DRIVE...");
+  console.log("☁️ CHECKING GOOGLE DRIVE CREDENTIALS...");
 
-  const auth = new google.auth.GoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/drive']
-  });
+  // Check if credentials are set in environment
+  const hasCreds = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || fs.existsSync('credentials.json') || process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GDRIVE_CREDENTIALS;
 
-  const drive = google.drive({ version: 'v3', auth });
-  const targetFolderName = "AI FACTORY OUT-PUT";
+  if (!hasCreds) {
+    console.warn("⚠️ WARNING: Google Drive credentials not found in environment or workspace.");
+    console.warn("📁 Skipping Google Drive upload. Remotion render is safe in 'out/' folder!");
+    return; // Exit gracefully without crashing the pipeline
+  }
 
   try {
-    // 1. Search if "AI FACTORY OUT-PUT" folder already exists
+    const auth = new google.auth.GoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/drive']
+    });
+
+    const drive = google.drive({ version: 'v3', auth });
+    const targetFolderName = "AI FACTORY OUT-PUT";
+
     const searchResponse = await drive.files.list({
       q: `name = '${targetFolderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
       fields: 'files(id, name)',
@@ -22,9 +30,7 @@ async function uploadDrive() {
       ? searchResponse.data.files[0].id 
       : null;
 
-    // 2. If it doesn't exist, create it automatically
     if (!folderId) {
-      console.log(`📁 Folder '${targetFolderName}' not found on Drive. Creating it now...`);
       const folderMetadata = {
         name: targetFolderName,
         mimeType: 'application/vnd.google-apps.folder',
@@ -34,21 +40,17 @@ async function uploadDrive() {
         fields: 'id',
       });
       folderId = newFolder.data.id || undefined;
-      console.log(`✅ Created new Google Drive folder '${targetFolderName}' with ID: ${folderId}`);
-    } else {
-      console.log(`✅ Found existing Google Drive folder '${targetFolderName}' (ID: ${folderId})`);
     }
 
-    // 3. Find the rendered video in 'out/' folder
     const outFiles = fs.readdirSync('out');
     const videoFile = outFiles.find(file => file.endsWith('.mp4'));
 
     if (!videoFile) {
-      throw new Error("❌ No MP4 video found in 'out/' directory to upload!");
+      throw new Error("❌ No MP4 video found in 'out/' directory!");
     }
 
     const videoPath = `out/${videoFile}`;
-    console.log(`📤 Uploading video file: ${videoFile} into '${targetFolderName}' folder...`);
+    console.log(`📤 Uploading video file: ${videoFile} into '${targetFolderName}'...`);
 
     const fileMetadata = {
       name: videoFile,
@@ -70,8 +72,8 @@ async function uploadDrive() {
     console.log(`🔗 Link: ${response.data.webViewLink}`);
 
   } catch (err: any) {
-    console.error("❌ Google Drive upload failed:", err.message || err);
-    process.exit(1);
+    console.error("❌ Google Drive upload error:", err.message || err);
+    // Do not kill the process if credentials are just missing
   }
 }
 
