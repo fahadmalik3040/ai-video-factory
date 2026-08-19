@@ -1,112 +1,76 @@
-import { google } from 'googleapis';
 import fs from 'fs';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { google } from 'googleapis';
 
 async function uploadDrive() {
-  console.log("☁️ STARTING GOOGLE DRIVE UPLOAD & SEO GENERATION...");
+  console.log("☁️ SEARCHING FOR 'AI FACTORY OUT-PUT' FOLDER ON GOOGLE DRIVE...");
+
+  const auth = new google.auth.GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/drive']
+  });
+
+  const drive = google.drive({ version: 'v3', auth });
+  const targetFolderName = "AI FACTORY OUT-PUT";
 
   try {
-    const credentialsEnv = process.env.GDRIVE_CREDENTIALS;
-    if (!credentialsEnv) {
-      console.warn("⚠️ GDRIVE_CREDENTIALS env variable missing. Skipping Google Drive upload.");
-      return;
-    }
-
-    let credentials;
-    try {
-      credentials = JSON.parse(credentialsEnv);
-    } catch {
-      credentials = JSON.parse(fs.readFileSync(credentialsEnv, 'utf-8'));
-    }
-
-    const auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive']
+    // 1. Search if "AI FACTORY OUT-PUT" folder already exists
+    const searchResponse = await drive.files.list({
+      q: `name = '${targetFolderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+      fields: 'files(id, name)',
     });
 
-    const drive = google.drive({ version: 'v3', auth });
+    let folderId = searchResponse.data.files && searchResponse.data.files.length > 0 
+      ? searchResponse.data.files[0].id 
+      : null;
 
-    const sceneDataPath = path.join('data', 'sceneData.json');
-    if (!fs.existsSync(sceneDataPath)) {
-      throw new Error(`Scene data not found at ${sceneDataPath}`);
-    }
-
-    const sceneData = JSON.parse(fs.readFileSync(sceneDataPath, 'utf-8'));
-    const title = sceneData.title || "Untitled Video";
-    const theme = sceneData.theme || "technology";
-
-    const uniqueId = "VID_" + uuidv4().substring(0, 6).toUpperCase();
-    const folderName = `${uniqueId} - ${title}`;
-
-    const parentFolderId = process.env.GDRIVE_PARENT_ID;
-    console.log(`📁 Creating Drive folder: "${folderName}"...`);
-
-    const folderRes = await drive.files.create({
-      requestBody: {
-        name: folderName,
+    // 2. If it doesn't exist, create it automatically
+    if (!folderId) {
+      console.log(`📁 Folder '${targetFolderName}' not found on Drive. Creating it now...`);
+      const folderMetadata = {
+        name: targetFolderName,
         mimeType: 'application/vnd.google-apps.folder',
-        parents: parentFolderId ? [parentFolderId] : undefined
-      },
-      fields: 'id'
+      };
+      const newFolder = await drive.files.create({
+        requestBody: folderMetadata,
+        fields: 'id',
+      });
+      folderId = newFolder.data.id || undefined;
+      console.log(`✅ Created new Google Drive folder '${targetFolderName}' with ID: ${folderId}`);
+    } else {
+      console.log(`✅ Found existing Google Drive folder '${targetFolderName}' (ID: ${folderId})`);
+    }
+
+    // 3. Find the rendered video in 'out/' folder
+    const outFiles = fs.readdirSync('out');
+    const videoFile = outFiles.find(file => file.endsWith('.mp4'));
+
+    if (!videoFile) {
+      throw new Error("❌ No MP4 video found in 'out/' directory to upload!");
+    }
+
+    const videoPath = `out/${videoFile}`;
+    console.log(`📤 Uploading video file: ${videoFile} into '${targetFolderName}' folder...`);
+
+    const fileMetadata = {
+      name: videoFile,
+      parents: folderId ? [folderId] : [],
+    };
+    
+    const media = {
+      mimeType: 'video/mp4',
+      body: fs.createReadStream(videoPath),
+    };
+
+    const response = await drive.files.create({
+      requestBody: fileMetadata,
+      media: media,
+      fields: 'id, webViewLink',
     });
 
-    const folderId = folderRes.data.id;
-    console.log(`✅ Folder created with ID: ${folderId}`);
+    console.log(`🎉 SUCCESS! Video uploaded inside 'AI FACTORY OUT-PUT'.`);
+    console.log(`🔗 Link: ${response.data.webViewLink}`);
 
-    if (!fs.existsSync('out')) {
-      fs.mkdirSync('out', { recursive: true });
-    }
-
-    const seoContent = `Title: ${title}\nID: ${uniqueId}\n\nDescription: A cinematic 4K abstract representation of ${title}. Generated procedurally.\n\nPrompt: ${title}\n\nTags: #Abstract #4K #MotionGraphics #${theme}`;
-    const seoFilePath = path.join('out', 'seo_metadata.txt');
-    fs.writeFileSync(seoFilePath, seoContent);
-    console.log("📝 SEO Metadata generated.");
-
-    const videoPath = path.join('out', 'final_video.mp4');
-
-    // Upload Video if present
-    if (fs.existsSync(videoPath)) {
-      console.log("📹 Uploading final_video.mp4 to Google Drive...");
-      await drive.files.create({
-        requestBody: {
-          name: `${uniqueId}_final_video.mp4`,
-          parents: folderId ? [folderId] : undefined
-        },
-        media: {
-          mimeType: 'video/mp4',
-          body: fs.createReadStream(videoPath)
-        }
-      });
-      console.log("✅ Video uploaded.");
-    } else {
-      console.warn(`⚠️ Video file not found at ${videoPath}, skipping video upload.`);
-    }
-
-    // Upload SEO Metadata
-    if (fs.existsSync(seoFilePath)) {
-      console.log("📄 Uploading seo_metadata.txt to Google Drive...");
-      await drive.files.create({
-        requestBody: {
-          name: 'seo_metadata.txt',
-          parents: folderId ? [folderId] : undefined
-        },
-        media: {
-          mimeType: 'text/plain',
-          body: fs.createReadStream(seoFilePath)
-        }
-      });
-      console.log("✅ SEO Metadata uploaded.");
-    }
-
-    // Clean up local out directory
-    console.log("🧹 Cleaning up local output directory...");
-    if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
-    if (fs.existsSync(seoFilePath)) fs.unlinkSync(seoFilePath);
-
-    console.log("🎉 GOOGLE DRIVE UPLOAD & CLEANUP COMPLETE!");
-  } catch (error) {
-    console.error("❌ Drive upload failed:", error);
+  } catch (err: any) {
+    console.error("❌ Google Drive upload failed:", err.message || err);
     process.exit(1);
   }
 }
