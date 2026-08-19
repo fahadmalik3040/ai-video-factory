@@ -1,40 +1,45 @@
 import fs from 'fs';
 
 async function generate() {
-  console.log("🚀 INITIATING VIP GROQ ENGINE FOR JSON & METADATA...");
-  const url = "https://api.groq.com/openai/v1/chat/completions";
-  const apiKey = process.env.GROQ_API_KEY || "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"; 
+  console.log("🚀 INITIATING GEMINI GOD-MODE ENGINE...");
+  
+  // Use GEMINI_API_KEY environment variable (passed via GitHub Actions secrets or local environment)
+  const apiKey = process.env.GEMINI_API_KEY; 
+  if (!apiKey) {
+    console.error("🚨 GEMINI_API_KEY environment variable is not set.");
+    process.exit(1);
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+  const promptContent = fs.existsSync('data/prompts.csv') ? fs.readFileSync('data/prompts.csv', 'utf-8') : "Cinematic technology abstract";
+
+  const systemInstruction = "You are an autonomous JSON script generator. Output STRICT JSON only. Generate a 3-scene video script based on the prompt. Output strictly matching this JSON schema: { title: string, theme: 'science'|'cyber'|'finance'|'technology', durationInFrames: number, fps: number, camera: { type: string, speed: number, distance: number, fov: number }, lighting: { keyIntensity: number, fillIntensity: number, rimIntensity: number, colorTheme: string }, particles: { count: number, speed: number, color: string, shape: string }, seoTags: string[] } (ensure exactly 50 trending stock video tags).";
+
+  const payload = {
+    contents: [{
+      parts: [{ text: `${systemInstruction}\n\nPrompt Data: ${promptContent}` }]
+    }],
+    generationConfig: {
+      responseMimeType: "application/json"
+    }
+  };
 
   try {
-    let promptContent = "prompt,category,colorTheme,complexity,motionStyle\n3D Abstract Quantum Particles,technology,#00ffff,high,cinematic";
-    if (fs.existsSync('data/prompts.csv')) {
-      promptContent = fs.readFileSync('data/prompts.csv', 'utf-8');
-    }
-
-    const payload = {
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: "You are an autonomous JSON script generator. Output STRICT JSON only." },
-        { role: "user", content: `Based on this CSV data: ${promptContent}\nGenerate a 3-scene video script. Output strictly matching this JSON schema: { title: string, theme: "science"|"cyber"|"finance"|"technology", durationInFrames: number, fps: number, camera: { type: string, speed: number, distance: number, fov: number }, lighting: { keyIntensity: number, fillIntensity: number, rimIntensity: number, colorTheme: string }, particles: { count: number, speed: number, color: string, shape: string }, seoTags: string[] } (ensure exactly 50 trending stock video tags). CRITICAL: Set durationInFrames strictly between 900 and 1500 (which is 30 to 50 seconds at 30fps). Visual prompts must be heavily focused on abstract 3D geometries, particle systems, and data-flows, not humans or real-world physics. ANY color values (like colorTheme) MUST be strictly valid Hex Codes (e.g., #ff0055). NEVER use text descriptions.` }
-      ],
-      response_format: { type: "json_object" }
-    };
-
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     const data = await response.json();
     
-    // BULLETPROOF CHECK: If Groq returned an error payload instead of choices
-    if (!data.choices || !data.choices[0]) {
-      console.error("🚨 GROQ API UNEXPECTED RESPONSE:", JSON.stringify(data, null, 2));
-      throw new Error("Missing 'choices' in Groq API response. API likely returned an error.");
+    if (!data.candidates || !data.candidates[0]?.content?.parts[0]?.text) {
+      console.error("🚨 GEMINI API UNEXPECTED RESPONSE:", JSON.stringify(data, null, 2));
+      process.exit(1);
     }
 
-    const jsonContent = data.choices[0].message.content;
+    const jsonContent = data.candidates[0].content.parts[0].text;
     const parsedData = JSON.parse(jsonContent);
     
     if (!fs.existsSync('data')) fs.mkdirSync('data');
@@ -42,7 +47,6 @@ async function generate() {
     
     fs.writeFileSync('data/sceneData.json', jsonContent);
     
-    // SAFE FALLBACKS: Prevent crashes if AI hallucinates and misses keys
     const safeTitle = parsedData.title || "Cinematic 3D Abstract Animation";
     const safeTags = Array.isArray(parsedData.seoTags) && parsedData.seoTags.length > 0 
       ? parsedData.seoTags 
@@ -51,10 +55,11 @@ async function generate() {
     const metadataText = `TITLE:\n${safeTitle}\n\nTAGS:\n${safeTags.join(", ")}`;
     fs.writeFileSync('out/metadata.txt', metadataText);
     
-    console.log("✅ JSON & SEO METADATA GENERATED SAFELY!");
-  } catch (error) {
-    console.error("❌ Generation failed:", error);
+    console.log("✅ JSON & SEO METADATA SAVED SAFELY VIA GEMINI!");
+  } catch (err) {
+    console.error("❌ Generation failed:", err);
     process.exit(1);
   }
 }
+
 generate();
