@@ -32,11 +32,13 @@ jobs:
       - name: Phase 3 & 4 - 4K Render Engine
         run: npm run render:cloud
         
-      - name: Upload Rendered Video Artifact
+      - name: Upload Rendered Video & SEO Metadata
         uses: actions/upload-artifact@v4
         with:
-          name: ai-factory-masterpiece
-          path: out/*.mp4
+          name: ai-factory-output
+          path: |
+            out/*.mp4
+            out/*.txt
         
       - name: Phase 5 - Drive Upload & SEO
         env:

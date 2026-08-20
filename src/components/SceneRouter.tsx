@@ -4,14 +4,11 @@ import { MasterScene } from '../scenes/MasterScene';
 import { AudioEngine } from '../engine/audio/AudioEngine';
 
 export const SceneRouter = ({ sceneData }: any) => {
-  const title = sceneData?.title || "TRENDING NOW";
-  const glowColor = sceneData?.lighting?.colorTheme || "#00ffff";
-
   return (
     <AbsoluteFill style={{ backgroundColor: '#020202', overflow: 'hidden' }}>
       <AudioEngine category={sceneData?.theme || "default"} />
       
-      {/* HEAVY ENGINE: Native WebGL, strict sizing, no Drei camera layout clashes */}
+      {/* 100% Visual Stock Video Engine: Native WebGL, High Performance, Zero Text Overlays */}
       <ThreeCanvas 
         width={3840} 
         height={2160} 
@@ -21,23 +18,6 @@ export const SceneRouter = ({ sceneData }: any) => {
       >
          <MasterScene data={sceneData} />
       </ThreeCanvas>
-
-      {/* HEAVY HTML TEXT OVERLAY: Cinematic, perfectly immune to WebGL layout bugs */}
-      <AbsoluteFill style={{
-        justifyContent: 'center',
-        alignItems: 'center',
-        color: 'white',
-        fontSize: 180,
-        fontWeight: 900,
-        fontFamily: 'system-ui, sans-serif',
-        textShadow: `0 0 80px ${glowColor}, 0 0 30px ${glowColor}, 0 0 10px #ffffff`,
-        textAlign: 'center',
-        textTransform: 'uppercase',
-        zIndex: 10,
-        padding: '10%'
-      }}>
-        {title}
-      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
