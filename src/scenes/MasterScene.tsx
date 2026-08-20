@@ -1,7 +1,6 @@
 import React, { useMemo, useRef, Component, ErrorInfo, ReactNode } from 'react';
-import { useCurrentFrame } from 'remotion';
 import { useFrame } from '@react-three/fiber';
-import { Environment, MeshTransmissionMaterial } from '@react-three/drei';
+import { Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
@@ -40,229 +39,386 @@ class ThreeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 }
 
 // ----------------------------------------------------
-// Safe Fallback Procedural Particle Nebula
+// Solid Fallback Scene (ZERO Particles)
 // ----------------------------------------------------
-const FallbackScene: React.FC<{ colors: string[] }> = ({ colors }) => {
-  const frame = useCurrentFrame();
+const SolidFallbackScene: React.FC<{ colors: string[] }> = ({ colors }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
   const c1 = colors[0] || "#00f0ff";
-  const c2 = colors[1] || "#ff007f";
-  const c3 = colors[2] || "#7000ff";
 
-  const count = 1200;
-  const positions = useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      const radius = 2 + Math.random() * 12;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
-
-      pos[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      pos[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      pos[i * 3 + 2] = radius * Math.cos(phi);
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (meshRef.current) {
+      meshRef.current.rotation.x = t * 0.4;
+      meshRef.current.rotation.y = t * 0.6;
     }
-    return pos;
-  }, [count]);
+  });
 
   return (
-    <group rotation={[frame * 0.003, frame * 0.005, 0]}>
-      <ambientLight intensity={0.6} />
-      <pointLight position={[10, 10, 10]} color={c1} intensity={2.0} />
-      <pointLight position={[-10, -10, -10]} color={c2} intensity={2.0} />
-
-      <points>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        </bufferGeometry>
-        <pointsMaterial size={0.3} color={c3} transparent opacity={0.8} />
-      </points>
+    <group>
+      <ambientLight intensity={1.5} />
+      <directionalLight position={[10, 10, 5]} intensity={2.0} />
+      <mesh ref={meshRef}>
+        <icosahedronGeometry args={[4, 2]} />
+        <meshPhysicalMaterial
+          color={c1}
+          metalness={0.9}
+          roughness={0.1}
+          clearcoat={1.0}
+          clearcoatRoughness={0.1}
+          wireframe={false}
+        />
+      </mesh>
     </group>
   );
 };
 
 // ----------------------------------------------------
-// Dynamic Procedural Particle & Geometry Engine
+// CORE A: Solid 3D Candlestick Financial Data Stream
 // ----------------------------------------------------
-interface ProceduralEngineProps {
-  particleShape: string;
-  movementStyle: string;
-  colors: string[];
-  cameraSpeed: number;
-  particleCount: number;
-  complexity: number;
-  frame: number;
-}
-
-const ProceduralEngine: React.FC<ProceduralEngineProps> = ({
-  particleShape,
-  movementStyle,
+const CandlestickCore: React.FC<{ colors: string[]; speed: number; complexity: number; movementStyle: string }> = ({
   colors,
-  cameraSpeed,
-  particleCount,
+  speed,
   complexity,
-  frame,
+  movementStyle
 }) => {
-  const pointsRef = useRef<THREE.Points>(null);
+  const candleCount = 64;
+  const bodyMeshRef = useRef<THREE.InstancedMesh>(null);
+  const wickMeshRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
-  const instancedMeshRef = useRef<THREE.InstancedMesh>(null);
 
-  const c1 = colors[0] || "#00f0ff";
-  const c2 = colors[1] || "#ff007f";
-  const c3 = colors[2] || "#7000ff";
+  const c1 = new THREE.Color(colors[0] || "#00f0ff");
+  const c2 = new THREE.Color(colors[1] || "#ff007f");
 
-  const numParticles = Math.min(Math.max(particleCount || 2500, 1000), 5000);
-
-  // Generate initial particle coordinates and colors
-  const { positions, colorBuffer, initialOffsets } = useMemo(() => {
-    const pos = new Float32Array(numParticles * 3);
-    const cols = new Float32Array(numParticles * 3);
-    const offsets = new Float32Array(numParticles * 3);
-
-    const threeCol1 = new THREE.Color(c1);
-    const threeCol2 = new THREE.Color(c2);
-    const threeCol3 = new THREE.Color(c3);
-
-    for (let i = 0; i < numParticles; i++) {
-      const idx = i * 3;
-      const t = i / numParticles;
-
-      if (particleShape === "helix") {
-        const radius = 3.5 + Math.sin(i * 0.1) * 0.8;
-        const angle = i * 0.25;
-        pos[idx] = Math.cos(angle) * radius;
-        pos[idx + 1] = (t - 0.5) * 22;
-        pos[idx + 2] = Math.sin(angle) * radius;
-      } else if (particleShape === "spheres") {
-        const radius = 2.0 + Math.random() * 10.0;
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos((Math.random() * 2) - 1);
-        pos[idx] = radius * Math.sin(phi) * Math.cos(theta);
-        pos[idx + 1] = radius * Math.sin(phi) * Math.sin(theta);
-        pos[idx + 2] = radius * Math.cos(phi);
-      } else if (particleShape === "lines") {
-        pos[idx] = (t - 0.5) * 30;
-        pos[idx + 1] = Math.sin(t * Math.PI * 8) * 4;
-        pos[idx + 2] = Math.cos(t * Math.PI * 8) * 4;
-      } else if (particleShape === "grid") {
-        const side = Math.floor(Math.cbrt(numParticles));
-        const x = (i % side) - side / 2;
-        const y = (Math.floor(i / side) % side) - side / 2;
-        const z = Math.floor(i / (side * side)) - side / 2;
-        pos[idx] = x * 1.2;
-        pos[idx + 1] = y * 1.2;
-        pos[idx + 2] = z * 1.2;
-      } else {
-        // Default "nebula" fractal cloud
-        const radius = 1.5 + Math.pow(Math.random(), 0.5) * 14.0;
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos((Math.random() * 2) - 1);
-        pos[idx] = radius * Math.sin(phi) * Math.cos(theta);
-        pos[idx + 1] = radius * Math.sin(phi) * Math.sin(theta) * 0.6;
-        pos[idx + 2] = radius * Math.cos(phi);
-      }
-
-      offsets[idx] = Math.random() * Math.PI * 2;
-      offsets[idx + 1] = Math.random() * Math.PI * 2;
-      offsets[idx + 2] = Math.random() * Math.PI * 2;
-
-      // Color interpolation
-      let mixedColor = threeCol1.clone();
-      if (i % 3 === 1) mixedColor.lerp(threeCol2, 0.7);
-      else if (i % 3 === 2) mixedColor.lerp(threeCol3, 0.7);
-
-      cols[idx] = mixedColor.r;
-      cols[idx + 1] = mixedColor.g;
-      cols[idx + 2] = mixedColor.b;
-    }
-
-    return { positions: pos, colorBuffer: cols, initialOffsets: offsets };
-  }, [numParticles, particleShape, c1, c2, c3]);
-
-  // Setup instanced mesh positions if shape is "spheres"
-  const instancedCount = 180;
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  useFrame(() => {
-    const time = frame * 0.02 * cameraSpeed * complexity;
+  // Pre-seed pseudo chart data
+  const chartData = useMemo(() => {
+    return Array.from({ length: candleCount }, (_, i) => {
+      const x = (i - candleCount / 2) * 0.6;
+      const baseHeight = 1.0 + Math.sin(i * 0.3) * 0.8 + Math.cos(i * 0.7) * 0.5;
+      const isBullish = (i % 3 !== 0);
+      return { x, baseHeight, isBullish };
+    });
+  }, [candleCount]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime() * speed * 0.8;
 
     if (groupRef.current) {
       if (movementStyle === "vortex") {
-        groupRef.current.rotation.y = time * 0.8;
-        groupRef.current.rotation.x = Math.sin(time * 0.3) * 0.2;
+        groupRef.current.rotation.y = t * 0.4;
+        groupRef.current.rotation.x = Math.sin(t * 0.3) * 0.2;
       } else if (movementStyle === "orbital") {
-        groupRef.current.rotation.y = time * 0.5;
-        groupRef.current.rotation.z = time * 0.3;
+        groupRef.current.rotation.y = t * 0.5;
+        groupRef.current.rotation.z = Math.sin(t * 0.2) * 0.15;
       } else if (movementStyle === "expansion") {
-        const scale = 1.0 + Math.sin(time * 0.8) * 0.25;
-        groupRef.current.scale.set(scale, scale, scale);
-        groupRef.current.rotation.y = time * 0.4;
+        const s = 1.0 + Math.sin(t * 0.6) * 0.2;
+        groupRef.current.scale.set(s, s, s);
       } else if (movementStyle === "wave") {
-        groupRef.current.rotation.y = time * 0.3;
-        groupRef.current.rotation.x = Math.sin(time * 0.5) * 0.3;
+        groupRef.current.rotation.y = Math.sin(t * 0.4) * 0.3;
+        groupRef.current.position.y = Math.cos(t * 0.5) * 0.8;
       } else {
         // quantum_flow
-        groupRef.current.rotation.y = time * 0.4;
-        groupRef.current.rotation.x = Math.cos(time * 0.3) * 0.25;
-        groupRef.current.rotation.z = Math.sin(time * 0.2) * 0.2;
+        groupRef.current.rotation.y = t * 0.25;
+        groupRef.current.rotation.z = Math.sin(t * 0.3) * 0.1;
       }
     }
 
-    // Animate Instanced Mesh if active
-    if (particleShape === "spheres" && instancedMeshRef.current) {
-      for (let i = 0; i < instancedCount; i++) {
-        const angle = i * 0.15 + time * 0.6;
-        const radius = 4.0 + Math.sin(i * 0.3 + time) * 3.0;
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(i * 0.2 + time * 0.8) * 4.0;
-        const z = Math.sin(angle) * radius;
+    if (bodyMeshRef.current && wickMeshRef.current) {
+      for (let i = 0; i < candleCount; i++) {
+        const item = chartData[i];
+        const dynamicH = Math.max(0.4, item.baseHeight + Math.sin(t * 2 + i * 0.4) * 1.5 * complexity);
+        const yOffset = Math.sin(t + i * 0.2) * 1.8;
 
-        dummy.position.set(x, y, z);
-        const s = 0.3 + Math.sin(time + i) * 0.15;
-        dummy.scale.set(s, s, s);
-        dummy.rotation.set(time + i, time * 0.5, 0);
+        // Position & Scale Body
+        dummy.position.set(item.x, yOffset, Math.cos(i * 0.3 + t) * 1.2);
+        dummy.scale.set(0.42, dynamicH, 0.42);
+        dummy.rotation.set(0, 0, 0);
         dummy.updateMatrix();
+        bodyMeshRef.current.setMatrixAt(i, dummy.matrix);
+        bodyMeshRef.current.setColorAt(i, item.isBullish ? c1 : c2);
 
-        instancedMeshRef.current.setMatrixAt(i, dummy.matrix);
+        // Position & Scale Wick
+        const wickHeight = dynamicH + 2.0;
+        dummy.position.set(item.x, yOffset, Math.cos(i * 0.3 + t) * 1.2);
+        dummy.scale.set(0.08, wickHeight, 0.08);
+        dummy.updateMatrix();
+        wickMeshRef.current.setMatrixAt(i, dummy.matrix);
+        wickMeshRef.current.setColorAt(i, item.isBullish ? c1 : c2);
       }
-      instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+
+      bodyMeshRef.current.instanceMatrix.needsUpdate = true;
+      if (bodyMeshRef.current.instanceColor) bodyMeshRef.current.instanceColor.needsUpdate = true;
+
+      wickMeshRef.current.instanceMatrix.needsUpdate = true;
+      if (wickMeshRef.current.instanceColor) wickMeshRef.current.instanceColor.needsUpdate = true;
     }
   });
 
   return (
     <group ref={groupRef}>
-      {/* Primary Particle Cloud */}
-      <points ref={pointsRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-          <bufferAttribute attach="attributes-color" args={[colorBuffer, 3]} />
-        </bufferGeometry>
-        <pointsMaterial
-          size={particleShape === "lines" ? 0.35 : 0.25}
-          vertexColors
-          transparent
-          opacity={0.88}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
+      {/* Solid Candlestick Bodies */}
+      <instancedMesh ref={bodyMeshRef} args={[undefined, undefined, candleCount]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshPhysicalMaterial
+          metalness={0.9}
+          roughness={0.1}
+          clearcoat={1.0}
+          clearcoatRoughness={0.1}
         />
-      </points>
+      </instancedMesh>
 
-      {/* Instanced Glowing Spheres for Spheres Shape */}
-      {particleShape === "spheres" && (
-        <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, instancedCount]}>
-          <sphereGeometry args={[0.5, 16, 16]} />
-          <meshStandardMaterial
-            color={c1}
-            emissive={c2}
-            emissiveIntensity={2.0}
-            roughness={0.1}
-            metalness={0.9}
-          />
-        </instancedMesh>
-      )}
+      {/* Solid Candlestick Wicks */}
+      <instancedMesh ref={wickMeshRef} args={[undefined, undefined, candleCount]}>
+        <cylinderGeometry args={[1, 1, 1, 8]} />
+        <meshPhysicalMaterial
+          metalness={0.95}
+          roughness={0.08}
+          clearcoat={1.0}
+          clearcoatRoughness={0.05}
+        />
+      </instancedMesh>
+    </group>
+  );
+};
 
-      {/* Background Energy Rays for Lines or Grid Shapes */}
-      {(particleShape === "lines" || particleShape === "grid") && (
-        <gridHelper args={[40, 40, c1, c2]} position={[0, -6, 0]} />
-      )}
+// ----------------------------------------------------
+// CORE B: Solid DNA Double Helix & Molecular Structure
+// ----------------------------------------------------
+const DnaMoleculesCore: React.FC<{ colors: string[]; speed: number; complexity: number; movementStyle: string }> = ({
+  colors,
+  speed,
+  complexity,
+  movementStyle
+}) => {
+  const nodeCount = 50;
+  const totalNodes = nodeCount * 2; // Strand 1 and Strand 2
+  const rungsCount = nodeCount;
+
+  const nodeMeshRef = useRef<THREE.InstancedMesh>(null);
+  const rungMeshRef = useRef<THREE.InstancedMesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
+
+  const c1 = new THREE.Color(colors[0] || "#00f0ff");
+  const c2 = new THREE.Color(colors[1] || "#ff007f");
+  const c3 = new THREE.Color(colors[2] || "#7000ff");
+
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime() * speed * 0.7;
+
+    if (groupRef.current) {
+      if (movementStyle === "vortex") {
+        groupRef.current.rotation.y = t * 0.7;
+        groupRef.current.rotation.x = t * 0.3;
+      } else if (movementStyle === "orbital") {
+        groupRef.current.rotation.y = t * 0.5;
+        groupRef.current.rotation.z = t * 0.4;
+      } else if (movementStyle === "expansion") {
+        const s = 1.0 + Math.sin(t * 0.8) * 0.25;
+        groupRef.current.scale.set(s, s, s);
+        groupRef.current.rotation.y = t * 0.3;
+      } else if (movementStyle === "wave") {
+        groupRef.current.rotation.y = t * 0.35;
+        groupRef.current.rotation.z = Math.sin(t * 0.5) * 0.3;
+      } else {
+        // quantum_flow
+        groupRef.current.rotation.y = t * 0.4;
+        groupRef.current.rotation.x = Math.sin(t * 0.3) * 0.25;
+      }
+    }
+
+    if (nodeMeshRef.current && rungMeshRef.current) {
+      const radius = 3.2 * complexity;
+      const heightSpread = 0.5;
+
+      for (let i = 0; i < nodeCount; i++) {
+        const angle = i * 0.28 + t;
+        const y = (i - nodeCount / 2) * heightSpread;
+
+        const x1 = Math.cos(angle) * radius;
+        const z1 = Math.sin(angle) * radius;
+
+        const x2 = Math.cos(angle + Math.PI) * radius;
+        const z2 = Math.sin(angle + Math.PI) * radius;
+
+        // Strand 1 Node
+        dummy.position.set(x1, y, z1);
+        dummy.scale.set(0.6, 0.6, 0.6);
+        dummy.rotation.set(0, 0, 0);
+        dummy.updateMatrix();
+        nodeMeshRef.current.setMatrixAt(i, dummy.matrix);
+        nodeMeshRef.current.setColorAt(i, c1);
+
+        // Strand 2 Node
+        dummy.position.set(x2, y, z2);
+        dummy.scale.set(0.6, 0.6, 0.6);
+        dummy.updateMatrix();
+        nodeMeshRef.current.setMatrixAt(i + nodeCount, dummy.matrix);
+        nodeMeshRef.current.setColorAt(i + nodeCount, c2);
+
+        // Connecting Solid Bond Cylinder (Rung)
+        const midX = (x1 + x2) / 2;
+        const midZ = (z1 + z2) / 2;
+        dummy.position.set(midX, y, midZ);
+        dummy.scale.set(0.12, radius * 2, 0.12);
+        dummy.rotation.set(0, -angle, Math.PI / 2);
+        dummy.updateMatrix();
+        rungMeshRef.current.setMatrixAt(i, dummy.matrix);
+        rungMeshRef.current.setColorAt(i, c3);
+      }
+
+      nodeMeshRef.current.instanceMatrix.needsUpdate = true;
+      if (nodeMeshRef.current.instanceColor) nodeMeshRef.current.instanceColor.needsUpdate = true;
+
+      rungMeshRef.current.instanceMatrix.needsUpdate = true;
+      if (rungMeshRef.current.instanceColor) rungMeshRef.current.instanceColor.needsUpdate = true;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {/* Solid Spherical Molecule Nodes */}
+      <instancedMesh ref={nodeMeshRef} args={[undefined, undefined, totalNodes]}>
+        <sphereGeometry args={[1, 24, 24]} />
+        <meshPhysicalMaterial
+          metalness={0.92}
+          roughness={0.08}
+          clearcoat={1.0}
+          clearcoatRoughness={0.06}
+        />
+      </instancedMesh>
+
+      {/* Solid Cylindrical Molecule Bonds */}
+      <instancedMesh ref={rungMeshRef} args={[undefined, undefined, rungsCount]}>
+        <cylinderGeometry args={[1, 1, 1, 16]} />
+        <meshPhysicalMaterial
+          metalness={0.9}
+          roughness={0.12}
+          clearcoat={1.0}
+          clearcoatRoughness={0.1}
+        />
+      </instancedMesh>
+    </group>
+  );
+};
+
+// ----------------------------------------------------
+// CORE C: Solid Abstract Displaced Geometric Waves
+// ----------------------------------------------------
+const AbstractSolidWavesCore: React.FC<{ colors: string[]; speed: number; complexity: number; movementStyle: string }> = ({
+  colors,
+  speed,
+  complexity,
+  movementStyle
+}) => {
+  const planeRef = useRef<THREE.Mesh>(null);
+  const monolithRef = useRef<THREE.InstancedMesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
+
+  const c1 = colors[0] || "#00f0ff";
+  const c2 = colors[1] || "#ff007f";
+  const c3 = colors[2] || "#7000ff";
+
+  const monolithCount = 36;
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  // Geometry dimensions
+  const segments = 64;
+  const planeGeometry = useMemo(() => new THREE.PlaneGeometry(24, 24, segments, segments), [segments]);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime() * speed * 0.75;
+
+    if (groupRef.current) {
+      if (movementStyle === "vortex") {
+        groupRef.current.rotation.z = t * 0.3;
+        groupRef.current.rotation.x = -Math.PI / 3 + Math.sin(t * 0.4) * 0.15;
+      } else if (movementStyle === "orbital") {
+        groupRef.current.rotation.z = Math.sin(t * 0.3) * 0.3;
+        groupRef.current.rotation.y = t * 0.2;
+      } else if (movementStyle === "expansion") {
+        const s = 1.0 + Math.sin(t * 0.6) * 0.15;
+        groupRef.current.scale.set(s, s, s);
+      } else {
+        // wave & quantum_flow
+        groupRef.current.rotation.x = -Math.PI / 3.2 + Math.sin(t * 0.2) * 0.1;
+        groupRef.current.rotation.z = t * 0.15;
+      }
+    }
+
+    // Dynamic Solid Vertex Wave Displacement
+    if (planeRef.current) {
+      const positionAttr = planeRef.current.geometry.attributes.position;
+      const count = positionAttr.count;
+
+      for (let i = 0; i < count; i++) {
+        const u = positionAttr.getX(i);
+        const v = positionAttr.getY(i);
+        const z = (Math.sin(u * 0.4 + t * 2) * Math.cos(v * 0.4 + t * 1.5) * 2.2 +
+                   Math.sin(Math.sqrt(u * u + v * v) * 0.6 - t * 3) * 1.2) * complexity;
+        positionAttr.setZ(i, z);
+      }
+      positionAttr.needsUpdate = true;
+      planeRef.current.geometry.computeVertexNormals();
+    }
+
+    // Animate Solid Monoliths Floating Above Waves
+    if (monolithRef.current) {
+      const col1 = new THREE.Color(c1);
+      const col2 = new THREE.Color(c2);
+      const col3 = new THREE.Color(c3);
+
+      for (let i = 0; i < monolithCount; i++) {
+        const row = Math.floor(i / 6) - 2.5;
+        const col = (i % 6) - 2.5;
+        const posX = col * 3.5;
+        const posY = row * 3.5;
+        const posZ = 2.5 + Math.sin(t * 2 + i * 0.5) * 1.8;
+
+        dummy.position.set(posX, posY, posZ);
+        dummy.scale.set(0.7, 0.7, 1.8 + Math.sin(t + i) * 0.8);
+        dummy.rotation.set(t + i * 0.2, t * 0.5, 0);
+        dummy.updateMatrix();
+
+        monolithRef.current.setMatrixAt(i, dummy.matrix);
+        let chosenColor = col1;
+        if (i % 3 === 1) chosenColor = col2;
+        else if (i % 3 === 2) chosenColor = col3;
+        monolithRef.current.setColorAt(i, chosenColor);
+      }
+      monolithRef.current.instanceMatrix.needsUpdate = true;
+      if (monolithRef.current.instanceColor) monolithRef.current.instanceColor.needsUpdate = true;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {/* Solid Dynamic Displaced Mesh Plane */}
+      <mesh ref={planeRef} geometry={planeGeometry}>
+        <meshPhysicalMaterial
+          color={c1}
+          emissive={c2}
+          emissiveIntensity={0.3}
+          metalness={0.92}
+          roughness={0.1}
+          clearcoat={1.0}
+          clearcoatRoughness={0.1}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Floating Solid Monolith Cubes */}
+      <instancedMesh ref={monolithRef} args={[undefined, undefined, monolithCount]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshPhysicalMaterial
+          metalness={0.95}
+          roughness={0.08}
+          clearcoat={1.0}
+          clearcoatRoughness={0.05}
+        />
+      </instancedMesh>
     </group>
   );
 };
@@ -272,53 +428,82 @@ const ProceduralEngine: React.FC<ProceduralEngineProps> = ({
 // ----------------------------------------------------
 interface MasterSceneProps {
   data: {
+    title?: string;
+    solid_core?: string;
+    solidCore?: string;
     sceneType?: string;
     particleShape?: string;
     movementStyle?: string;
     colors?: string[];
     cameraSpeed?: number;
     bloomIntensity?: number;
-    particleCount?: number;
     complexity?: number;
   };
 }
 
 export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
-  const frame = useCurrentFrame();
+  const rawCore = data?.solid_core || data?.solidCore || data?.sceneType || data?.particleShape || 'abstract_solid_waves';
+  
+  // Normalize solid core selector
+  let activeCore: 'candlestick_boxes' | 'dna_molecules' | 'abstract_solid_waves' = 'abstract_solid_waves';
+  if (rawCore === 'candlestick_boxes' || rawCore.includes('candlestick') || rawCore.includes('box') || rawCore.includes('finance')) {
+    activeCore = 'candlestick_boxes';
+  } else if (rawCore === 'dna_molecules' || rawCore.includes('dna') || rawCore.includes('molecule') || rawCore.includes('helix') || rawCore.includes('bio')) {
+    activeCore = 'dna_molecules';
+  } else {
+    activeCore = 'abstract_solid_waves';
+  }
 
-  const particleShape = data?.particleShape || data?.sceneType || 'nebula';
   const movementStyle = data?.movementStyle || 'quantum_flow';
   const colors = Array.isArray(data?.colors) && data.colors.length >= 2
     ? data.colors
     : ['#00f0ff', '#ff007f', '#7000ff'];
 
   const cameraSpeed = typeof data?.cameraSpeed === 'number' ? data.cameraSpeed : 1.5;
-  const bloomIntensity = typeof data?.bloomIntensity === 'number' ? data.bloomIntensity : 2.5;
-  const particleCount = typeof data?.particleCount === 'number' ? data.particleCount : 3000;
+  const bloomIntensity = typeof data?.bloomIntensity === 'number' ? data.bloomIntensity : 2.0;
   const complexity = typeof data?.complexity === 'number' ? data.complexity : 1.0;
 
   return (
-    <ThreeErrorBoundary fallback={<FallbackScene colors={colors} />}>
+    <ThreeErrorBoundary fallback={<SolidFallbackScene colors={colors} />}>
+      {/* Scene Lighting for Solid Physical Materials */}
       <ambientLight intensity={1.5} />
-      <directionalLight position={[10, 10, 5]} intensity={2.0} color={colors[0]} />
-      <pointLight position={[-12, -12, -12]} intensity={1.8} color={colors[1]} />
-      <pointLight position={[12, 12, 12]} intensity={1.8} color={colors[2] || colors[0]} />
+      <directionalLight position={[10, 10, 5]} intensity={2.0} color="#ffffff" />
+      <pointLight position={[-15, -15, -10]} intensity={2.2} color={colors[1] || '#ff007f'} />
+      <pointLight position={[15, 15, 10]} intensity={2.2} color={colors[0] || '#00f0ff'} />
       <Environment preset="city" />
 
-      <ProceduralEngine
-        particleShape={particleShape}
-        movementStyle={movementStyle}
-        colors={colors}
-        cameraSpeed={cameraSpeed}
-        particleCount={particleCount}
-        complexity={complexity}
-        frame={frame}
-      />
+      {/* Solid Procedural Cores (ZERO Particles) */}
+      {activeCore === 'candlestick_boxes' && (
+        <CandlestickCore
+          colors={colors}
+          speed={cameraSpeed}
+          complexity={complexity}
+          movementStyle={movementStyle}
+        />
+      )}
+
+      {activeCore === 'dna_molecules' && (
+        <DnaMoleculesCore
+          colors={colors}
+          speed={cameraSpeed}
+          complexity={complexity}
+          movementStyle={movementStyle}
+        />
+      )}
+
+      {activeCore === 'abstract_solid_waves' && (
+        <AbstractSolidWavesCore
+          colors={colors}
+          speed={cameraSpeed}
+          complexity={complexity}
+          movementStyle={movementStyle}
+        />
+      )}
 
       <EffectComposer disableNormalPass>
         <Bloom
-          luminanceThreshold={0.12}
-          luminanceSmoothing={0.9}
+          luminanceThreshold={0.2}
+          luminanceSmoothing={0.8}
           intensity={bloomIntensity}
         />
       </EffectComposer>

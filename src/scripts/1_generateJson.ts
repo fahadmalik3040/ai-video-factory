@@ -49,7 +49,12 @@ function getNextTopic(): string {
   }
 
   if (topics.length === 0) {
-    topics = ["Cinematic technology abstract quantum data visual"];
+    topics = [
+      "Quantum Solid Data Matrix Flow",
+      "Algorithmic Candlestick High Frequency Finance",
+      "Synthetic DNA Double Helix Molecular Array",
+      "Abstract Displaced Tech Waves Real-time 4K"
+    ];
   }
 
   let freshTopics = topics.filter(t => !usedTopics.includes(t));
@@ -68,15 +73,14 @@ function getNextTopic(): string {
     fs.writeFileSync(usedTopicsPath, JSON.stringify(usedTopics, null, 2));
   }
 
-  console.log(`🎯 JOB INDEX ${jobIndex} SELECTED FRESH TOPIC (${usedTopics.length}/${topics.length} used): "${selectedTopic}"`);
+  console.log(`🎯 JOB INDEX ${jobIndex} SELECTED UNIQUE FRESH TOPIC (${usedTopics.length}/${topics.length} used): "${selectedTopic}"`);
   return selectedTopic;
 }
 
 interface HistoryItem {
   timestamp: string;
   title: string;
-  sceneType: string;
-  particleShape: string;
+  solid_core: string;
   movementStyle: string;
   colors: string[];
   seoTags: string[];
@@ -95,10 +99,10 @@ function validateWithCritic(candidate: any, history: HistoryItem[]): { valid: bo
     return { valid: false, reason: "REJECTED: Color palette is weak or missing." };
   }
 
-  const validShapes = ["nebula", "helix", "spheres", "lines", "grid", "quantum_grid"];
-  const shape = candidate.particleShape || candidate.sceneType;
-  if (!shape || !validShapes.includes(shape)) {
-    return { valid: false, reason: `REJECTED: Particle shape '${shape}' is invalid or rigid.` };
+  const validCores = ["candlestick_boxes", "dna_molecules", "abstract_solid_waves"];
+  const solidCore = candidate.solid_core || candidate.solidCore || candidate.sceneType;
+  if (!solidCore || !validCores.includes(solidCore)) {
+    return { valid: false, reason: `REJECTED: solid_core '${solidCore}' must be one of: ${validCores.join(', ')}.` };
   }
 
   const validMovements = ["vortex", "wave", "orbital", "expansion", "quantum_flow"];
@@ -113,10 +117,10 @@ function validateWithCritic(candidate: any, history: HistoryItem[]): { valid: bo
       return { valid: false, reason: `REJECTED: Topic/Title "${candidate.title}" is too similar to past run "${past.title}".` };
     }
 
-    if (past.particleShape === shape &&
+    if (past.solid_core === solidCore &&
         past.movementStyle === candidate.movementStyle &&
         past.colors && past.colors[0] === candidate.colors[0]) {
-      return { valid: false, reason: `REJECTED: Visual combo (${shape} + ${candidate.movementStyle} + ${candidate.colors[0]}) is identical to past generation.` };
+      return { valid: false, reason: `REJECTED: Visual combo (${solidCore} + ${candidate.movementStyle} + ${candidate.colors[0]}) is identical to past generation.` };
     }
   }
 
@@ -124,7 +128,7 @@ function validateWithCritic(candidate: any, history: HistoryItem[]): { valid: bo
 }
 
 async function generate() {
-  console.log("🚀 INITIATING DUAL-AGENT (ACTOR-CRITIC) MODULAR DIRECTOR (NVIDIA 550B)...");
+  console.log("🚀 INITIATING DUAL-AGENT (ACTOR-CRITIC) SOLID GEOMETRY DIRECTOR (NVIDIA 550B)...");
   
   const apiKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
@@ -152,10 +156,27 @@ async function generate() {
     attempt++;
     console.log(`⏳ [Actor Generator] Attempt ${attempt} of ${MAX_ATTEMPTS}...`);
 
-    let userPrompt = `Analyze the trending keyword: "${promptContent}". Select an obscure, ultra-creative sub-niche. Output strictly matching this JSON schema:\n{\n  "title": "string (unique, cinematic, highly descriptive title)",\n  "seoTags": ["array of 50 high-quality niche trending stock video tags"],\n  "sceneType": "nebula" | "helix" | "spheres" | "lines" | "quantum_grid",\n  "particleShape": "nebula" | "helix" | "spheres" | "lines" | "grid",\n  "movementStyle": "vortex" | "wave" | "orbital" | "expansion" | "quantum_flow",\n  "colors": ["#hex1", "#hex2", "#hex3"],\n  "cameraSpeed": 1.5,\n  "bloomIntensity": 2.5,\n  "particleCount": 3000,\n  "complexity": 1.2\n}`;
+    let userPrompt = `Analyze the trending topic: "${promptContent}". 
+Do not invent particle systems. You must map the topic to one of the robust solid geometric cores and provide cinematic colors.
+Select strictly from:
+- "candlestick_boxes" (for finance, markets, analytics, crypto, economy)
+- "dna_molecules" (for biology, genetics, medicine, chemistry, neural structures)
+- "abstract_solid_waves" (for tech, computing, AI, energy, cyberspace, physics)
+
+Output strictly matching this JSON schema:
+{
+  "title": "string (unique, cinematic, highly descriptive title)",
+  "seoTags": ["array of 50 high-quality niche trending stock video tags"],
+  "solid_core": "candlestick_boxes" | "dna_molecules" | "abstract_solid_waves",
+  "movementStyle": "vortex" | "wave" | "orbital" | "expansion" | "quantum_flow",
+  "colors": ["#hex1", "#hex2", "#hex3"],
+  "cameraSpeed": 1.5,
+  "bloomIntensity": 2.0,
+  "complexity": 1.2
+}`;
 
     if (rejectionFeedback) {
-      userPrompt += `\n\nCRITICAL DIRECTIVE FROM CRITIC AGENT: ${rejectionFeedback} The previous output was rejected for being repetitive or weak. Generate a completely new, highly complex, obscure niche topic and radically different visual parameters (colors, particleShape, movementStyle).`;
+      userPrompt += `\n\nCRITICAL DIRECTIVE FROM CRITIC AGENT: ${rejectionFeedback} Generate a completely new, highly complex visual parameter set with solid_core and colors.`;
     }
 
     const payload = {
@@ -163,7 +184,7 @@ async function generate() {
       messages: [
         { 
           role: "system", 
-          content: "You are an elite 3D procedural motion graphics director. Output STRICT JSON only. Do not add markdown text outside the JSON. Create unique, abstract, mind-bending visual configurations with vibrant color palettes and dynamic movement parameters." 
+          content: "You are an elite 3D procedural motion graphics director. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must use solid 3D geometries (boxes, DNA molecules, or displaced solid waves) with metallic physical materials. Particles are strictly forbidden." 
         },
         { 
           role: "user", 
@@ -201,11 +222,26 @@ async function generate() {
         
         const candidate = JSON.parse(jsonStr);
 
-        console.log(`🔍 [Critic Agent] Evaluating Candidate: "${candidate.title}"...`);
+        // Normalize solid_core property
+        if (!candidate.solid_core && candidate.solidCore) {
+          candidate.solid_core = candidate.solidCore;
+        }
+        if (!candidate.solid_core) {
+          const lower = (candidate.title + " " + promptContent).toLowerCase();
+          if (lower.includes("finance") || lower.includes("stock") || lower.includes("market") || lower.includes("trade") || lower.includes("crypto")) {
+            candidate.solid_core = "candlestick_boxes";
+          } else if (lower.includes("bio") || lower.includes("dna") || lower.includes("gene") || lower.includes("chem") || lower.includes("molecule")) {
+            candidate.solid_core = "dna_molecules";
+          } else {
+            candidate.solid_core = "abstract_solid_waves";
+          }
+        }
+
+        console.log(`🔍 [Critic Agent] Evaluating Solid Candidate: "${candidate.title}" (Core: ${candidate.solid_core})...`);
         const criticResult = validateWithCritic(candidate, history);
 
         if (criticResult.valid) {
-          console.log(`✅ [Critic Agent] APPROVED! Candidate passed Quality Control validation.`);
+          console.log(`✅ [Critic Agent] APPROVED! Solid Geometry Candidate passed Quality Control validation.`);
           approvedJson = candidate;
         } else {
           console.warn(`🛑 [Critic Agent] ${criticResult.reason}`);
@@ -219,22 +255,31 @@ async function generate() {
   }
 
   if (!approvedJson) {
-    console.warn("⚠️ Critic validation or API limits reached. Generating dynamic procedural fallback config.");
-    const fallbackShapes = ["nebula", "helix", "spheres", "lines", "grid"];
+    console.warn("⚠️ Critic validation or API limits reached. Generating dynamic solid geometric fallback config.");
+    const solidCores: Array<"candlestick_boxes" | "dna_molecules" | "abstract_solid_waves"> = ["candlestick_boxes", "dna_molecules", "abstract_solid_waves"];
     const fallbackMovements = ["vortex", "wave", "orbital", "expansion", "quantum_flow"];
-    const chosenShape = fallbackShapes[Math.floor(Math.random() * fallbackShapes.length)];
+    
+    // Choose core based on prompt content
+    const lowerPrompt = promptContent.toLowerCase();
+    let chosenCore: "candlestick_boxes" | "dna_molecules" | "abstract_solid_waves" = "abstract_solid_waves";
+    if (lowerPrompt.includes("finance") || lowerPrompt.includes("stock") || lowerPrompt.includes("market") || lowerPrompt.includes("trade") || lowerPrompt.includes("crypto")) {
+      chosenCore = "candlestick_boxes";
+    } else if (lowerPrompt.includes("bio") || lowerPrompt.includes("dna") || lowerPrompt.includes("gene") || lowerPrompt.includes("chem") || lowerPrompt.includes("molecule")) {
+      chosenCore = "dna_molecules";
+    } else {
+      chosenCore = solidCores[Math.floor(Math.random() * solidCores.length)];
+    }
+
     const chosenMovement = fallbackMovements[Math.floor(Math.random() * fallbackMovements.length)];
 
     approvedJson = {
-      title: `Abstract ${chosenShape.toUpperCase()} Procedural Quantum Flow 4K`,
-      seoTags: ["abstract", "4k", "procedural", "motion graphics", "stock video", chosenShape, chosenMovement, "quantum"],
-      sceneType: chosenShape,
-      particleShape: chosenShape,
+      title: `Cinematic 3D Solid ${chosenCore.replace('_', ' ').toUpperCase()} Procedural 4K`,
+      seoTags: ["solid 3d", "4k", "procedural", "motion graphics", "stock video", chosenCore, chosenMovement, "cinema 4d render", "pbr materials"],
+      solid_core: chosenCore,
       movementStyle: chosenMovement,
       colors: ["#00f0ff", "#ff007f", "#7000ff"],
-      cameraSpeed: 1.8,
-      bloomIntensity: 2.5,
-      particleCount: 3000,
+      cameraSpeed: 1.5,
+      bloomIntensity: 2.0,
       complexity: 1.2
     };
   }
@@ -242,8 +287,7 @@ async function generate() {
   const historyEntry: HistoryItem = {
     timestamp: new Date().toISOString(),
     title: approvedJson.title,
-    sceneType: approvedJson.sceneType || approvedJson.particleShape || "nebula",
-    particleShape: approvedJson.particleShape || "nebula",
+    solid_core: approvedJson.solid_core || "abstract_solid_waves",
     movementStyle: approvedJson.movementStyle || "quantum_flow",
     colors: approvedJson.colors || ["#00f0ff", "#ff007f"],
     seoTags: approvedJson.seoTags || []
@@ -256,9 +300,9 @@ async function generate() {
   fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
   fs.writeFileSync('data/sceneData.json', JSON.stringify(approvedJson, null, 2));
   
-  const tags = Array.isArray(approvedJson.seoTags) ? approvedJson.seoTags.join(", ") : "3d, abstract, 4k, r3f, procedural";
-  fs.writeFileSync('out/metadata.txt', `TITLE:\n${approvedJson.title || "Procedural 3D Stock Visual"}\n\nTAGS:\n${tags}`);
-  console.log("✅ DUAL-AGENT VALIDATED SCENE & METADATA SAVED SUCCESSFULLY!");
+  const tags = Array.isArray(approvedJson.seoTags) ? approvedJson.seoTags.join(", ") : "3d, solid geometry, 4k, r3f, procedural, stock footage";
+  fs.writeFileSync('out/metadata.txt', `TITLE:\n${approvedJson.title || "Procedural 3D Solid Geometry Stock Visual"}\n\nTAGS:\n${tags}`);
+  console.log("✅ DUAL-AGENT VALIDATED SOLID SCENE & METADATA SAVED SUCCESSFULLY!");
 }
 
 generate();

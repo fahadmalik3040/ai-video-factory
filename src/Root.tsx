@@ -5,15 +5,14 @@ import {SceneRouter} from "./components/SceneRouter";
 import generatedSceneData from "../data/sceneData.json";
 
 const fallbackSceneData: SceneData = {
-  title: "Futuristic 3D Procedural Scene",
-  seoTags: ["futuristic", "3d", "procedural", "animation"],
-  sceneType: "nebula",
-  particleShape: "nebula",
+  title: "Futuristic Solid 3D Procedural Scene",
+  seoTags: ["futuristic", "3d", "procedural", "solid geometry", "motion graphics", "pbr", "4k"],
+  solid_core: "abstract_solid_waves",
+  sceneType: "abstract_solid_waves",
   movementStyle: "quantum_flow",
   colors: ["#00f0ff", "#ff007f", "#7000ff"],
   cameraSpeed: 1.5,
-  bloomIntensity: 2.5,
-  particleCount: 2000,
+  bloomIntensity: 2.0,
   complexity: 1.0,
 };
 
@@ -36,4 +35,3 @@ const RemotionRoot: React.FC = () => {
 
 export default RemotionRoot;
 export {RemotionRoot};
-
