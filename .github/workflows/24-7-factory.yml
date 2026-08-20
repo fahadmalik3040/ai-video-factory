@@ -23,11 +23,14 @@ jobs:
       - name: Install Dependencies
         run: npm install
         
-      - name: Phase 1 & 2 - Generate Trends & JSON
+      - name: Phase 1 & 2 - Fetch RSS Trends & Generate GLSL JSON
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: npx --yes tsx src/scripts/1_generateJson.ts
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          npx --yes tsx src/scripts/0_trendCatcher.ts
+          npx --yes tsx src/scripts/1_generateJson.ts
         
       - name: Phase 3 & 4 - 4K Render Engine
         run: npm run render:cloud
