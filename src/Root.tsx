@@ -7,10 +7,14 @@ import generatedSceneData from "../data/sceneData.json";
 const fallbackSceneData: SceneData = {
   title: "Futuristic 3D Procedural Scene",
   seoTags: ["futuristic", "3d", "procedural", "animation"],
-  sceneType: "cyber",
-  colors: ["#00f0ff", "#ff007f"],
+  sceneType: "nebula",
+  particleShape: "nebula",
+  movementStyle: "quantum_flow",
+  colors: ["#00f0ff", "#ff007f", "#7000ff"],
   cameraSpeed: 1.5,
-  bloomIntensity: 2.0,
+  bloomIntensity: 2.5,
+  particleCount: 2000,
+  complexity: 1.0,
 };
 
 const parsedSceneData = SceneSchema.safeParse(generatedSceneData);

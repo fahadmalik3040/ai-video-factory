@@ -1,20 +1,35 @@
 {
-  "title": "Abstract Cyber Quantum Stock Visual 4K",
+  "title": "Abstract Quantum Cosmic Particle Nebula 4K",
   "seoTags": [
-    "cyber",
-    "3d",
+    "quantum nebula",
+    "3d procedural particles",
     "motion graphics",
     "stock video",
-    "quantum grid",
-    "technology",
-    "futuristic",
-    "abstract"
+    "fractal turbulence",
+    "futuristic technology",
+    "cinematic lighting",
+    "abstract 4k visual",
+    "deep space dust",
+    "cosmic energy flow",
+    "quantum physics",
+    "biotech simulation",
+    "sci-fi animation",
+    "neon particle stream",
+    "adobe stock 4k",
+    "high speed camera",
+    "glowing energy vector",
+    "digital matrix flow"
   ],
-  "sceneType": "cyber",
+  "sceneType": "nebula",
+  "particleShape": "nebula",
+  "movementStyle": "quantum_flow",
   "colors": [
+    "#00f0ff",
     "#ff007f",
-    "#00f0ff"
+    "#7000ff"
   ],
-  "cameraSpeed": 1.5,
-  "bloomIntensity": 2.0
+  "cameraSpeed": 1.8,
+  "bloomIntensity": 2.5,
+  "particleCount": 3500,
+  "complexity": 1.2
 }

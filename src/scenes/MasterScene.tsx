@@ -5,7 +5,7 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
 // ----------------------------------------------------
-// Error Boundary to prevent WebGL Blackouts
+// Error Boundary to Prevent WebGL Blackouts
 // ----------------------------------------------------
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -39,365 +39,283 @@ class ThreeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 }
 
 // ----------------------------------------------------
-// Fallback Scene: Safe Glowing Particle / Torus System
+// Safe Fallback Procedural Particle Nebula
 // ----------------------------------------------------
 const FallbackScene: React.FC<{ colors: string[] }> = ({ colors }) => {
   const frame = useCurrentFrame();
   const c1 = colors[0] || "#00f0ff";
   const c2 = colors[1] || "#ff007f";
+  const c3 = colors[2] || "#7000ff";
 
-  const particleCount = 300;
+  const count = 1200;
   const positions = useMemo(() => {
-    const pos = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount * 3; i++) {
-      pos[i] = (Math.random() - 0.5) * 30;
-    }
-    return pos;
-  }, [particleCount]);
-
-  return (
-    <group rotation={[frame * 0.005, frame * 0.008, 0]}>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[10, 10, 10]} intensity={1.5} color={c1} />
-      <mesh>
-        <torusKnotGeometry args={[3, 0.8, 128, 32]} />
-        <meshStandardMaterial
-          color={c1}
-          emissive={c2}
-          emissiveIntensity={1.2}
-          wireframe
-          roughness={0.2}
-        />
-      </mesh>
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[positions, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial size={0.2} color={c1} transparent opacity={0.8} />
-      </points>
-    </group>
-  );
-};
-
-// ----------------------------------------------------
-// Finance Module: 3D Glowing Candlesticks & Charts
-// ----------------------------------------------------
-const FinanceScene: React.FC<{ colors: string[]; cameraSpeed: number; frame: number }> = ({ colors, cameraSpeed, frame }) => {
-  const primaryColor = colors[0] || "#00ffcc";
-  const secondaryColor = colors[1] || "#ff007f";
-
-  const groupRef = useRef<THREE.Group>(null);
-
-  const bars = useMemo(() => {
-    const list = [];
-    const count = 28;
+    const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const x = (i - count / 2) * 1.3;
-      const baseHeight = 1.8 + Math.sin(i * 0.4) * 1.5 + Math.cos(i * 0.7) * 1.0;
-      list.push({ x, baseHeight, phase: i * 0.35, isGreen: i % 2 === 0 });
-    }
-    return list;
-  }, []);
+      const radius = 2 + Math.random() * 12;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
 
-  const particleCount = 200;
-  const particles = useMemo(() => {
-    const pos = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 35;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 20;
+      pos[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      pos[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      pos[i * 3 + 2] = radius * Math.cos(phi);
     }
     return pos;
-  }, [particleCount]);
-
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = frame * 0.003 * cameraSpeed;
-      groupRef.current.rotation.x = Math.sin(frame * 0.002) * 0.05;
-    }
-  });
+  }, [count]);
 
   return (
-    <group ref={groupRef}>
-      {/* Grid Floor */}
-      <gridHelper args={[50, 50, primaryColor, "#111827"]} position={[0, -5, 0]} />
+    <group rotation={[frame * 0.003, frame * 0.005, 0]}>
+      <ambientLight intensity={0.6} />
+      <pointLight position={[10, 10, 10]} color={c1} intensity={2.0} />
+      <pointLight position={[-10, -10, -10]} color={c2} intensity={2.0} />
 
-      {/* Candlestick Bars & Wicks */}
-      {bars.map((bar, idx) => {
-        const height = Math.max(0.6, bar.baseHeight + Math.sin(frame * 0.04 * cameraSpeed + bar.phase) * 1.1);
-        const col = bar.isGreen ? primaryColor : secondaryColor;
-
-        return (
-          <group key={idx} position={[bar.x, height / 2 - 2, 0]}>
-            {/* Box Body */}
-            <mesh>
-              <boxGeometry args={[0.7, height, 0.7]} />
-              <meshStandardMaterial
-                color={col}
-                emissive={col}
-                emissiveIntensity={1.4}
-                roughness={0.2}
-                metalness={0.8}
-              />
-            </mesh>
-            {/* Wick */}
-            <mesh position={[0, 0, 0]}>
-              <boxGeometry args={[0.1, height + 1.6, 0.1]} />
-              <meshBasicMaterial color={col} />
-            </mesh>
-          </group>
-        );
-      })}
-
-      {/* Floating Market Data Particles */}
-      <points position={[0, 0, 0]}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[particles, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial size={0.25} color={primaryColor} transparent opacity={0.85} />
-      </points>
-    </group>
-  );
-};
-
-// ----------------------------------------------------
-// Science Module: Rotating DNA Double Helix
-// ----------------------------------------------------
-const ScienceScene: React.FC<{ colors: string[]; cameraSpeed: number; frame: number }> = ({ colors, cameraSpeed, frame }) => {
-  const color1 = colors[0] || "#00f0ff";
-  const color2 = colors[1] || "#a855f7";
-
-  const groupRef = useRef<THREE.Group>(null);
-  const numNodes = 44;
-  const radius = 4.0;
-  const heightStep = 0.35;
-
-  const helixNodes = useMemo(() => {
-    const list = [];
-    for (let i = 0; i < numNodes; i++) {
-      const y = (i - numNodes / 2) * heightStep;
-      const angle = i * 0.32;
-      list.push({ id: i, y, angle });
-    }
-    return list;
-  }, []);
-
-  const particleCount = 250;
-  const bgParticles = useMemo(() => {
-    const pos = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 30;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 30;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 30;
-    }
-    return pos;
-  }, [particleCount]);
-
-  const rotationAngle = frame * 0.02 * cameraSpeed;
-
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = rotationAngle;
-      groupRef.current.rotation.z = Math.sin(frame * 0.003) * 0.1;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      {helixNodes.map((node) => {
-        const a = node.angle;
-        const x1 = Math.cos(a) * radius;
-        const z1 = Math.sin(a) * radius;
-        const x2 = Math.cos(a + Math.PI) * radius;
-        const z2 = Math.sin(a + Math.PI) * radius;
-
-        return (
-          <group key={node.id} position={[0, node.y, 0]}>
-            {/* Strand 1 Node */}
-            <mesh position={[x1, 0, z1]}>
-              <sphereGeometry args={[0.35, 16, 16]} />
-              <meshStandardMaterial color={color1} emissive={color1} emissiveIntensity={1.8} />
-            </mesh>
-
-            {/* Strand 2 Node */}
-            <mesh position={[x2, 0, z2]}>
-              <sphereGeometry args={[0.35, 16, 16]} />
-              <meshStandardMaterial color={color2} emissive={color2} emissiveIntensity={1.8} />
-            </mesh>
-
-            {/* Connecting Horizontal Rung */}
-            <mesh position={[0, 0, 0]} rotation={[0, -a, 0]}>
-              <boxGeometry args={[radius * 2, 0.09, 0.09]} />
-              <meshStandardMaterial color="#ffffff" emissive="#3b82f6" emissiveIntensity={1.0} />
-            </mesh>
-          </group>
-        );
-      })}
-
-      {/* Ambient Biotech Particles */}
       <points>
         <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[bgParticles, 3]}
-          />
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.2} color={color1} transparent opacity={0.7} />
+        <pointsMaterial size={0.3} color={c3} transparent opacity={0.8} />
       </points>
     </group>
   );
 };
 
 // ----------------------------------------------------
-// Cyber Module: 3D Grid & Floating Polyhedron Nodes
+// Dynamic Procedural Particle & Geometry Engine
 // ----------------------------------------------------
-const CyberScene: React.FC<{ colors: string[]; cameraSpeed: number; frame: number }> = ({ colors, cameraSpeed, frame }) => {
-  const primaryColor = colors[0] || "#ff007f";
-  const secondaryColor = colors[1] || "#00f0ff";
+interface ProceduralEngineProps {
+  particleShape: string;
+  movementStyle: string;
+  colors: string[];
+  cameraSpeed: number;
+  particleCount: number;
+  complexity: number;
+  frame: number;
+}
 
+const ProceduralEngine: React.FC<ProceduralEngineProps> = ({
+  particleShape,
+  movementStyle,
+  colors,
+  cameraSpeed,
+  particleCount,
+  complexity,
+  frame,
+}) => {
+  const pointsRef = useRef<THREE.Points>(null);
   const groupRef = useRef<THREE.Group>(null);
+  const instancedMeshRef = useRef<THREE.InstancedMesh>(null);
 
-  const polyhedrons = useMemo(() => {
-    const list = [];
-    for (let i = 0; i < 32; i++) {
-      list.push({
-        id: i,
-        pos: [
-          (Math.random() - 0.5) * 24,
-          (Math.random() - 0.5) * 14,
-          (Math.random() - 0.5) * 18,
-        ] as [number, number, number],
-        scale: 0.5 + Math.random() * 0.8,
-        speed: 0.5 + Math.random() * 0.8,
-        wireframe: i % 3 === 0,
-        shapeType: i % 3,
-      });
-    }
-    return list;
-  }, []);
+  const c1 = colors[0] || "#00f0ff";
+  const c2 = colors[1] || "#ff007f";
+  const c3 = colors[2] || "#7000ff";
 
-  const particleCount = 300;
-  const cyberMatrix = useMemo(() => {
-    const pos = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 40;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 25;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 30;
+  const numParticles = Math.min(Math.max(particleCount || 2500, 1000), 5000);
+
+  // Generate initial particle coordinates and colors
+  const { positions, colorBuffer, initialOffsets } = useMemo(() => {
+    const pos = new Float32Array(numParticles * 3);
+    const cols = new Float32Array(numParticles * 3);
+    const offsets = new Float32Array(numParticles * 3);
+
+    const threeCol1 = new THREE.Color(c1);
+    const threeCol2 = new THREE.Color(c2);
+    const threeCol3 = new THREE.Color(c3);
+
+    for (let i = 0; i < numParticles; i++) {
+      const idx = i * 3;
+      const t = i / numParticles;
+
+      if (particleShape === "helix") {
+        const radius = 3.5 + Math.sin(i * 0.1) * 0.8;
+        const angle = i * 0.25;
+        pos[idx] = Math.cos(angle) * radius;
+        pos[idx + 1] = (t - 0.5) * 22;
+        pos[idx + 2] = Math.sin(angle) * radius;
+      } else if (particleShape === "spheres") {
+        const radius = 2.0 + Math.random() * 10.0;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos((Math.random() * 2) - 1);
+        pos[idx] = radius * Math.sin(phi) * Math.cos(theta);
+        pos[idx + 1] = radius * Math.sin(phi) * Math.sin(theta);
+        pos[idx + 2] = radius * Math.cos(phi);
+      } else if (particleShape === "lines") {
+        pos[idx] = (t - 0.5) * 30;
+        pos[idx + 1] = Math.sin(t * Math.PI * 8) * 4;
+        pos[idx + 2] = Math.cos(t * Math.PI * 8) * 4;
+      } else if (particleShape === "grid") {
+        const side = Math.floor(Math.cbrt(numParticles));
+        const x = (i % side) - side / 2;
+        const y = (Math.floor(i / side) % side) - side / 2;
+        const z = Math.floor(i / (side * side)) - side / 2;
+        pos[idx] = x * 1.2;
+        pos[idx + 1] = y * 1.2;
+        pos[idx + 2] = z * 1.2;
+      } else {
+        // Default "nebula" fractal cloud
+        const radius = 1.5 + Math.pow(Math.random(), 0.5) * 14.0;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos((Math.random() * 2) - 1);
+        pos[idx] = radius * Math.sin(phi) * Math.cos(theta);
+        pos[idx + 1] = radius * Math.sin(phi) * Math.sin(theta) * 0.6;
+        pos[idx + 2] = radius * Math.cos(phi);
+      }
+
+      offsets[idx] = Math.random() * Math.PI * 2;
+      offsets[idx + 1] = Math.random() * Math.PI * 2;
+      offsets[idx + 2] = Math.random() * Math.PI * 2;
+
+      // Color interpolation
+      let mixedColor = threeCol1.clone();
+      if (i % 3 === 1) mixedColor.lerp(threeCol2, 0.7);
+      else if (i % 3 === 2) mixedColor.lerp(threeCol3, 0.7);
+
+      cols[idx] = mixedColor.r;
+      cols[idx + 1] = mixedColor.g;
+      cols[idx + 2] = mixedColor.b;
     }
-    return pos;
-  }, [particleCount]);
+
+    return { positions: pos, colorBuffer: cols, initialOffsets: offsets };
+  }, [numParticles, particleShape, c1, c2, c3]);
+
+  // Setup instanced mesh positions if shape is "spheres"
+  const instancedCount = 180;
+  const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useFrame(() => {
+    const time = frame * 0.02 * cameraSpeed * complexity;
+
     if (groupRef.current) {
-      groupRef.current.rotation.y = frame * 0.004 * cameraSpeed;
-      groupRef.current.rotation.x = 0.2 + Math.sin(frame * 0.002) * 0.05;
+      if (movementStyle === "vortex") {
+        groupRef.current.rotation.y = time * 0.8;
+        groupRef.current.rotation.x = Math.sin(time * 0.3) * 0.2;
+      } else if (movementStyle === "orbital") {
+        groupRef.current.rotation.y = time * 0.5;
+        groupRef.current.rotation.z = time * 0.3;
+      } else if (movementStyle === "expansion") {
+        const scale = 1.0 + Math.sin(time * 0.8) * 0.25;
+        groupRef.current.scale.set(scale, scale, scale);
+        groupRef.current.rotation.y = time * 0.4;
+      } else if (movementStyle === "wave") {
+        groupRef.current.rotation.y = time * 0.3;
+        groupRef.current.rotation.x = Math.sin(time * 0.5) * 0.3;
+      } else {
+        // quantum_flow
+        groupRef.current.rotation.y = time * 0.4;
+        groupRef.current.rotation.x = Math.cos(time * 0.3) * 0.25;
+        groupRef.current.rotation.z = Math.sin(time * 0.2) * 0.2;
+      }
+    }
+
+    // Animate Instanced Mesh if active
+    if (particleShape === "spheres" && instancedMeshRef.current) {
+      for (let i = 0; i < instancedCount; i++) {
+        const angle = i * 0.15 + time * 0.6;
+        const radius = 4.0 + Math.sin(i * 0.3 + time) * 3.0;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(i * 0.2 + time * 0.8) * 4.0;
+        const z = Math.sin(angle) * radius;
+
+        dummy.position.set(x, y, z);
+        const s = 0.3 + Math.sin(time + i) * 0.15;
+        dummy.scale.set(s, s, s);
+        dummy.rotation.set(time + i, time * 0.5, 0);
+        dummy.updateMatrix();
+
+        instancedMeshRef.current.setMatrixAt(i, dummy.matrix);
+      }
+      instancedMeshRef.current.instanceMatrix.needsUpdate = true;
     }
   });
 
   return (
     <group ref={groupRef}>
-      {/* Dual Cyber Grids */}
-      <gridHelper args={[60, 60, primaryColor, secondaryColor]} position={[0, -7, 0]} />
-      <gridHelper args={[60, 60, secondaryColor, primaryColor]} position={[0, 7, 0]} />
-
-      {/* Floating Geometric Nodes */}
-      {polyhedrons.map((item) => {
-        const rot = frame * 0.015 * item.speed * cameraSpeed + item.id;
-        const yPos = item.pos[1] + Math.sin(frame * 0.03 + item.id) * 0.6;
-        const col = item.id % 2 === 0 ? primaryColor : secondaryColor;
-
-        return (
-          <mesh
-            key={item.id}
-            position={[item.pos[0], yPos, item.pos[2]]}
-            rotation={[rot, rot * 0.8, 0]}
-            scale={item.scale}
-          >
-            {item.shapeType === 0 ? (
-              <icosahedronGeometry args={[1, 0]} />
-            ) : item.shapeType === 1 ? (
-              <octahedronGeometry args={[1, 0]} />
-            ) : (
-              <boxGeometry args={[1.2, 1.2, 1.2]} />
-            )}
-            <meshStandardMaterial
-              color={col}
-              emissive={col}
-              emissiveIntensity={1.5}
-              wireframe={item.wireframe}
-              roughness={0.1}
-              metalness={0.9}
-            />
-          </mesh>
-        );
-      })}
-
-      {/* Cyber Particle Matrix */}
-      <points>
+      {/* Primary Particle Cloud */}
+      <points ref={pointsRef}>
         <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[cyberMatrix, 3]}
-          />
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+          <bufferAttribute attach="attributes-color" args={[colorBuffer, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.2} color={secondaryColor} transparent opacity={0.8} />
+        <pointsMaterial
+          size={particleShape === "lines" ? 0.35 : 0.25}
+          vertexColors
+          transparent
+          opacity={0.88}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
       </points>
+
+      {/* Instanced Glowing Spheres for Spheres Shape */}
+      {particleShape === "spheres" && (
+        <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, instancedCount]}>
+          <sphereGeometry args={[0.5, 16, 16]} />
+          <meshStandardMaterial
+            color={c1}
+            emissive={c2}
+            emissiveIntensity={2.0}
+            roughness={0.1}
+            metalness={0.9}
+          />
+        </instancedMesh>
+      )}
+
+      {/* Background Energy Rays for Lines or Grid Shapes */}
+      {(particleShape === "lines" || particleShape === "grid") && (
+        <gridHelper args={[40, 40, c1, c2]} position={[0, -6, 0]} />
+      )}
     </group>
   );
 };
 
 // ----------------------------------------------------
-// Master Scene Router with Postprocessing Bloom
+// Master Scene Router & Postprocessing Pipeline
 // ----------------------------------------------------
 interface MasterSceneProps {
   data: {
-    sceneType?: 'finance' | 'science' | 'cyber';
+    sceneType?: string;
+    particleShape?: string;
+    movementStyle?: string;
     colors?: string[];
     cameraSpeed?: number;
     bloomIntensity?: number;
+    particleCount?: number;
+    complexity?: number;
   };
 }
 
 export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
   const frame = useCurrentFrame();
 
-  const sceneType = data?.sceneType || 'cyber';
+  const particleShape = data?.particleShape || data?.sceneType || 'nebula';
+  const movementStyle = data?.movementStyle || 'quantum_flow';
   const colors = Array.isArray(data?.colors) && data.colors.length >= 2
     ? data.colors
-    : ['#00f0ff', '#ff007f'];
-  const cameraSpeed = typeof data?.cameraSpeed === 'number' ? data.cameraSpeed : 1.5;
-  const bloomIntensity = typeof data?.bloomIntensity === 'number' ? data.bloomIntensity : 2.0;
+    : ['#00f0ff', '#ff007f', '#7000ff'];
 
-  const renderModule = () => {
-    switch (sceneType) {
-      case 'finance':
-        return <FinanceScene colors={colors} cameraSpeed={cameraSpeed} frame={frame} />;
-      case 'science':
-        return <ScienceScene colors={colors} cameraSpeed={cameraSpeed} frame={frame} />;
-      case 'cyber':
-      default:
-        return <CyberScene colors={colors} cameraSpeed={cameraSpeed} frame={frame} />;
-    }
-  };
+  const cameraSpeed = typeof data?.cameraSpeed === 'number' ? data.cameraSpeed : 1.5;
+  const bloomIntensity = typeof data?.bloomIntensity === 'number' ? data.bloomIntensity : 2.5;
+  const particleCount = typeof data?.particleCount === 'number' ? data.particleCount : 3000;
+  const complexity = typeof data?.complexity === 'number' ? data.complexity : 1.0;
 
   return (
     <ThreeErrorBoundary fallback={<FallbackScene colors={colors} />}>
       <ambientLight intensity={0.5} />
-      <directionalLight position={[12, 20, 15]} intensity={1.8} />
-      <pointLight position={[-10, -10, -10]} intensity={1.2} color={colors[0]} />
-      <pointLight position={[10, 10, 10]} intensity={1.2} color={colors[1]} />
+      <directionalLight position={[15, 25, 20]} intensity={2.0} color={colors[0]} />
+      <pointLight position={[-12, -12, -12]} intensity={1.8} color={colors[1]} />
+      <pointLight position={[12, 12, 12]} intensity={1.8} color={colors[2] || colors[0]} />
 
-      {renderModule()}
+      <ProceduralEngine
+        particleShape={particleShape}
+        movementStyle={movementStyle}
+        colors={colors}
+        cameraSpeed={cameraSpeed}
+        particleCount={particleCount}
+        complexity={complexity}
+        frame={frame}
+      />
 
       <EffectComposer disableNormalPass>
         <Bloom
-          luminanceThreshold={0.15}
+          luminanceThreshold={0.12}
           luminanceSmoothing={0.9}
           intensity={bloomIntensity}
         />
