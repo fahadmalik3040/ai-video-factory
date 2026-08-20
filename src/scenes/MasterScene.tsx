@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, Component, ErrorInfo, ReactNode } from 'react';
 import { useCurrentFrame } from 'remotion';
 import { useFrame } from '@react-three/fiber';
+import { Environment, MeshTransmissionMaterial } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
@@ -298,10 +299,11 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
 
   return (
     <ThreeErrorBoundary fallback={<FallbackScene colors={colors} />}>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[15, 25, 20]} intensity={2.0} color={colors[0]} />
+      <ambientLight intensity={1.5} />
+      <directionalLight position={[10, 10, 5]} intensity={2.0} color={colors[0]} />
       <pointLight position={[-12, -12, -12]} intensity={1.8} color={colors[1]} />
       <pointLight position={[12, 12, 12]} intensity={1.8} color={colors[2] || colors[0]} />
+      <Environment preset="city" />
 
       <ProceduralEngine
         particleShape={particleShape}
