@@ -6,18 +6,11 @@ import generatedSceneData from "../data/sceneData.json";
 
 const fallbackSceneData: SceneData = {
   title: "Futuristic 3D Procedural Scene",
-  theme: "science",
-  durationInFrames: 1200,
-  fps: 30,
-  camera: {type: "orbit", speed: 1, distance: 6, fov: 45},
-  lighting: {
-    keyIntensity: 2,
-    fillIntensity: 0.4,
-    rimIntensity: 1,
-    colorTheme: "#22d3ee",
-  },
-  particles: {count: 200, speed: 0.5, color: "#67e8f9", shape: "spark"},
   seoTags: ["futuristic", "3d", "procedural", "animation"],
+  sceneType: "cyber",
+  colors: ["#00f0ff", "#ff007f"],
+  cameraSpeed: 1.5,
+  bloomIntensity: 2.0,
 };
 
 const parsedSceneData = SceneSchema.safeParse(generatedSceneData);
@@ -28,7 +21,7 @@ const RemotionRoot: React.FC = () => {
     <Composition
       id="MainVideo"
       component={SceneRouter}
-      durationInFrames={sceneData.durationInFrames || 300}
+      durationInFrames={300}
       fps={24}
       width={3840}
       height={2160}
@@ -39,3 +32,4 @@ const RemotionRoot: React.FC = () => {
 
 export default RemotionRoot;
 export {RemotionRoot};
+

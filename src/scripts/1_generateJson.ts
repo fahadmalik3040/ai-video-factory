@@ -77,7 +77,7 @@ function getNextTopic(): string {
 }
 
 async function generate() {
-  console.log("🚀 INITIATING DYNAMIC GLSL SHADER GENERATOR (NVIDIA 550B)...");
+  console.log("🚀 INITIATING MODULAR SCENE DIRECTOR (NVIDIA 550B)...");
   
   const apiKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
@@ -85,42 +85,29 @@ async function generate() {
 
   const promptContent = getNextTopic();
 
-  const defaultShader = `uniform float u_time;
-varying vec2 vUv;
-
-void main() {
-  vec2 uv = vUv * 2.0 - 1.0;
-  float t = u_time * 0.8;
-  float d = length(uv);
-  vec3 col = vec3(0.0);
-  
-  for (float i = 1.0; i < 4.0; i++) {
-    uv = fract(uv * 1.5) - 0.5;
-    float d2 = length(uv) * exp(-d);
-    vec3 c = vec3(0.5 + 0.5 * cos(t + i + vec3(0.0, 2.0, 4.0)));
-    d2 = sin(d2 * 8.0 + t) / 8.0;
-    d2 = abs(d2);
-    d2 = pow(0.01 / d2, 1.2);
-    col += c * d2;
-  }
-  
-  gl_FragColor = vec4(col, 1.0);
-}`;
+  const fallbackScene = {
+    title: "Abstract Quantum Neural Flow 4K",
+    seoTags: ["abstract", "4k", "procedural", "motion graphics", "stock video", "finance", "science", "cyber"],
+    sceneType: "cyber",
+    colors: ["#00f0ff", "#ff007f"],
+    cameraSpeed: 1.5,
+    bloomIntensity: 2.0
+  };
 
   const payload = {
     model: model,
     messages: [
       { 
         role: "system", 
-        content: "You are an expert GLSL Shader Programmer and autonomous video script JSON generator. Output STRICT JSON only. Do not add any conversational text before or after the JSON. Ensure the JSON is completely valid. You must take the provided trend/keyword and randomly select a unique, obscure sub-niche related to it. NEVER repeat the same visual concept twice. Ensure the procedural GLSL shader is radically different in color, shape, and movement from standard interpretations." 
+        content: "You are an expert 3D motion graphics director and autonomous video script JSON generator. Output STRICT JSON only. Do not add any conversational text before or after the JSON. Ensure the JSON is completely valid. Analyze the trending keyword. Select the best matching 'sceneType' (finance for market data, science for biotech/DNA, cyber for tech/data). Output only valid JSON." 
       },
       { 
         role: "user", 
-        content: `Based on the user's keywords: ${promptContent}\n\nWrite a highly complex, visually stunning, abstract GLSL fragment shader (compatible with Three.js ShaderMaterial). For example, if keywords are 'finance', generate a shader that looks like glowing data streams or 3D financial charts. Use 'uniform float u_time;' for animation and 'varying vec2 vUv;'. DO NOT use real-world objects, only abstract procedural math. Output strictly matching this JSON schema:\n{\n  "title": "string",\n  "seoTags": ["array of 50 trending stock video tags"],\n  "shaderCode": "string (The complete, raw GLSL fragment shader code to create the requested visual)"\n}` 
+        content: `Analyze the trending keyword: "${promptContent}". Select the best matching 'sceneType' (finance for market data, science for biotech/DNA, cyber for tech/data). Output strictly matching this JSON schema:\n{\n  "title": "string",\n  "seoTags": ["array of 50 trending stock video tags"],\n  "sceneType": "finance" | "science" | "cyber",\n  "colors": ["hex1", "hex2"],\n  "cameraSpeed": 1.5,\n  "bloomIntensity": 2.0\n}` 
       }
     ],
     temperature: 0.7,
-    max_tokens: 8192
+    max_tokens: 4096
   };
 
   const MAX_RETRIES = 3;
@@ -130,7 +117,7 @@ void main() {
 
   while (attempt < MAX_RETRIES && !success) {
     attempt++;
-    console.log(`⏳ Nvidia Shader Generation Attempt ${attempt} of ${MAX_RETRIES}...`);
+    console.log(`⏳ Nvidia Scene Director Attempt ${attempt} of ${MAX_RETRIES}...`);
     
     try {
       const response = await fetch(url, {
@@ -163,23 +150,22 @@ void main() {
         }
         
         const parsed = JSON.parse(finalJson);
-        if (!parsed.shaderCode || typeof parsed.shaderCode !== 'string') {
-          parsed.shaderCode = defaultShader;
-          finalJson = JSON.stringify(parsed);
+        if (!parsed.sceneType || !["finance", "science", "cyber"].includes(parsed.sceneType)) {
+          parsed.sceneType = "cyber";
         }
+        if (!Array.isArray(parsed.colors) || parsed.colors.length < 2) {
+          parsed.colors = ["#00f0ff", "#ff007f"];
+        }
+        finalJson = JSON.stringify(parsed, null, 2);
         
         success = true;
-        console.log("✅ NVIDIA 550B MODEL GENERATED DYNAMIC GLSL SHADER SUCCESSFULLY!");
+        console.log("✅ NVIDIA 550B MODEL DIRECTED SCENE CONFIGURATION SUCCESSFULLY!");
       }
     } catch (err: any) {
       console.error(`❌ Parse/Network Error on attempt ${attempt}:`, err.message);
       if (attempt === MAX_RETRIES) {
-        console.error("🚨 FATAL: All 3 Nvidia attempts failed. Proceeding with default high-quality shader.");
-        finalJson = JSON.stringify({
-          title: "Abstract Quantum Neural Flow 4K",
-          seoTags: ["abstract", "4k", "procedural", "motion graphics", "glsl", "shader", "stock video"],
-          shaderCode: defaultShader
-        });
+        console.error("🚨 FATAL: All 3 Nvidia attempts failed. Proceeding with default high-quality modular scene config.");
+        finalJson = JSON.stringify(fallbackScene, null, 2);
         success = true;
       } else {
         await new Promise(res => setTimeout(res, 2000));
@@ -192,14 +178,18 @@ void main() {
   if (!fs.existsSync('out')) fs.mkdirSync('out');
   
   try {
-    const parsed = JSON.parse(finalJson);
-    if (!parsed.shaderCode) parsed.shaderCode = defaultShader;
+    let parsed: any;
+    try {
+      parsed = JSON.parse(finalJson);
+    } catch {
+      parsed = fallbackScene;
+    }
     
     fs.writeFileSync('data/sceneData.json', JSON.stringify(parsed, null, 2));
     
-    const tags = Array.isArray(parsed.seoTags) ? parsed.seoTags.join(", ") : "3d, abstract, 4k, glsl, procedural";
-    fs.writeFileSync('out/metadata.txt', `TITLE:\n${parsed.title || "Procedural GLSL Stock Visual"}\n\nTAGS:\n${tags}`);
-    console.log("✅ DYNAMIC SHADER & METADATA SAVED SUCCESSFULLY!");
+    const tags = Array.isArray(parsed.seoTags) ? parsed.seoTags.join(", ") : "3d, abstract, 4k, r3f, motion graphics";
+    fs.writeFileSync('out/metadata.txt', `TITLE:\n${parsed.title || "Procedural 3D Stock Visual"}\n\nTAGS:\n${tags}`);
+    console.log("✅ MODULAR SCENE CONFIG & METADATA SAVED SUCCESSFULLY!");
   } catch (e) {
     console.error("🚨 FATAL: JSON Save Failed.");
     process.exit(1);
@@ -207,4 +197,6 @@ void main() {
 }
 
 generate();
+
+
 
