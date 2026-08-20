@@ -1,5 +1,81 @@
 import fs from 'fs';
 
+function getNextTopic(): string {
+  const promptsPath = 'data/prompts.csv';
+  const usedTopicsPath = 'data/used_topics.json';
+
+  if (!fs.existsSync('data')) {
+    fs.mkdirSync('data', { recursive: true });
+  }
+
+  // Check if a data/used_topics.json exists. If not, create it.
+  if (!fs.existsSync(usedTopicsPath)) {
+    fs.writeFileSync(usedTopicsPath, JSON.stringify([], null, 2));
+  }
+
+  let usedTopics: string[] = [];
+  try {
+    const rawUsed = fs.readFileSync(usedTopicsPath, 'utf-8');
+    usedTopics = JSON.parse(rawUsed);
+    if (!Array.isArray(usedTopics)) usedTopics = [];
+  } catch {
+    usedTopics = [];
+  }
+
+  // Read data/prompts.csv as an array of topics
+  let topics: string[] = [];
+  if (fs.existsSync(promptsPath)) {
+    const content = fs.readFileSync(promptsPath, 'utf-8');
+    const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Skip header line if present
+      if (i === 0 && line.toLowerCase().startsWith('prompt,')) continue;
+      
+      let topic = line;
+      if (topic.startsWith('"')) {
+        const match = topic.match(/^"([^"]+)"/);
+        if (match) {
+          topic = match[1];
+        } else {
+          topic = topic.replace(/^"+|"+$/g, '');
+        }
+      } else if (topic.includes(',')) {
+        topic = topic.split(',')[0];
+      }
+      topic = topic.trim();
+      if (topic && !topics.includes(topic)) {
+        topics.push(topic);
+      }
+    }
+  }
+
+  if (topics.length === 0) {
+    topics = ["Cinematic technology abstract"];
+  }
+
+  // Filter out any topics that are already in used_topics.json
+  let freshTopics = topics.filter(t => !usedTopics.includes(t));
+
+  // If all topics are used, clear the used_topics.json
+  if (freshTopics.length === 0) {
+    console.log("🔄 All topics in queue have been used! Resetting memory in used_topics.json...");
+    usedTopics = [];
+    fs.writeFileSync(usedTopicsPath, JSON.stringify([], null, 2));
+    freshTopics = [...topics];
+  }
+
+  // Pick EXACTLY ONE fresh topic from the top of the remaining list
+  const selectedTopic = freshTopics[0];
+
+  // IMMEDIATELY save this chosen topic into data/used_topics.json so the next GitHub Action run will skip it
+  usedTopics.push(selectedTopic);
+  fs.writeFileSync(usedTopicsPath, JSON.stringify(usedTopics, null, 2));
+
+  console.log(`🎯 SELECTED FRESH TOPIC (${usedTopics.length}/${topics.length} used): "${selectedTopic}"`);
+  return selectedTopic;
+}
+
 async function generate() {
   console.log("🚀 INITIATING DYNAMIC GLSL SHADER GENERATOR (NVIDIA 550B)...");
   
@@ -7,7 +83,7 @@ async function generate() {
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
   const model = "nvidia/nemotron-3-ultra-550b-a55b";
 
-  const promptContent = fs.existsSync('data/prompts.csv') ? fs.readFileSync('data/prompts.csv', 'utf-8') : "Cinematic technology abstract";
+  const promptContent = getNextTopic();
 
   const defaultShader = `uniform float u_time;
 varying vec2 vUv;
@@ -36,14 +112,14 @@ void main() {
     messages: [
       { 
         role: "system", 
-        content: "You are an expert GLSL Shader Programmer and autonomous video script JSON generator. Output STRICT JSON only. Do not add any conversational text before or after the JSON. Ensure the JSON is completely valid." 
+        content: "You are an expert GLSL Shader Programmer and autonomous video script JSON generator. Output STRICT JSON only. Do not add any conversational text before or after the JSON. Ensure the JSON is completely valid. You must take the provided trend/keyword and randomly select a unique, obscure sub-niche related to it. NEVER repeat the same visual concept twice. Ensure the procedural GLSL shader is radically different in color, shape, and movement from standard interpretations." 
       },
       { 
         role: "user", 
         content: `Based on the user's keywords: ${promptContent}\n\nWrite a highly complex, visually stunning, abstract GLSL fragment shader (compatible with Three.js ShaderMaterial). For example, if keywords are 'finance', generate a shader that looks like glowing data streams or 3D financial charts. Use 'uniform float u_time;' for animation and 'varying vec2 vUv;'. DO NOT use real-world objects, only abstract procedural math. Output strictly matching this JSON schema:\n{\n  "title": "string",\n  "seoTags": ["array of 50 trending stock video tags"],\n  "shaderCode": "string (The complete, raw GLSL fragment shader code to create the requested visual)"\n}` 
       }
     ],
-    temperature: 0.3,
+    temperature: 0.7,
     max_tokens: 8192
   };
 
@@ -131,3 +207,4 @@ void main() {
 }
 
 generate();
+
