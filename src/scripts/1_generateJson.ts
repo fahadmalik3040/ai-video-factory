@@ -3,6 +3,7 @@ import fs from 'fs';
 function getNextTopic(): string {
   const promptsPath = 'data/prompts.csv';
   const usedTopicsPath = 'data/used_topics.json';
+  const jobIndex = parseInt(process.env.JOB_INDEX || '0', 10);
 
   if (!fs.existsSync('data')) {
     fs.mkdirSync('data', { recursive: true });
@@ -65,14 +66,16 @@ function getNextTopic(): string {
     freshTopics = [...topics];
   }
 
-  // Pick EXACTLY ONE fresh topic from the top of the remaining list
-  const selectedTopic = freshTopics[0];
+  // Pick the topic corresponding to the job index
+  const selectedTopic = freshTopics[jobIndex % freshTopics.length];
 
-  // IMMEDIATELY save this chosen topic into data/used_topics.json so the next GitHub Action run will skip it
-  usedTopics.push(selectedTopic);
-  fs.writeFileSync(usedTopicsPath, JSON.stringify(usedTopics, null, 2));
+  // IMMEDIATELY save this chosen topic into data/used_topics.json so future runs skip it
+  if (!usedTopics.includes(selectedTopic)) {
+    usedTopics.push(selectedTopic);
+    fs.writeFileSync(usedTopicsPath, JSON.stringify(usedTopics, null, 2));
+  }
 
-  console.log(`🎯 SELECTED FRESH TOPIC (${usedTopics.length}/${topics.length} used): "${selectedTopic}"`);
+  console.log(`🎯 JOB INDEX ${jobIndex} SELECTED FRESH TOPIC (${usedTopics.length}/${topics.length} used): "${selectedTopic}"`);
   return selectedTopic;
 }
 
