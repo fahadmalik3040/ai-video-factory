@@ -101,5 +101,33 @@
         "FOUNDER TAKEAWAY: ETHICAL MOAT > COMPETITIVE EDGE"
       ]
     }
+  },
+  {
+    "timestamp": "2026-08-21T14:59:40.547Z",
+    "title": "Castelion Hypersonic Missile Mass Production Facility 8K Cinematic Abstract 3D Visualization",
+    "renderModes": [
+      "3D"
+    ],
+    "engine3D": {
+      "solidGeometry": "CylinderGeometry",
+      "layoutMath": "grid",
+      "physicalMaterial": {
+        "metalness": 0.9,
+        "roughness": 0.1
+      },
+      "cinematographyDP": {
+        "cameraPath": "slow_orbit",
+        "pacing": "extremely_slow_and_cinematic",
+        "focusDistance": 0
+      },
+      "colors": [
+        "#B5B8C2",
+        "#E86C00",
+        "#0A1628"
+      ],
+      "cameraSpeed": 1,
+      "bloomIntensity": 2,
+      "complexity": 1.2
+    }
   }
 ]

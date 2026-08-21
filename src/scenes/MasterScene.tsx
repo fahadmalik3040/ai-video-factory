@@ -1,7 +1,8 @@
 import React, { useMemo, useRef, Component, ErrorInfo, ReactNode } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useCurrentFrame, useVideoConfig } from 'remotion';
 import * as THREE from 'three';
 
 // ----------------------------------------------------
@@ -39,14 +40,102 @@ class ThreeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 }
 
 // ----------------------------------------------------
+// VIRTUAL DP CAMERA RIG (CatmullRomCurve3 Continuous Motion)
+// ----------------------------------------------------
+interface VirtualDPCameraProps {
+  cameraPath?: 'slow_orbit' | 'smooth_dolly_in' | 'macro_pan_up';
+  pacing?: string;
+  focusDistance?: number;
+}
+
+const VirtualDPCamera: React.FC<VirtualDPCameraProps> = ({
+  cameraPath = 'slow_orbit',
+  focusDistance = 0,
+}) => {
+  const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
+
+  // Normalized continuous timeline: 0 -> 1 over the 15-second sequence
+  const totalFrames = durationInFrames || 450;
+  const progress = Math.min(Math.max(frame / totalFrames, 0), 1);
+
+  // 1. Slow 360-Degree Continuous Macro Orbit Spline
+  const orbitCurve = useMemo(() => {
+    return new THREE.CatmullRomCurve3(
+      [
+        new THREE.Vector3(0, 3, 26),
+        new THREE.Vector3(18, 5, 18),
+        new THREE.Vector3(25, 2, 0),
+        new THREE.Vector3(18, -3, -18),
+        new THREE.Vector3(0, 1, -26),
+        new THREE.Vector3(-18, 4, -18),
+        new THREE.Vector3(-25, 1, 0),
+        new THREE.Vector3(-18, -2, 18),
+        new THREE.Vector3(0, 3, 26),
+      ],
+      true
+    );
+  }, []);
+
+  // 2. Heavy Cinema Dolly-In Spline with Macro Focus
+  const dollyCurve = useMemo(() => {
+    return new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 5, 34),
+      new THREE.Vector3(1.5, 3.5, 24),
+      new THREE.Vector3(-1.0, 1.8, 16),
+      new THREE.Vector3(0.5, 0.8, 10),
+      new THREE.Vector3(0, 0.2, 5.5 + focusDistance),
+    ]);
+  }, [focusDistance]);
+
+  // 3. Majestic Vertical Pedestal Crane / Macro Pan Up
+  const panUpCurve = useMemo(() => {
+    return new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-10, -12, 22),
+      new THREE.Vector3(-5, -5, 19),
+      new THREE.Vector3(0, 2, 17),
+      new THREE.Vector3(5, 8, 19),
+      new THREE.Vector3(10, 14, 22),
+    ]);
+  }, []);
+
+  useFrame(({ camera }) => {
+    let targetPos = new THREE.Vector3();
+    let lookTarget = new THREE.Vector3(0, 0, 0);
+
+    if (cameraPath === 'smooth_dolly_in') {
+      // Smooth continuous ease-in-out along the dolly path
+      const easedT = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+      targetPos = dollyCurve.getPointAt(easedT);
+      lookTarget.set(0, Math.sin(progress * Math.PI) * 0.4, 0);
+    } else if (cameraPath === 'macro_pan_up') {
+      const easedT = progress;
+      targetPos = panUpCurve.getPointAt(easedT);
+      lookTarget.set(0, progress * 4 - 2, 0);
+    } else {
+      // Default: slow_orbit continuous 360-degree sweep
+      const orbitT = (progress * 0.75) % 1;
+      targetPos = orbitCurve.getPointAt(orbitT);
+      lookTarget.set(0, Math.sin(progress * Math.PI * 2) * 0.6, 0);
+    }
+
+    camera.position.copy(targetPos);
+    camera.lookAt(lookTarget);
+  });
+
+  return null;
+};
+
+// ----------------------------------------------------
 // Solid Fallback Scene (ZERO Particles)
 // ----------------------------------------------------
 const SolidFallbackScene: React.FC<{ colors: string[] }> = ({ colors }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const frame = useCurrentFrame();
   const c1 = colors[0] || "#00f0ff";
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
+  useFrame(() => {
+    const t = (frame / 30) * 0.1;
     if (meshRef.current) {
       meshRef.current.rotation.x = t * 0.4;
       meshRef.current.rotation.y = t * 0.6;
@@ -65,7 +154,6 @@ const SolidFallbackScene: React.FC<{ colors: string[] }> = ({ colors }) => {
           roughness={0.1}
           clearcoat={1.0}
           clearcoatRoughness={0.1}
-          wireframe={false}
         />
       </mesh>
     </group>
@@ -73,20 +161,20 @@ const SolidFallbackScene: React.FC<{ colors: string[] }> = ({ colors }) => {
 };
 
 // ----------------------------------------------------
-// CORE A: Solid 3D Candlestick & Box Grid
+// CORE A: Solid 3D Candlestick & Box Grid (Slow Pacing)
 // ----------------------------------------------------
 const CandlestickCore: React.FC<{
   colors: string[];
   speed: number;
   complexity: number;
-  movementStyle: string;
   metalness: number;
   roughness: number;
-}> = ({ colors, speed, complexity, movementStyle, metalness, roughness }) => {
+}> = ({ colors, speed, complexity, metalness, roughness }) => {
   const candleCount = 64;
   const bodyMeshRef = useRef<THREE.InstancedMesh>(null);
   const wickMeshRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
+  const frame = useCurrentFrame();
 
   const c1 = new THREE.Color(colors[0] || "#00f0ff");
   const c2 = new THREE.Color(colors[1] || "#ff007f");
@@ -102,40 +190,30 @@ const CandlestickCore: React.FC<{
     });
   }, [candleCount]);
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime() * speed * 0.8;
+  useFrame(() => {
+    // Ultra-slow, hypnotic cinematic rate
+    const t = (frame / 30) * 0.12 * speed;
 
     if (groupRef.current) {
-      if (movementStyle === "vortex" || movementStyle === "macro_dolly_in") {
-        groupRef.current.rotation.y = t * 0.4;
-        groupRef.current.rotation.x = Math.sin(t * 0.3) * 0.2;
-      } else if (movementStyle === "orbital" || movementStyle === "orbit_slow") {
-        groupRef.current.rotation.y = t * 0.5;
-        groupRef.current.rotation.z = Math.sin(t * 0.2) * 0.15;
-      } else if (movementStyle === "expansion") {
-        const s = 1.0 + Math.sin(t * 0.6) * 0.2;
-        groupRef.current.scale.set(s, s, s);
-      } else {
-        groupRef.current.rotation.y = t * 0.25;
-        groupRef.current.rotation.z = Math.sin(t * 0.3) * 0.1;
-      }
+      groupRef.current.rotation.y = t * 0.15;
+      groupRef.current.rotation.z = Math.sin(t * 0.2) * 0.05;
     }
 
     if (bodyMeshRef.current && wickMeshRef.current) {
       for (let i = 0; i < candleCount; i++) {
         const item = chartData[i];
-        const dynamicH = Math.max(0.4, item.baseHeight + Math.sin(t * 2 + i * 0.4) * 1.5 * complexity);
-        const yOffset = Math.sin(t + i * 0.2) * 1.8;
+        const dynamicH = Math.max(0.4, item.baseHeight + Math.sin(t * 1.5 + i * 0.3) * 1.2 * complexity);
+        const yOffset = Math.sin(t * 0.8 + i * 0.15) * 1.2;
 
-        dummy.position.set(item.x, yOffset, Math.cos(i * 0.3 + t) * 1.2);
+        dummy.position.set(item.x, yOffset, Math.cos(i * 0.25 + t) * 0.8);
         dummy.scale.set(0.42, dynamicH, 0.42);
         dummy.rotation.set(0, 0, 0);
         dummy.updateMatrix();
         bodyMeshRef.current.setMatrixAt(i, dummy.matrix);
         bodyMeshRef.current.setColorAt(i, item.isBullish ? c1 : c2);
 
-        const wickHeight = dynamicH + 2.0;
-        dummy.position.set(item.x, yOffset, Math.cos(i * 0.3 + t) * 1.2);
+        const wickHeight = dynamicH + 1.8;
+        dummy.position.set(item.x, yOffset, Math.cos(i * 0.25 + t) * 0.8);
         dummy.scale.set(0.08, wickHeight, 0.08);
         dummy.updateMatrix();
         wickMeshRef.current.setMatrixAt(i, dummy.matrix);
@@ -176,16 +254,15 @@ const CandlestickCore: React.FC<{
 };
 
 // ----------------------------------------------------
-// CORE B: Solid DNA Double Helix & Molecular Structure
+// CORE B: Solid DNA Double Helix & Molecular Structure (Slow Pacing)
 // ----------------------------------------------------
 const DnaMoleculesCore: React.FC<{
   colors: string[];
   speed: number;
   complexity: number;
-  movementStyle: string;
   metalness: number;
   roughness: number;
-}> = ({ colors, speed, complexity, movementStyle, metalness, roughness }) => {
+}> = ({ colors, speed, complexity, metalness, roughness }) => {
   const nodeCount = 50;
   const totalNodes = nodeCount * 2;
   const rungsCount = nodeCount;
@@ -193,6 +270,7 @@ const DnaMoleculesCore: React.FC<{
   const nodeMeshRef = useRef<THREE.InstancedMesh>(null);
   const rungMeshRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
+  const frame = useCurrentFrame();
 
   const c1 = new THREE.Color(colors[0] || "#00f0ff");
   const c2 = new THREE.Color(colors[1] || "#ff007f");
@@ -200,24 +278,13 @@ const DnaMoleculesCore: React.FC<{
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime() * speed * 0.7;
+  useFrame(() => {
+    // Elegant, slow rotational progression for DNA
+    const t = (frame / 30) * 0.15 * speed;
 
     if (groupRef.current) {
-      if (movementStyle === "vortex" || movementStyle === "macro_dolly_in") {
-        groupRef.current.rotation.y = t * 0.7;
-        groupRef.current.rotation.x = t * 0.3;
-      } else if (movementStyle === "orbital" || movementStyle === "orbit_slow") {
-        groupRef.current.rotation.y = t * 0.5;
-        groupRef.current.rotation.z = t * 0.4;
-      } else if (movementStyle === "expansion") {
-        const s = 1.0 + Math.sin(t * 0.8) * 0.25;
-        groupRef.current.scale.set(s, s, s);
-        groupRef.current.rotation.y = t * 0.3;
-      } else {
-        groupRef.current.rotation.y = t * 0.4;
-        groupRef.current.rotation.x = Math.sin(t * 0.3) * 0.25;
-      }
+      groupRef.current.rotation.y = t * 0.25;
+      groupRef.current.rotation.x = Math.sin(t * 0.15) * 0.12;
     }
 
     if (nodeMeshRef.current && rungMeshRef.current) {
@@ -225,7 +292,7 @@ const DnaMoleculesCore: React.FC<{
       const heightSpread = 0.5;
 
       for (let i = 0; i < nodeCount; i++) {
-        const angle = i * 0.28 + t;
+        const angle = i * 0.28 + t * 0.8;
         const y = (i - nodeCount / 2) * heightSpread;
 
         const x1 = Math.cos(angle) * radius;
@@ -291,19 +358,19 @@ const DnaMoleculesCore: React.FC<{
 };
 
 // ----------------------------------------------------
-// CORE C: Solid Concentric Rings / Torus Lattice
+// CORE C: Solid Concentric Rings / Torus Lattice (Slow Pacing)
 // ----------------------------------------------------
 const ConcentricRingsCore: React.FC<{
   colors: string[];
   speed: number;
   complexity: number;
-  movementStyle: string;
   metalness: number;
   roughness: number;
-}> = ({ colors, speed, complexity, movementStyle, metalness, roughness }) => {
+}> = ({ colors, speed, complexity, metalness, roughness }) => {
   const ringCount = 12;
   const torusMeshRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
+  const frame = useCurrentFrame();
 
   const c1 = new THREE.Color(colors[0] || "#00f0ff");
   const c2 = new THREE.Color(colors[1] || "#ff007f");
@@ -311,22 +378,22 @@ const ConcentricRingsCore: React.FC<{
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime() * speed * 0.7;
+  useFrame(() => {
+    const t = (frame / 30) * 0.12 * speed;
 
     if (groupRef.current) {
-      groupRef.current.rotation.y = t * 0.3;
-      groupRef.current.rotation.x = Math.sin(t * 0.2) * 0.2;
+      groupRef.current.rotation.y = t * 0.2;
+      groupRef.current.rotation.x = Math.sin(t * 0.15) * 0.1;
     }
 
     if (torusMeshRef.current) {
       for (let i = 0; i < ringCount; i++) {
         const radius = (i + 1) * 1.1 * complexity;
-        dummy.position.set(0, Math.sin(t * 1.5 + i * 0.4) * 0.8, 0);
+        dummy.position.set(0, Math.sin(t * 0.8 + i * 0.3) * 0.6, 0);
         dummy.scale.set(radius, radius, radius);
         dummy.rotation.set(
-          i % 2 === 0 ? t * 0.5 + i * 0.2 : -t * 0.4 - i * 0.2,
-          i * 0.3,
+          i % 2 === 0 ? t * 0.3 + i * 0.15 : -t * 0.25 - i * 0.15,
+          i * 0.2,
           0
         );
         dummy.updateMatrix();
@@ -358,19 +425,19 @@ const ConcentricRingsCore: React.FC<{
 };
 
 // ----------------------------------------------------
-// CORE D: Solid Abstract Displaced Geometric Waves
+// CORE D: Solid Abstract Displaced Geometric Waves (Slow Pacing)
 // ----------------------------------------------------
 const AbstractSolidWavesCore: React.FC<{
   colors: string[];
   speed: number;
   complexity: number;
-  movementStyle: string;
   metalness: number;
   roughness: number;
-}> = ({ colors, speed, complexity, movementStyle, metalness, roughness }) => {
+}> = ({ colors, speed, complexity, metalness, roughness }) => {
   const planeRef = useRef<THREE.Mesh>(null);
   const monolithRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
+  const frame = useCurrentFrame();
 
   const c1 = colors[0] || "#00f0ff";
   const c2 = colors[1] || "#ff007f";
@@ -381,23 +448,12 @@ const AbstractSolidWavesCore: React.FC<{
   const segments = 64;
   const planeGeometry = useMemo(() => new THREE.PlaneGeometry(24, 24, segments, segments), [segments]);
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime() * speed * 0.75;
+  useFrame(() => {
+    const t = (frame / 30) * 0.12 * speed;
 
     if (groupRef.current) {
-      if (movementStyle === "vortex" || movementStyle === "macro_dolly_in") {
-        groupRef.current.rotation.z = t * 0.3;
-        groupRef.current.rotation.x = -Math.PI / 3 + Math.sin(t * 0.4) * 0.15;
-      } else if (movementStyle === "orbital" || movementStyle === "orbit_slow") {
-        groupRef.current.rotation.z = Math.sin(t * 0.3) * 0.3;
-        groupRef.current.rotation.y = t * 0.2;
-      } else if (movementStyle === "expansion") {
-        const s = 1.0 + Math.sin(t * 0.6) * 0.15;
-        groupRef.current.scale.set(s, s, s);
-      } else {
-        groupRef.current.rotation.x = -Math.PI / 3.2 + Math.sin(t * 0.2) * 0.1;
-        groupRef.current.rotation.z = t * 0.15;
-      }
+      groupRef.current.rotation.x = -Math.PI / 3.4 + Math.sin(t * 0.15) * 0.06;
+      groupRef.current.rotation.z = t * 0.08;
     }
 
     if (planeRef.current) {
@@ -408,8 +464,8 @@ const AbstractSolidWavesCore: React.FC<{
         const u = positionAttr.getX(i);
         const v = positionAttr.getY(i);
         const z =
-          (Math.sin(u * 0.4 + t * 2) * Math.cos(v * 0.4 + t * 1.5) * 2.2 +
-            Math.sin(Math.sqrt(u * u + v * v) * 0.6 - t * 3) * 1.2) *
+          (Math.sin(u * 0.3 + t * 1.0) * Math.cos(v * 0.3 + t * 0.8) * 1.8 +
+            Math.sin(Math.sqrt(u * u + v * v) * 0.4 - t * 1.2) * 0.9) *
           complexity;
         positionAttr.setZ(i, z);
       }
@@ -427,11 +483,11 @@ const AbstractSolidWavesCore: React.FC<{
         const col = (i % 6) - 2.5;
         const posX = col * 3.5;
         const posY = row * 3.5;
-        const posZ = 2.5 + Math.sin(t * 2 + i * 0.5) * 1.8;
+        const posZ = 2.2 + Math.sin(t * 1.0 + i * 0.4) * 1.2;
 
         dummy.position.set(posX, posY, posZ);
-        dummy.scale.set(0.7, 0.7, 1.8 + Math.sin(t + i) * 0.8);
-        dummy.rotation.set(t + i * 0.2, t * 0.5, 0);
+        dummy.scale.set(0.7, 0.7, 1.6 + Math.sin(t * 0.8 + i) * 0.6);
+        dummy.rotation.set(t * 0.5 + i * 0.1, t * 0.3, 0);
         dummy.updateMatrix();
 
         monolithRef.current.setMatrixAt(i, dummy.matrix);
@@ -451,7 +507,7 @@ const AbstractSolidWavesCore: React.FC<{
         <meshPhysicalMaterial
           color={c1}
           emissive={c2}
-          emissiveIntensity={0.3}
+          emissiveIntensity={0.25}
           metalness={metalness}
           roughness={roughness}
           clearcoat={1.0}
@@ -488,6 +544,11 @@ interface MasterSceneProps {
       layoutMath?: 'grid' | 'concentric_rings' | 'dna_helix' | 'wave_plane';
       physicalMaterial?: { metalness?: number; roughness?: number };
       cameraMotion?: 'orbit_slow' | 'macro_dolly_in';
+      cinematographyDP?: {
+        cameraPath?: 'slow_orbit' | 'smooth_dolly_in' | 'macro_pan_up';
+        pacing?: string;
+        focusDistance?: number;
+      };
       colors?: string[];
       cameraSpeed?: number;
       bloomIntensity?: number;
@@ -525,14 +586,20 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
     activeCore = 'abstract_solid_waves';
   }
 
-  const movementStyle = e3d?.cameraMotion || data?.movementStyle || 'quantum_flow';
+  // Virtual DP Camera Path Configuration
+  const dpConfig = e3d?.cinematographyDP;
+  let cameraPath: 'slow_orbit' | 'smooth_dolly_in' | 'macro_pan_up' = dpConfig?.cameraPath || 'slow_orbit';
+  if (!dpConfig?.cameraPath && e3d?.cameraMotion === 'macro_dolly_in') {
+    cameraPath = 'smooth_dolly_in';
+  }
+
   const colors = Array.isArray(e3d?.colors) && e3d!.colors.length >= 2
     ? e3d!.colors
     : Array.isArray(data?.colors) && data.colors.length >= 2
     ? data.colors
     : ['#00f0ff', '#ff007f', '#7000ff'];
 
-  const cameraSpeed = typeof e3d?.cameraSpeed === 'number' ? e3d.cameraSpeed : typeof data?.cameraSpeed === 'number' ? data.cameraSpeed : 1.5;
+  const cameraSpeed = typeof e3d?.cameraSpeed === 'number' ? e3d.cameraSpeed : typeof data?.cameraSpeed === 'number' ? data.cameraSpeed : 1.0;
   const bloomIntensity = typeof e3d?.bloomIntensity === 'number' ? e3d.bloomIntensity : typeof data?.bloomIntensity === 'number' ? data.bloomIntensity : 2.0;
   const complexity = typeof e3d?.complexity === 'number' ? e3d.complexity : typeof data?.complexity === 'number' ? data.complexity : 1.0;
   const metalness = typeof e3d?.physicalMaterial?.metalness === 'number' ? e3d.physicalMaterial.metalness : 0.9;
@@ -540,6 +607,13 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
 
   return (
     <ThreeErrorBoundary fallback={<SolidFallbackScene colors={colors} />}>
+      {/* Heavy Mechanical Cinema Dolly Virtual DP Camera */}
+      <VirtualDPCamera
+        cameraPath={cameraPath}
+        pacing={dpConfig?.pacing || 'extremely_slow_and_cinematic'}
+        focusDistance={dpConfig?.focusDistance || 0}
+      />
+
       <ambientLight intensity={1.5} />
       <directionalLight position={[10, 10, 5]} intensity={2.0} color="#ffffff" />
       <pointLight position={[-15, -15, -10]} intensity={2.2} color={colors[1] || '#ff007f'} />
@@ -551,7 +625,6 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
           colors={colors}
           speed={cameraSpeed}
           complexity={complexity}
-          movementStyle={movementStyle}
           metalness={metalness}
           roughness={roughness}
         />
@@ -562,7 +635,6 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
           colors={colors}
           speed={cameraSpeed}
           complexity={complexity}
-          movementStyle={movementStyle}
           metalness={metalness}
           roughness={roughness}
         />
@@ -573,7 +645,6 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
           colors={colors}
           speed={cameraSpeed}
           complexity={complexity}
-          movementStyle={movementStyle}
           metalness={metalness}
           roughness={roughness}
         />
@@ -584,7 +655,6 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
           colors={colors}
           speed={cameraSpeed}
           complexity={complexity}
-          movementStyle={movementStyle}
           metalness={metalness}
           roughness={roughness}
         />

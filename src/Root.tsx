@@ -17,8 +17,13 @@ const fallbackSceneData: SceneData = {
     layoutMath: "wave_plane",
     physicalMaterial: { metalness: 0.9, roughness: 0.1 },
     cameraMotion: "orbit_slow",
+    cinematographyDP: {
+      cameraPath: "slow_orbit",
+      pacing: "extremely_slow_and_cinematic",
+      focusDistance: 0,
+    },
     colors: ["#00f0ff", "#ff007f", "#7000ff"],
-    cameraSpeed: 1.5,
+    cameraSpeed: 1.0,
     bloomIntensity: 2.0,
     complexity: 1.0,
   },
@@ -32,7 +37,7 @@ const fallbackSceneData: SceneData = {
   sceneType: "abstract_solid_waves",
   movementStyle: "quantum_flow",
   colors: ["#00f0ff", "#ff007f", "#7000ff"],
-  cameraSpeed: 1.5,
+  cameraSpeed: 1.0,
   bloomIntensity: 2.0,
   complexity: 1.0,
 };
@@ -43,23 +48,23 @@ const sceneData = parsedSceneData.success ? parsedSceneData.data : fallbackScene
 const RemotionRoot: React.FC = () => {
   return (
     <>
-      {/* Primary Mandatory 3D Procedural Stock Video Composition */}
+      {/* Primary Mandatory 3D Procedural Stock Video Composition (15 seconds @ 30fps) */}
       <Composition
         id="Main3D"
         component={SceneRouter}
-        durationInFrames={300}
-        fps={24}
+        durationInFrames={450}
+        fps={30}
         width={3840}
         height={2160}
         defaultProps={{ sceneData }}
       />
 
-      {/* Secondary 2D Motion Graphics Composition (HUD / UI Cards / Kinetic Typography) */}
+      {/* Secondary 2D Motion Graphics Composition (15 seconds @ 30fps) */}
       <Composition
         id="Main2D"
         component={Scene2DRouter}
-        durationInFrames={300}
-        fps={24}
+        durationInFrames={450}
+        fps={30}
         width={3840}
         height={2160}
         defaultProps={{ sceneData }}
@@ -69,8 +74,8 @@ const RemotionRoot: React.FC = () => {
       <Composition
         id="MainVideo"
         component={SceneRouter}
-        durationInFrames={300}
-        fps={24}
+        durationInFrames={450}
+        fps={30}
         width={3840}
         height={2160}
         defaultProps={{ sceneData }}

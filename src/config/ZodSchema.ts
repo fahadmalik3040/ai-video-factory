@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+export const CinematographyDPSchema = z.object({
+  cameraPath: z.enum(["slow_orbit", "smooth_dolly_in", "macro_pan_up"]).default("slow_orbit"),
+  pacing: z.string().default("extremely_slow_and_cinematic"),
+  focusDistance: z.number().default(0)
+}).default({
+  cameraPath: "slow_orbit",
+  pacing: "extremely_slow_and_cinematic",
+  focusDistance: 0
+});
+
 export const Engine3DSchema = z.object({
   solidGeometry: z.enum(["BoxGeometry", "SphereGeometry", "CylinderGeometry", "TorusGeometry"]).default("BoxGeometry"),
   layoutMath: z.enum(["grid", "concentric_rings", "dna_helix", "wave_plane"]).default("wave_plane"),
@@ -8,8 +18,9 @@ export const Engine3DSchema = z.object({
     roughness: z.number().default(0.1)
   }).default({ metalness: 0.9, roughness: 0.1 }),
   cameraMotion: z.enum(["orbit_slow", "macro_dolly_in"]).default("orbit_slow"),
+  cinematographyDP: CinematographyDPSchema,
   colors: z.array(z.string()).default(["#00f0ff", "#ff007f", "#7000ff"]),
-  cameraSpeed: z.number().default(1.5),
+  cameraSpeed: z.number().default(1.0),
   bloomIntensity: z.number().default(2.0),
   complexity: z.number().default(1.2)
 });
