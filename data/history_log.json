@@ -401,5 +401,63 @@
         }
       ]
     }
+  },
+  {
+    "timestamp": "2026-08-21T18:13:42.995Z",
+    "title": "Cinematic 4K VFX Dual-Render: AI Neural Network Data Flow",
+    "renderModes": [
+      "3D",
+      "2D"
+    ],
+    "engine3D": {
+      "solidGeometry": "SphereGeometry",
+      "layoutMath": "concentric_rings",
+      "physicalMaterial": {
+        "metalness": 0.9,
+        "roughness": 0.1
+      },
+      "cinematographyDP": {
+        "cameraPath": "smooth_dolly_in",
+        "pacing": "extremely_slow_and_cinematic",
+        "focusDistance": 0
+      },
+      "colors": [
+        "#ff9900",
+        "#ff0033",
+        "#6600cc"
+      ],
+      "cameraSpeed": 1,
+      "bloomIntensity": 2,
+      "complexity": 1
+    },
+    "engine2D": {
+      "layoutStructure": "floating_glass_shapes",
+      "colorPalette": [
+        "#ff9900",
+        "#ff0033",
+        "#6600cc",
+        "#00ccff"
+      ],
+      "elements": [
+        {
+          "type": "data_ring",
+          "scale": 1,
+          "thickness": 3
+        },
+        {
+          "type": "glass_blob",
+          "size": 380
+        },
+        {
+          "type": "hud_grid",
+          "rows": 5,
+          "cols": 8
+        },
+        {
+          "type": "waveform_bars",
+          "scale": 1
+        }
+      ]
+    }
   }
 ]
