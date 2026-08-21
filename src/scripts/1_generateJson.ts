@@ -135,8 +135,9 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
     return { valid: false, reason: "REJECTED: SEO tags count is insufficient." };
   }
 
-  if (!Array.isArray(candidate.renderModes) || !candidate.renderModes.includes("3D")) {
-    return { valid: false, reason: "REJECTED: '3D' renderMode is strictly MANDATORY for all generations." };
+  // FORCE MANDATORY DUAL-RENDER (BOTH 3D AND 2D)
+  if (!Array.isArray(candidate.renderModes) || !candidate.renderModes.includes("3D") || !candidate.renderModes.includes("2D")) {
+    return { valid: false, reason: "REJECTED: renderModes MUST strictly include BOTH '3D' and '2D'." };
   }
 
   const validGeometries = ["BoxGeometry", "SphereGeometry", "CylinderGeometry", "TorusGeometry"];
@@ -151,10 +152,9 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
     return { valid: false, reason: `REJECTED: layoutMath '${math}' must be one of: ${validMath.join(', ')}.` };
   }
 
-  if (candidate.renderModes.includes("2D")) {
-    if (!candidate.engine2D || !Array.isArray(candidate.engine2D.elements) || candidate.engine2D.elements.length === 0) {
-      return { valid: false, reason: "REJECTED: '2D' renderMode requires non-empty visual engine2D.elements." };
-    }
+  // Pure visual 2D validation
+  if (!candidate.engine2D || !Array.isArray(candidate.engine2D.elements) || candidate.engine2D.elements.length === 0) {
+    return { valid: false, reason: "REJECTED: engine2D.elements must contain visual abstract elements." };
   }
 
   for (const past of history) {
@@ -237,7 +237,7 @@ async function queryLlm(payload: any): Promise<any> {
 }
 
 async function generate() {
-  console.log("🚀 INITIATING DUAL-AGENT ELITE VFX & EDITING TEMPLATE DIRECTOR (4096 TOKENS + JSON SANITIZER)...");
+  console.log("🚀 INITIATING MANDATORY DUAL-RENDER VFX & MOTION GRAPHICS ORCHESTRATOR [3D + 2D]...");
 
   const { topic: promptContent, jobIndex } = getNextTopic();
   const historyPath = 'data/history_log.json';
@@ -260,18 +260,17 @@ async function generate() {
   while (attempt < MAX_ATTEMPTS && !approvedJson) {
     attempt++;
     const randomSeed = Math.random().toString(36).substring(7);
-    console.log(`⏳ [Actor Generator & VFX Director] Attempt ${attempt} of ${MAX_ATTEMPTS} (Seed: ${randomSeed})...`);
+    console.log(`⏳ [Dual-Render Director] Attempt ${attempt} of ${MAX_ATTEMPTS} (Seed: ${randomSeed})...`);
 
     let userPrompt = `Analyze the trending topic or VFX style: "${promptContent}".
 Your generation random seed is: ${randomSeed}.
-You are an Elite VFX Director. Output a valid JSON object.
-Your provided topic might be a traditional concept OR a specific video editing trend (like 'CapCut Neon Glitch', 'Velocity Edit', or 'Filmora Light Leak'). If it is an editing trend, design the 3D/2D geometry and motion math to perfectly replicate that visual effect using solid shapes, lighting, and camera movement.
+You are an Elite Visual Director. Output a STRICT JSON object.
 
 CRITICAL MANDATES:
-1. 3D IS ALWAYS MANDATORY: You MUST generate an abstract 3D visual metaphor (engine3D) for EVERY topic, using only SOLID geometries and slow continuous cinematography (slow_orbit | smooth_dolly_in | macro_pan_up).
-2. DUAL-RENDER FOR SOFTWARE/UI/VFX/OVERLAYS: If the topic discusses software, UI, apps, CapCut/Filmora/Premiere video editing effects, neon overlays, or motion graphics, add '2D' to the renderModes array and generate purely visual engine2D parameters.
-3. PURE VISUAL ABSTRACT 2D: For 2D, you are creating PURELY VISUAL abstract motion graphics (like high-tech HUDs, data waveforms, or organic glass blobs). Do NOT generate any text, words, paragraphs, or numbers in engine2D. Only visual mathematical parameters (data_ring, glass_blob, hud_grid, waveform_bars).
-4. RANDOM SEED VARIATION: Based on random seed ${randomSeed}, create a completely unique color palette, geometry choice, and motion trajectory.
+1. DUAL-RENDER IS STRICTLY MANDATORY: renderModes MUST ALWAYS be ["3D", "2D"]. You must generate BOTH engine3D AND engine2D for every single topic.
+2. ENGINE 3D: Generate abstract solid PBR geometry (BoxGeometry | SphereGeometry | CylinderGeometry | TorusGeometry) with continuous slow cinematography (slow_orbit | smooth_dolly_in | macro_pan_up).
+3. ENGINE 2D (PURE VISUAL): Generate abstract motion graphics (hud_circles | floating_glass_shapes | abstract_data_waves) with ZERO text, letters, or words. Only visual mathematical parameters (data_ring, glass_blob, hud_grid, waveform_bars).
+4. RANDOM SEED VARIATION: Based on random seed ${randomSeed}, create a completely unique color palette and geometry choice.
 
 Output STRICT JSON conforming to this schema:
 {
@@ -280,7 +279,7 @@ Output STRICT JSON conforming to this schema:
     "description": "string (deep technical visual description)",
     "seoTags": ["array of 15-20 high-quality niche trending stock video tags"]
   },
-  "renderModes": ["3D"] | ["3D", "2D"],
+  "renderModes": ["3D", "2D"],
   "engine3D": {
     "solidGeometry": "BoxGeometry" | "SphereGeometry" | "CylinderGeometry" | "TorusGeometry",
     "layoutMath": "grid" | "concentric_rings" | "dna_helix" | "wave_plane",
@@ -315,7 +314,7 @@ Output STRICT JSON conforming to this schema:
       messages: [
         { 
           role: "system", 
-          content: `You are an Elite VFX Director and Hollywood DP. You are generating a unique abstract 3D setup. Your random seed for this generation is ${randomSeed}. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must be purely abstract motion graphics with ZERO text, letters, or words in engine2D.` 
+          content: `You are an Elite VFX Director and Hollywood DP. You are generating a unique abstract 3D and 2D Dual-Render setup. renderModes is ALWAYS ["3D", "2D"]. Your random seed for this generation is ${randomSeed}. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must be purely abstract motion graphics with ZERO text, letters, or words in engine2D.` 
         },
         { 
           role: "user", 
@@ -326,13 +325,10 @@ Output STRICT JSON conforming to this schema:
 
     try {
       const rawText = await queryLlm(payload);
-      
-      // Use robust JSON sanitizer & markdown stripper
       const candidate = sanitizeAndParseJson(rawText);
 
-      // Ensure 3D is always present
-      if (!Array.isArray(candidate.renderModes)) candidate.renderModes = ["3D"];
-      if (!candidate.renderModes.includes("3D")) candidate.renderModes.unshift("3D");
+      // FORCE MANDATORY DUAL-RENDER
+      candidate.renderModes = ["3D", "2D"];
 
       // Ensure cinematographyDP default
       if (!candidate.engine3D?.cinematographyDP) {
@@ -344,8 +340,19 @@ Output STRICT JSON conforming to this schema:
         };
       }
 
-      // Normalize engine2D visual elements (PURGE all text)
-      if (candidate.engine2D) {
+      // Ensure engine2D is always populated
+      if (!candidate.engine2D) {
+        candidate.engine2D = {
+          layoutStructure: "hud_circles",
+          colorPalette: candidate.engine3D?.colors || ["#00f0ff", "#ff007f", "#7000ff", "#00ffaa"],
+          elements: [
+            { type: "data_ring", scale: 1.0, thickness: 3 },
+            { type: "glass_blob", size: 380 },
+            { type: "hud_grid", rows: 5, cols: 8 },
+            { type: "waveform_bars", scale: 1.0 }
+          ]
+        };
+      } else {
         if (!candidate.engine2D.layoutStructure && candidate.engine2D.style) {
           candidate.engine2D.layoutStructure = candidate.engine2D.style;
         }
@@ -363,15 +370,15 @@ Output STRICT JSON conforming to this schema:
       }
 
       // Set top-level aliases for backward compatibility
-      candidate.title = candidate.seoPackage?.title || candidate.title || `Solid 3D: ${promptContent}`;
+      candidate.title = candidate.seoPackage?.title || candidate.title || `Solid 3D & 2D: ${promptContent}`;
       candidate.seoTags = candidate.seoPackage?.seoTags || candidate.seoTags || [];
       candidate.colors = candidate.engine3D?.colors || candidate.colors || ["#00f0ff", "#ff007f", "#7000ff"];
 
-      console.log(`🔍 [Critic Agent] Evaluating Candidate: "${candidate.title}" (Seed: ${randomSeed}, Modes: ${candidate.renderModes.join(' + ')})...`);
+      console.log(`🔍 [Critic Agent] Evaluating Candidate: "${candidate.title}" (Seed: ${randomSeed}, Modes: 3D + 2D)...`);
       const criticResult = validateWithCritic(candidate, history, promptContent);
 
       if (criticResult.valid) {
-        console.log(`✅ [Critic Agent] APPROVED! Candidate passed VFX Mega-Trend validation.`);
+        console.log(`✅ [Critic Agent] APPROVED! Candidate passed Mandatory Dual-Render validation.`);
         approvedJson = candidate;
       } else {
         console.warn(`🛑 [Critic Agent] ${criticResult.reason}`);
@@ -385,32 +392,16 @@ Output STRICT JSON conforming to this schema:
 
   if (!approvedJson) {
     console.warn("⚠️ Critic validation or API limits reached. Generating dynamic pure visual Dual-Render fallback config.");
-    const isSoftwareUI = promptContent.toLowerCase().includes("app") ||
-                         promptContent.toLowerCase().includes("calendar") ||
-                         promptContent.toLowerCase().includes("software") ||
-                         promptContent.toLowerCase().includes("tool") ||
-                         promptContent.toLowerCase().includes("neon") ||
-                         promptContent.toLowerCase().includes("glitch") ||
-                         promptContent.toLowerCase().includes("vfx") ||
-                         promptContent.toLowerCase().includes("leak") ||
-                         promptContent.toLowerCase().includes("overlay") ||
-                         promptContent.toLowerCase().includes("hud") ||
-                         promptContent.toLowerCase().includes("grok") ||
-                         promptContent.toLowerCase().includes("ai") ||
-                         promptContent.toLowerCase().includes("capcut") ||
-                         promptContent.toLowerCase().includes("filmora");
-
-    const renderModes: ("3D" | "2D")[] = isSoftwareUI ? ["3D", "2D"] : ["3D"];
     const cameraPaths: ("slow_orbit" | "smooth_dolly_in" | "macro_pan_up")[] = ["slow_orbit", "smooth_dolly_in", "macro_pan_up"];
     const chosenCam = cameraPaths[Math.floor(Math.random() * cameraPaths.length)];
 
     approvedJson = {
       seoPackage: {
-        title: `Cinematic 4K VFX Motion Graphics: ${promptContent}`,
+        title: `Cinematic 4K VFX Dual-Render: ${promptContent}`,
         description: `High-End 4K Visual Motion Graphics and Solid PBR Simulation of ${promptContent}`,
         seoTags: ["solid 3d", "4k", "procedural", "motion graphics", "stock video", "vfx template", "pbr materials", "pure visual", promptContent.toLowerCase()]
       },
-      renderModes: renderModes,
+      renderModes: ["3D", "2D"],
       engine3D: {
         solidGeometry: "BoxGeometry",
         layoutMath: "wave_plane",
@@ -425,7 +416,7 @@ Output STRICT JSON conforming to this schema:
         bloomIntensity: 2.0,
         complexity: 1.0
       },
-      engine2D: isSoftwareUI ? {
+      engine2D: {
         layoutStructure: "hud_circles",
         colorPalette: ["#00f0ff", "#ff007f", "#7000ff", "#00ffaa"],
         elements: [
@@ -434,7 +425,7 @@ Output STRICT JSON conforming to this schema:
           { type: "hud_grid", rows: 5, cols: 8 },
           { type: "waveform_bars", scale: 1.0 }
         ]
-      } : undefined,
+      },
       title: `Cinematic 4K VFX: ${promptContent}`,
       solid_core: "abstract_solid_waves",
       sceneType: "abstract_solid_waves",
@@ -473,7 +464,7 @@ Output STRICT JSON conforming to this schema:
   fs.writeFileSync('out/metadata.txt', metadataContent);
   fs.writeFileSync(`out/metadata_${jobIndex}.txt`, metadataContent);
 
-  console.log(`✅ MEGA-TREND METADATA SAVED FOR JOB ${jobIndex} (MODES: ${approvedJson.renderModes.join(' + ')})!`);
+  console.log(`✅ MANDATORY DUAL-RENDER METADATA SAVED FOR JOB ${jobIndex} (MODES: 3D + 2D)!`);
 }
 
 generate();

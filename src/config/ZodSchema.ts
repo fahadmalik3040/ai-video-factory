@@ -42,10 +42,20 @@ export const Engine2DSchema = z.object({
   colors: z.array(z.string()).optional(),
   elements: z.array(Engine2DElementSchema).default([
     { type: "data_ring", scale: 1.0, thickness: 3 },
-    { type: "glass_blob", size: 320 },
-    { type: "hud_grid", rows: 4, cols: 6 }
+    { type: "glass_blob", size: 380 },
+    { type: "hud_grid", rows: 5, cols: 8 },
+    { type: "waveform_bars", scale: 1.0 }
   ])
-}).optional();
+}).default({
+  layoutStructure: "hud_circles",
+  colorPalette: ["#00f0ff", "#ff007f", "#7000ff", "#00ffaa"],
+  elements: [
+    { type: "data_ring", scale: 1.0, thickness: 3 },
+    { type: "glass_blob", size: 380 },
+    { type: "hud_grid", rows: 5, cols: 8 },
+    { type: "waveform_bars", scale: 1.0 }
+  ]
+});
 
 export const SEOPackageSchema = z.object({
   title: z.string().default("Solid 3D Procedural Visual"),
@@ -59,10 +69,9 @@ export const SceneSchema = z.object({
     description: "Cinematic 4K Motion Graphics Video",
     seoTags: []
   }),
-  renderModes: z.array(z.enum(["3D", "2D"])).default(["3D"]),
+  renderModes: z.array(z.enum(["3D", "2D"])).default(["3D", "2D"]),
   engine3D: Engine3DSchema.default({}),
   engine2D: Engine2DSchema,
-  // Backward compatibility top-level keys
   title: z.string().optional(),
   seoTags: z.array(z.string()).optional(),
   solid_core: z.string().optional(),

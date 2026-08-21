@@ -1,7 +1,7 @@
 {
   "seoPackage": {
-    "title": "Cinematic 4K VFX Motion Graphics: Neuromorphic Synaptic Computing Network",
-    "description": "High-End 4K Visual Motion Graphics and Solid PBR Simulation of Neuromorphic Synaptic Computing Network",
+    "title": "Cinematic 4K VFX Dual-Render: Stock Market Finance Candlesticks Abstract",
+    "description": "High-End 4K Visual Motion Graphics and Solid PBR Simulation of Stock Market Finance Candlesticks Abstract",
     "seoTags": [
       "solid 3d",
       "4k",
@@ -11,11 +11,12 @@
       "vfx template",
       "pbr materials",
       "pure visual",
-      "neuromorphic synaptic computing network"
+      "stock market finance candlesticks abstract"
     ]
   },
   "renderModes": [
-    "3D"
+    "3D",
+    "2D"
   ],
   "engine3D": {
     "solidGeometry": "BoxGeometry",
@@ -38,7 +39,36 @@
     "bloomIntensity": 2,
     "complexity": 1
   },
-  "title": "Cinematic 4K VFX: Neuromorphic Synaptic Computing Network",
+  "engine2D": {
+    "layoutStructure": "hud_circles",
+    "colorPalette": [
+      "#00f0ff",
+      "#ff007f",
+      "#7000ff",
+      "#00ffaa"
+    ],
+    "elements": [
+      {
+        "type": "data_ring",
+        "scale": 1,
+        "thickness": 3
+      },
+      {
+        "type": "glass_blob",
+        "size": 380
+      },
+      {
+        "type": "hud_grid",
+        "rows": 5,
+        "cols": 8
+      },
+      {
+        "type": "waveform_bars",
+        "scale": 1
+      }
+    ]
+  },
+  "title": "Cinematic 4K VFX: Stock Market Finance Candlesticks Abstract",
   "solid_core": "abstract_solid_waves",
   "sceneType": "abstract_solid_waves",
   "movementStyle": "quantum_flow",
