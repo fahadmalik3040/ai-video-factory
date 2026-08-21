@@ -50,11 +50,14 @@ function getNextTopic(): { topic: string; jobIndex: number } {
 
   if (topics.length === 0) {
     topics = [
-      "Quantum Solid Data Matrix Flow",
-      "Algorithmic Candlestick High Frequency Finance",
-      "Synthetic DNA Double Helix Molecular Array",
-      "Grok AI Model Real-Time Neural Reasoning Architecture",
-      "Abstract Displaced Tech Waves Real-time 4K"
+      "AI Neural Network Data Flow",
+      "Quantum Computing Glowing Nodes",
+      "Cyberpunk Blockchain Grid",
+      "Biotech DNA Double Helix Evolution",
+      "Stock Market Finance Candlesticks Abstract",
+      "Server Room Big Data Fiber Optics",
+      "Microscopic Virus Cell Mutation",
+      "Futuristic Glassmorphism UI HUD"
     ];
   }
 
@@ -113,7 +116,6 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
     return { valid: false, reason: `REJECTED: layoutMath '${math}' must be one of: ${validMath.join(', ')}.` };
   }
 
-  // Pure visual 2D validation
   if (candidate.renderModes.includes("2D")) {
     if (!candidate.engine2D || !Array.isArray(candidate.engine2D.elements) || candidate.engine2D.elements.length === 0) {
       return { valid: false, reason: "REJECTED: '2D' renderMode requires non-empty visual engine2D.elements." };
@@ -132,7 +134,7 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
 }
 
 async function generate() {
-  console.log("🚀 INITIATING DUAL-AGENT VISUAL ABSTRACT DIRECTOR (NVIDIA 550B)...");
+  console.log("🚀 INITIATING DUAL-AGENT VISUAL ABSTRACT DIRECTOR WITH RANDOM SEED (NVIDIA 550B)...");
   
   const apiKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
@@ -158,9 +160,12 @@ async function generate() {
 
   while (attempt < MAX_ATTEMPTS && !approvedJson) {
     attempt++;
-    console.log(`⏳ [Actor Generator & Virtual DP] Attempt ${attempt} of ${MAX_ATTEMPTS}...`);
+    // Generate unique random seed for guaranteed mathematical variation
+    const randomSeed = Math.random().toString(36).substring(7);
+    console.log(`⏳ [Actor Generator & Virtual DP] Attempt ${attempt} of ${MAX_ATTEMPTS} (Random Seed: ${randomSeed})...`);
 
     let userPrompt = `Analyze the trending topic: "${promptContent}".
+Your generation random seed is: ${randomSeed}.
 You are the Lead Visual Director and Director of Photography (Virtual DP).
 Stock footage requires slow, hypnotic, and continuous camera movements with ZERO text overlays.
 
@@ -168,6 +173,7 @@ CRITICAL MANDATES:
 1. 3D IS ALWAYS MANDATORY: You MUST generate an abstract 3D visual metaphor (engine3D) for EVERY topic, using only SOLID geometries and slow continuous cinematography (slow_orbit | smooth_dolly_in | macro_pan_up).
 2. DUAL-RENDER FOR SOFTWARE/UI/APPS: If the topic discusses software, apps, UI, platforms, tools, AI models, or tech services, add '2D' to the renderModes array and generate purely visual engine2D parameters.
 3. PURE VISUAL ABSTRACT 2D: For 2D, you are creating PURELY VISUAL abstract motion graphics (like high-tech HUDs or organic glass blobs). Do NOT generate any text, words, paragraphs, or numbers in engine2D. Only visual mathematical parameters (data_ring, glass_blob, hud_grid, waveform_bars).
+4. RANDOM SEED VARIATION: Based on random seed ${randomSeed}, you MUST create a unique color palette, geometry choice, and motion trajectory distinct from any previous generation.
 
 Output STRICT JSON conforming to this schema:
 {
@@ -212,14 +218,14 @@ Output STRICT JSON conforming to this schema:
       messages: [
         { 
           role: "system", 
-          content: "You are an elite Hollywood Director of Photography and Motion Graphics Architect. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must be purely abstract motion graphics with ZERO text, letters, or words in engine2D." 
+          content: `You are an elite Hollywood Director of Photography and Motion Graphics Architect. You are generating a unique abstract 3D setup. Your random seed for this generation is ${randomSeed}. Even if the topic is similar to previous runs, you MUST generate a completely different visual layout, color palette, and geometric configuration based on this seed. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must be purely abstract motion graphics with ZERO text, letters, or words in engine2D.` 
         },
         { 
           role: "user", 
           content: userPrompt 
         }
       ],
-      temperature: 0.85,
+      temperature: 0.88,
       max_tokens: 4096
     };
 
@@ -287,11 +293,11 @@ Output STRICT JSON conforming to this schema:
         candidate.seoTags = candidate.seoPackage?.seoTags || candidate.seoTags || [];
         candidate.colors = candidate.engine3D?.colors || candidate.colors || ["#00f0ff", "#ff007f", "#7000ff"];
 
-        console.log(`🔍 [Critic Agent] Evaluating Candidate: "${candidate.title}" (Modes: ${candidate.renderModes.join(' + ')})...`);
+        console.log(`🔍 [Critic Agent] Evaluating Candidate: "${candidate.title}" (Seed: ${randomSeed}, Modes: ${candidate.renderModes.join(' + ')})...`);
         const criticResult = validateWithCritic(candidate, history, promptContent);
 
         if (criticResult.valid) {
-          console.log(`✅ [Critic Agent] APPROVED! Candidate passed Visual Abstract Dual-Render validation.`);
+          console.log(`✅ [Critic Agent] APPROVED! Candidate passed Seed-Variation Dual-Render validation.`);
           approvedJson = candidate;
         } else {
           console.warn(`🛑 [Critic Agent] ${criticResult.reason}`);

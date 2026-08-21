@@ -1,8 +1,62 @@
 import Parser from 'rss-parser';
 import fs from 'fs';
 
+export const ADOBE_STOCK_TRENDS: string[] = [
+  "AI Neural Network Data Flow",
+  "Quantum Computing Glowing Nodes",
+  "Cyberpunk Blockchain Grid",
+  "Biotech DNA Double Helix Evolution",
+  "Stock Market Finance Candlesticks Abstract",
+  "Server Room Big Data Fiber Optics",
+  "Microscopic Virus Cell Mutation",
+  "Futuristic Glassmorphism UI HUD",
+  "Semiconductor Microchip Circuit Architecture",
+  "Algorithmic High Frequency Trading Matrix",
+  "Autonomous Cloud Database Architecture",
+  "Synthetic Biology CRISPR Gene Editing",
+  "Deep Learning Latent Space Manifold",
+  "Cybersecurity Cryptographic Encryption Lattice",
+  "Clean Energy Nuclear Fusion Plasma Core",
+  "Macro Liquid Metal Ferrofluid Dynamics",
+  "Neuromorphic Synaptic Computing Network",
+  "Abstract Volumetric Holographic Interface",
+  "Quantum Entanglement Particle Array",
+  "Distributed Ledger Block Verification Flow",
+  "High-Tech Optical Fiber Laser Stream",
+  "Nanotechnology Molecular Machine Assembly",
+  "Global Telecom 6G Satellite Constellation",
+  "Robotics Kinematic Joint Sensor Array",
+  "Financial Liquidity Order Book Depth Visual",
+  "Astrophysics Gravitational Wave Space-Time Fabric",
+  "Organic Cell Division Mitosis Simulation",
+  "Holographic Cyber City Digital Twin",
+  "Supercomputer Liquid Cooling Manifold",
+  "Autonomous Drone Swarm Navigation Grid",
+  "Renewable Solar Photovoltaic Energy Grid",
+  "Aerospace Hypersonic Aerodynamics Shockwave",
+  "Quantum Topological Insulator Crystal Lattice",
+  "Synthetic Brain Wave EEG Neural Oscillations",
+  "Cryptocurrency Decentralized Staking Protocol",
+  "Digital Identity Biometric Recognition Matrix",
+  "Space Telescope Deep Field Galaxy Cluster",
+  "Next-Gen Solid State Battery Electrolyte",
+  "Augmented Reality Spatial Computing Framework",
+  "Smart Grid Renewable Energy Flow Balance",
+  "Molecular Pharmacology Protein Folding"
+];
+
+// Fisher-Yates array shuffle algorithm
+function fisherYatesShuffle<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 async function catchTrends() {
-  console.log("📡 FETCHING LIVE MARKET TRENDS & RSS FEEDS (STRICT PER-TOPIC SEPARATION)...");
+  console.log("📡 FETCHING LIVE MARKET TRENDS & MERGING ADOBE STOCK BESTSELLERS...");
   
   if (!fs.existsSync('data')) {
     fs.mkdirSync('data', { recursive: true });
@@ -21,17 +75,7 @@ async function catchTrends() {
         .slice(0, 15);
     }
   } catch (err) {
-    console.warn("⚠️ Primary RSS Feed warning (using fallback topics):", err);
-  }
-
-  if (rawHeadlines.length === 0) {
-    rawHeadlines = [
-      "Quantum Computing Solid Matrix Architecture",
-      "Financial Algorithmic High-Frequency Trading Candlesticks",
-      "CRISPR Synthetic Biology DNA Molecule Sequencing",
-      "Autonomous Neural Network Distributed Topology",
-      "Global Macroeconomic Real-Time Solid Data Stream"
-    ];
+    console.warn("⚠️ Primary RSS Feed warning (using fallback trends):", err);
   }
 
   try {
@@ -46,37 +90,44 @@ async function catchTrends() {
     console.warn("⚠️ Autocomplete trends warning:", err);
   }
 
+  // Seamlessly merge Live RSS, Autocomplete keywords, and Adobe Stock Bestseller Catalog
+  const combinedTopics: string[] = [
+    ...rawHeadlines,
+    ...rawKeywords,
+    ...ADOBE_STOCK_TRENDS
+  ]
+    .map(t => t.replace(/[",|]/g, '').trim())
+    .filter(Boolean);
+
+  // Deduplicate merged array
+  const uniqueTopics = Array.from(new Set(combinedTopics));
+
+  // Execute Fisher-Yates shuffle to randomize queue
+  const shuffledTopics = fisherYatesShuffle(uniqueTopics);
+
+  console.log(`🎲 Shuffled ${shuffledTopics.length} unique trending topics with Fisher-Yates algorithm.`);
+
   const apiKey = process.env.GROQ_API_KEY || ["gsk_O8X46VIgiLLrIyvvq51nWGdyb3FYiaTUep", "agdYmEr8gsW0cHFnYQ"].join(""); 
   const url = "https://api.groq.com/openai/v1/chat/completions";
 
-  const headlinesSummary = rawHeadlines.slice(0, 5).join(", ");
-  const keywordsSummary = rawKeywords.slice(0, 5).join(", ");
+  const topSample = shuffledTopics.slice(0, 8).join(", ");
 
   const payload = {
     model: "llama-3.3-70b-versatile",
     messages: [
       { 
         role: "system", 
-        content: "You are an elite stock footage trend analyst. Focus strictly on solid 3D procedural geometries: solid 3D candlestick charts, solid DNA molecules, solid displaced geometric waves, high metalness physical materials. Output strictly CSV lines (1 distinct topic per line: prompt,category,colorTheme,complexity,motionStyle). Output 10 distinct lines. Do NOT join topics with '|' or commas within the prompt field. No markdown blocks." 
+        content: "You are an elite commercial stock footage director for Adobe Stock and Shutterstock. Focus on abstract 3D visual concepts: glowing nodes, solid financial candlesticks, DNA molecular arrays, holographic grids, quantum fields. Output strictly CSV lines (1 distinct topic per line: prompt,category,colorTheme,complexity,motionStyle). Output 15 distinct lines. No markdown blocks." 
       },
       { 
         role: "user", 
-        content: `Headlines: ${headlinesSummary}. Keywords: ${keywordsSummary}. Create 10 highly cinematic, unique 3D procedural video prompts. Exactly 10 lines, each line 1 prompt. No headers.` 
+        content: `Inspirational Topics: ${topSample}. Create 15 highly commercial, unique 3D procedural video prompts. Exactly 15 lines, each line 1 prompt. No headers.` 
       }
     ]
   };
 
   const header = "prompt,category,colorTheme,complexity,motionStyle";
-  let existingLines: string[] = [];
-
-  if (fs.existsSync('data/prompts.csv')) {
-    const content = fs.readFileSync('data/prompts.csv', 'utf-8');
-    existingLines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  }
-
-  if (existingLines.length === 0 || existingLines[0] !== header) {
-    existingLines = [header];
-  }
+  let finalCsvLines: string[] = [header];
 
   try {
     const response = await fetch(url, {
@@ -94,41 +145,30 @@ async function catchTrends() {
         .filter((l: string) => l && !l.startsWith('prompt,'));
       
       for (const line of newLines) {
-        if (!existingLines.includes(line)) {
-          existingLines.push(line);
+        if (!finalCsvLines.includes(line)) {
+          finalCsvLines.push(line);
         }
       }
-      fs.writeFileSync('data/prompts.csv', existingLines.join('\n') + '\n');
-      console.log(`✅ ${newLines.length} DISTINCT TOPICS INJECTED INTO CSV QUEUE (ONE TOPIC PER LINE)!`);
-      return;
     }
   } catch (error) {
-    console.warn("⚠️ Groq synthesis fallback, formatting raw items directly into distinct CSV lines:", error);
+    console.warn("⚠️ Groq synthesis fallback, formatting shuffled trends directly into CSV:", error);
   }
 
-  // Graceful direct distinct line formatting for each headline & keyword
-  for (const headline of rawHeadlines) {
-    const cleanTopic = headline.replace(/[",|]/g, '').trim();
-    if (cleanTopic) {
-      const csvLine = `"${cleanTopic}",technology,#00ffff,high,cinematic`;
-      if (!existingLines.includes(csvLine)) {
-        existingLines.push(csvLine);
-      }
+  // Inject all shuffled topics as distinct CSV lines
+  for (const topic of shuffledTopics) {
+    const csvLine = `"${topic}",technology,#00f0ff,high,cinematic`;
+    if (!finalCsvLines.includes(csvLine)) {
+      finalCsvLines.push(csvLine);
     }
   }
 
-  for (const keyword of rawKeywords) {
-    const cleanKw = keyword.replace(/[",|]/g, '').trim();
-    if (cleanKw) {
-      const csvLine = `"${cleanKw}",technology,#ff007f,high,cinematic`;
-      if (!existingLines.includes(csvLine)) {
-        existingLines.push(csvLine);
-      }
-    }
-  }
+  // Randomize the entire final CSV list (excluding header)
+  const rows = finalCsvLines.slice(1);
+  const randomizedRows = fisherYatesShuffle(rows);
+  const outputCsvContent = [header, ...randomizedRows].join('\n') + '\n';
 
-  fs.writeFileSync('data/prompts.csv', existingLines.join('\n') + '\n');
-  console.log(`✅ RAW TOPICS STRICTLY SEPARATED BY NEWLINE IN data/prompts.csv (${existingLines.length - 1} topics in queue)!`);
+  fs.writeFileSync('data/prompts.csv', outputCsvContent);
+  console.log(`✅ ${randomizedRows.length} BESTSELLER TOPICS INJECTED INTO data/prompts.csv (ONE TOPIC PER LINE)!`);
 }
 
 catchTrends();
