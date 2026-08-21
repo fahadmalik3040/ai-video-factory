@@ -1,6 +1,9 @@
 import Parser from 'rss-parser';
 import fs from 'fs';
 
+// ----------------------------------------------------
+// 1. ADOBE STOCK & SHUTTERSTOCK BESTSELLERS
+// ----------------------------------------------------
 export const ADOBE_STOCK_TRENDS: string[] = [
   "AI Neural Network Data Flow",
   "Quantum Computing Glowing Nodes",
@@ -45,7 +48,83 @@ export const ADOBE_STOCK_TRENDS: string[] = [
   "Molecular Pharmacology Protein Folding"
 ];
 
-// Fisher-Yates array shuffle algorithm
+// ----------------------------------------------------
+// 2. CAPCUT & TIKTOK VIRAL VFX TRENDS
+// ----------------------------------------------------
+export const CAPCUT_TRENDS: string[] = [
+  "Neon Outline Glowing 3D Subject",
+  "Velocity Edit Motion Blur Abstract",
+  "Y2K Cyber Heart 3D Loop",
+  "Anime Style Action Speed Lines",
+  "Glitch VHS Retro Wave Overlays",
+  "3D Parallax Zoom Hyperspace",
+  "Hyperpop Chrome Liquid Shimmer",
+  "Drift Phonk Geometric Distortion",
+  "Cyberpunk Speed Warp Tunnel",
+  "Dark Aesthetic Liquid Metal Heart",
+  "RGB Chromatic Aberration Split Flow",
+  "Flash Zoom Strobe Pulse Abstract",
+  "Neon Wireframe Topography Grid",
+  "Glow Edge Optical Displacement",
+  "Psychedelic Acid Chrome Fluid Loop",
+  "Fast Motion Hyperspeed Particle Burst",
+  "Y2K Starburst Chrome Metallic 3D",
+  "Retro Pixel Dither Glitch Wave",
+  "Bass Boosted Shake Waveform Spectrum",
+  "Dark Fantasy Ethereal Glow Portal"
+];
+
+// ----------------------------------------------------
+// 3. FILMORA & PREMIERE PRO COMMERCIAL TEMPLATES
+// ----------------------------------------------------
+export const FILMORA_PREMIERE_TRENDS: string[] = [
+  "Cinematic Light Leaks Overlay",
+  "Dynamic Motion Graphics Background",
+  "Cyberpunk Color Graded Geometric Field",
+  "Seamless Transition Abstract Zoom",
+  "Liquid Metal Morphing Abstract",
+  "Volumetric Fog Light Beams Prism",
+  "Retro 80s Synthwave Wireframe Horizon",
+  "Cinematic Film Burn Overlay Macro",
+  "After Effects Trapcode Form Displaced Grid",
+  "Optical Flare Anamorphic Streak Array",
+  "Glassmorphism Prismatic Lens Distortion",
+  "Minimalist Corporate Tech Waveform",
+  "Clean Abstract 3D Glass Geometry Loop",
+  "Luxury Gold Metallic Liquid Waves",
+  "Broadcast Lower Third Motion Tile Grid",
+  "Infographic Data Stream Bar Visualizer",
+  "Dynamic Split Screen Isometric Array",
+  "Deep Bokeh Anamorphic Glow Field",
+  "Futuristic HUD Telemetry Compass",
+  "Particle Plexus Constellation Matrix"
+];
+
+// ----------------------------------------------------
+// 4. AFTER EFFECTS & CINEMA 4D ADVANCED MOTION GRAPHICS
+// ----------------------------------------------------
+export const AFTER_EFFECTS_TRENDS: string[] = [
+  "Plexus Geometric Constellation Array",
+  "Holographic Sci-Fi HUD Blueprint",
+  "Procedural Displaced Voxel City",
+  "Quantum Superstring Dimensional Warp",
+  "Abstract Kinetic Motion Blur Flow",
+  "Octane Render Style Subsurface Marble",
+  "Iridescent Soap Bubble Film Physics",
+  "Procedural Geometric Voronoi Fracture",
+  "Mograph Cloner Isometric Tech Blocks",
+  "Parametric Cloth Simulation Silk Flow"
+];
+
+// MEGA TREND DATABASE (ALL TRENDS COMBINED)
+export const ALL_TRENDS: string[] = [
+  ...ADOBE_STOCK_TRENDS,
+  ...CAPCUT_TRENDS,
+  ...FILMORA_PREMIERE_TRENDS,
+  ...AFTER_EFFECTS_TRENDS
+];
+
+// Robust Fisher-Yates Array Shuffle Algorithm
 function fisherYatesShuffle<T>(array: T[]): T[] {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -56,7 +135,7 @@ function fisherYatesShuffle<T>(array: T[]): T[] {
 }
 
 async function catchTrends() {
-  console.log("📡 FETCHING LIVE MARKET TRENDS & MERGING ADOBE STOCK BESTSELLERS...");
+  console.log("📡 INITIATING MEGA-TREND CATCHER (ADOBE STOCK + CAPCUT + FILMORA + PREMIERE + AE)...");
   
   if (!fs.existsSync('data')) {
     fs.mkdirSync('data', { recursive: true });
@@ -75,7 +154,7 @@ async function catchTrends() {
         .slice(0, 15);
     }
   } catch (err) {
-    console.warn("⚠️ Primary RSS Feed warning (using fallback trends):", err);
+    console.warn("⚠️ Primary RSS Feed warning (seamlessly falling back to Mega Trends DB):", err);
   }
 
   try {
@@ -90,11 +169,11 @@ async function catchTrends() {
     console.warn("⚠️ Autocomplete trends warning:", err);
   }
 
-  // Seamlessly merge Live RSS, Autocomplete keywords, and Adobe Stock Bestseller Catalog
+  // Seamlessly merge RSS feeds, Autocomplete keywords, and the Mega Trend Database
   const combinedTopics: string[] = [
     ...rawHeadlines,
     ...rawKeywords,
-    ...ADOBE_STOCK_TRENDS
+    ...ALL_TRENDS
   ]
     .map(t => t.replace(/[",|]/g, '').trim())
     .filter(Boolean);
@@ -102,10 +181,10 @@ async function catchTrends() {
   // Deduplicate merged array
   const uniqueTopics = Array.from(new Set(combinedTopics));
 
-  // Execute Fisher-Yates shuffle to randomize queue
+  // Execute Fisher-Yates shuffle to randomize queue completely
   const shuffledTopics = fisherYatesShuffle(uniqueTopics);
 
-  console.log(`🎲 Shuffled ${shuffledTopics.length} unique trending topics with Fisher-Yates algorithm.`);
+  console.log(`🎲 Shuffled ${shuffledTopics.length} mega-trends with Fisher-Yates algorithm.`);
 
   const apiKey = process.env.GROQ_API_KEY || ["gsk_O8X46VIgiLLrIyvvq51nWGdyb3FYiaTUep", "agdYmEr8gsW0cHFnYQ"].join(""); 
   const url = "https://api.groq.com/openai/v1/chat/completions";
@@ -117,11 +196,11 @@ async function catchTrends() {
     messages: [
       { 
         role: "system", 
-        content: "You are an elite commercial stock footage director for Adobe Stock and Shutterstock. Focus on abstract 3D visual concepts: glowing nodes, solid financial candlesticks, DNA molecular arrays, holographic grids, quantum fields. Output strictly CSV lines (1 distinct topic per line: prompt,category,colorTheme,complexity,motionStyle). Output 15 distinct lines. No markdown blocks." 
+        content: "You are an elite commercial stock footage and video editing VFX director (Adobe Stock, CapCut, Filmora, Premiere Pro, After Effects). Focus on high-converting 3D and 2D abstract visual concepts: neon outlines, glowing nodes, liquid metal, velocity motion blur, light leaks, procedural geometric grids. Output strictly CSV lines (1 distinct topic per line: prompt,category,colorTheme,complexity,motionStyle). Output 15 distinct lines. No markdown blocks." 
       },
       { 
         role: "user", 
-        content: `Inspirational Topics: ${topSample}. Create 15 highly commercial, unique 3D procedural video prompts. Exactly 15 lines, each line 1 prompt. No headers.` 
+        content: `Inspirational Trends: ${topSample}. Create 15 highly commercial, unique 3D/VFX video prompts. Exactly 15 lines, each line 1 prompt. No headers.` 
       }
     ]
   };
@@ -168,7 +247,7 @@ async function catchTrends() {
   const outputCsvContent = [header, ...randomizedRows].join('\n') + '\n';
 
   fs.writeFileSync('data/prompts.csv', outputCsvContent);
-  console.log(`✅ ${randomizedRows.length} BESTSELLER TOPICS INJECTED INTO data/prompts.csv (ONE TOPIC PER LINE)!`);
+  console.log(`✅ ${randomizedRows.length} MEGA-TREND TOPICS INJECTED INTO data/prompts.csv (ONE TOPIC PER LINE)!`);
 }
 
 catchTrends();

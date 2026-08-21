@@ -51,13 +51,13 @@ function getNextTopic(): { topic: string; jobIndex: number } {
   if (topics.length === 0) {
     topics = [
       "AI Neural Network Data Flow",
+      "Neon Outline Glowing 3D Subject",
+      "Velocity Edit Motion Blur Abstract",
+      "Cinematic Light Leaks Overlay",
+      "Liquid Metal Morphing Abstract",
       "Quantum Computing Glowing Nodes",
       "Cyberpunk Blockchain Grid",
-      "Biotech DNA Double Helix Evolution",
-      "Stock Market Finance Candlesticks Abstract",
-      "Server Room Big Data Fiber Optics",
-      "Microscopic Virus Cell Mutation",
-      "Futuristic Glassmorphism UI HUD"
+      "Y2K Cyber Heart 3D Loop"
     ];
   }
 
@@ -134,7 +134,7 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
 }
 
 async function generate() {
-  console.log("🚀 INITIATING DUAL-AGENT VISUAL ABSTRACT DIRECTOR WITH RANDOM SEED (NVIDIA 550B)...");
+  console.log("🚀 INITIATING DUAL-AGENT ELITE VFX & EDITING TEMPLATE DIRECTOR (NVIDIA 550B)...");
   
   const apiKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
@@ -160,20 +160,18 @@ async function generate() {
 
   while (attempt < MAX_ATTEMPTS && !approvedJson) {
     attempt++;
-    // Generate unique random seed for guaranteed mathematical variation
     const randomSeed = Math.random().toString(36).substring(7);
-    console.log(`⏳ [Actor Generator & Virtual DP] Attempt ${attempt} of ${MAX_ATTEMPTS} (Random Seed: ${randomSeed})...`);
+    console.log(`⏳ [Actor Generator & VFX Director] Attempt ${attempt} of ${MAX_ATTEMPTS} (Seed: ${randomSeed})...`);
 
-    let userPrompt = `Analyze the trending topic: "${promptContent}".
+    let userPrompt = `Analyze the trending topic or VFX style: "${promptContent}".
 Your generation random seed is: ${randomSeed}.
-You are the Lead Visual Director and Director of Photography (Virtual DP).
-Stock footage requires slow, hypnotic, and continuous camera movements with ZERO text overlays.
+You are an Elite VFX Director. Your provided topic might be a traditional concept OR a specific video editing trend (like 'CapCut Neon Glitch', 'Velocity Edit', or 'Filmora Light Leak'). If it is an editing trend, design the 3D/2D geometry and motion math to perfectly replicate that visual effect using solid shapes, lighting, and camera movement.
 
 CRITICAL MANDATES:
 1. 3D IS ALWAYS MANDATORY: You MUST generate an abstract 3D visual metaphor (engine3D) for EVERY topic, using only SOLID geometries and slow continuous cinematography (slow_orbit | smooth_dolly_in | macro_pan_up).
-2. DUAL-RENDER FOR SOFTWARE/UI/APPS: If the topic discusses software, apps, UI, platforms, tools, AI models, or tech services, add '2D' to the renderModes array and generate purely visual engine2D parameters.
-3. PURE VISUAL ABSTRACT 2D: For 2D, you are creating PURELY VISUAL abstract motion graphics (like high-tech HUDs or organic glass blobs). Do NOT generate any text, words, paragraphs, or numbers in engine2D. Only visual mathematical parameters (data_ring, glass_blob, hud_grid, waveform_bars).
-4. RANDOM SEED VARIATION: Based on random seed ${randomSeed}, you MUST create a unique color palette, geometry choice, and motion trajectory distinct from any previous generation.
+2. DUAL-RENDER FOR SOFTWARE/UI/VFX/OVERLAYS: If the topic discusses software, UI, apps, CapCut/Filmora/Premiere video editing effects, neon overlays, or motion graphics, add '2D' to the renderModes array and generate purely visual engine2D parameters.
+3. PURE VISUAL ABSTRACT 2D: For 2D, you are creating PURELY VISUAL abstract motion graphics (like high-tech HUDs, data waveforms, or organic glass blobs). Do NOT generate any text, words, paragraphs, or numbers in engine2D. Only visual mathematical parameters (data_ring, glass_blob, hud_grid, waveform_bars).
+4. RANDOM SEED VARIATION: Based on random seed ${randomSeed}, create a completely unique color palette, geometry choice, and motion trajectory.
 
 Output STRICT JSON conforming to this schema:
 {
@@ -218,7 +216,7 @@ Output STRICT JSON conforming to this schema:
       messages: [
         { 
           role: "system", 
-          content: `You are an elite Hollywood Director of Photography and Motion Graphics Architect. You are generating a unique abstract 3D setup. Your random seed for this generation is ${randomSeed}. Even if the topic is similar to previous runs, you MUST generate a completely different visual layout, color palette, and geometric configuration based on this seed. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must be purely abstract motion graphics with ZERO text, letters, or words in engine2D.` 
+          content: `You are an Elite VFX Director and Hollywood DP. You are generating a unique abstract 3D setup. Your random seed for this generation is ${randomSeed}. Your provided topic might be a traditional concept OR a specific video editing trend (like 'CapCut Neon Glitch' or 'Filmora Light Leak'). If it is an editing trend, design the 3D/2D geometry and motion math to perfectly replicate that visual effect using solid shapes, lighting, and camera movement. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must be purely abstract motion graphics with ZERO text, letters, or words in engine2D.` 
         },
         { 
           role: "user", 
@@ -297,7 +295,7 @@ Output STRICT JSON conforming to this schema:
         const criticResult = validateWithCritic(candidate, history, promptContent);
 
         if (criticResult.valid) {
-          console.log(`✅ [Critic Agent] APPROVED! Candidate passed Seed-Variation Dual-Render validation.`);
+          console.log(`✅ [Critic Agent] APPROVED! Candidate passed VFX Mega-Trend validation.`);
           approvedJson = candidate;
         } else {
           console.warn(`🛑 [Critic Agent] ${criticResult.reason}`);
@@ -316,10 +314,16 @@ Output STRICT JSON conforming to this schema:
                          promptContent.toLowerCase().includes("calendar") ||
                          promptContent.toLowerCase().includes("software") ||
                          promptContent.toLowerCase().includes("tool") ||
-                         promptContent.toLowerCase().includes("traffic") ||
+                         promptContent.toLowerCase().includes("neon") ||
+                         promptContent.toLowerCase().includes("glitch") ||
+                         promptContent.toLowerCase().includes("vfx") ||
+                         promptContent.toLowerCase().includes("leak") ||
+                         promptContent.toLowerCase().includes("overlay") ||
+                         promptContent.toLowerCase().includes("hud") ||
                          promptContent.toLowerCase().includes("grok") ||
                          promptContent.toLowerCase().includes("ai") ||
-                         promptContent.toLowerCase().includes("feature");
+                         promptContent.toLowerCase().includes("capcut") ||
+                         promptContent.toLowerCase().includes("filmora");
 
     const renderModes: ("3D" | "2D")[] = isSoftwareUI ? ["3D", "2D"] : ["3D"];
     const cameraPaths: ("slow_orbit" | "smooth_dolly_in" | "macro_pan_up")[] = ["slow_orbit", "smooth_dolly_in", "macro_pan_up"];
@@ -327,9 +331,9 @@ Output STRICT JSON conforming to this schema:
 
     approvedJson = {
       seoPackage: {
-        title: `Abstract 4K Motion Graphics: ${promptContent}`,
-        description: `4K Pure Visual Abstract Motion Graphics and PBR Solid Visualization of ${promptContent}`,
-        seoTags: ["solid 3d", "4k", "procedural", "motion graphics", "stock video", "pbr materials", "pure visual", promptContent.toLowerCase()]
+        title: `Cinematic 4K VFX Motion Graphics: ${promptContent}`,
+        description: `High-End 4K Visual Motion Graphics and Solid PBR Simulation of ${promptContent}`,
+        seoTags: ["solid 3d", "4k", "procedural", "motion graphics", "stock video", "vfx template", "pbr materials", "pure visual", promptContent.toLowerCase()]
       },
       renderModes: renderModes,
       engine3D: {
@@ -356,7 +360,7 @@ Output STRICT JSON conforming to this schema:
           { type: "waveform_bars", scale: 1.0 }
         ]
       } : undefined,
-      title: `Abstract 4K Visual: ${promptContent}`,
+      title: `Cinematic 4K VFX: ${promptContent}`,
       solid_core: "abstract_solid_waves",
       sceneType: "abstract_solid_waves",
       movementStyle: "quantum_flow",
@@ -394,7 +398,7 @@ Output STRICT JSON conforming to this schema:
   fs.writeFileSync('out/metadata.txt', metadataContent);
   fs.writeFileSync(`out/metadata_${jobIndex}.txt`, metadataContent);
 
-  console.log(`✅ PURE VISUAL ABSTRACT METADATA SAVED FOR JOB ${jobIndex} (MODES: ${approvedJson.renderModes.join(' + ')})!`);
+  console.log(`✅ MEGA-TREND METADATA SAVED FOR JOB ${jobIndex} (MODES: ${approvedJson.renderModes.join(' + ')})!`);
 }
 
 generate();
