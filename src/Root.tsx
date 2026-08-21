@@ -1,15 +1,15 @@
 import React from "react";
-import { Composition } from "remotion";
+import { Composition, getInputProps } from "remotion";
 import { Main3D, type Main3DProps } from "./scenes/Main3D";
 import { Main2D, type Main2DProps } from "./scenes/Main2D";
 
-const defaultSceneProps: Main3DProps = {
+const fallbackSceneProps: Main3DProps = {
   seoPackage: {
     title: "Futuristic Solid 3D Procedural Scene",
     description: "Cinematic 4K Motion Graphics Stock Visual",
     seoTags: ["futuristic", "3d", "procedural", "solid geometry", "motion graphics", "pbr", "4k"],
   },
-  renderModes: ["3D"],
+  renderModes: ["3D", "2D"],
   engine3D: {
     solidGeometry: "BoxGeometry",
     layoutMath: "wave_plane",
@@ -41,7 +41,15 @@ const defaultSceneProps: Main3DProps = {
   complexity: 1.0,
 };
 
-const RemotionRoot: React.FC = () => {
+export const RemotionRoot: React.FC = () => {
+  // Extract dynamic props injected by Remotion CLI or Node renderMedia API
+  const dynamicProps = getInputProps();
+  
+  const safeProps =
+    dynamicProps && typeof dynamicProps === "object" && Object.keys(dynamicProps).length > 0
+      ? dynamicProps
+      : fallbackSceneProps;
+
   return (
     <>
       {/* Primary Mandatory 3D Procedural Stock Video Composition (15 seconds @ 30fps) */}
@@ -52,10 +60,10 @@ const RemotionRoot: React.FC = () => {
         fps={30}
         width={3840}
         height={2160}
-        defaultProps={defaultSceneProps}
+        defaultProps={safeProps as Main3DProps}
       />
 
-      {/* Secondary 2D Motion Graphics Composition (15 seconds @ 30fps) */}
+      {/* Secondary Mandatory 2D Motion Graphics Composition (15 seconds @ 30fps) */}
       <Composition
         id="Main2D"
         component={Main2D}
@@ -63,7 +71,7 @@ const RemotionRoot: React.FC = () => {
         fps={30}
         width={3840}
         height={2160}
-        defaultProps={defaultSceneProps as unknown as Main2DProps}
+        defaultProps={safeProps as Main2DProps}
       />
 
       {/* MainVideo Alias for universal compatibility */}
@@ -74,11 +82,10 @@ const RemotionRoot: React.FC = () => {
         fps={30}
         width={3840}
         height={2160}
-        defaultProps={defaultSceneProps}
+        defaultProps={safeProps as Main3DProps}
       />
     </>
   );
 };
 
 export default RemotionRoot;
-export { RemotionRoot };
