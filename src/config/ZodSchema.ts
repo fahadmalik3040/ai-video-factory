@@ -22,27 +22,29 @@ export const Engine3DSchema = z.object({
   colors: z.array(z.string()).default(["#00f0ff", "#ff007f", "#7000ff"]),
   cameraSpeed: z.number().default(1.0),
   bloomIntensity: z.number().default(2.0),
-  complexity: z.number().default(1.2)
+  complexity: z.number().default(1.0)
 });
 
 export const Engine2DElementSchema = z.object({
-  title: z.string().optional(),
-  content: z.string(),
-  badge: z.string().optional(),
-  metric: z.string().optional()
+  type: z.enum(["data_ring", "glass_blob", "hud_grid", "waveform_bars", "concentric_dials", "geometric_prism"]).default("data_ring"),
+  scale: z.number().default(1.0),
+  thickness: z.number().optional(),
+  size: z.number().optional(),
+  rows: z.number().optional(),
+  cols: z.number().optional(),
+  speed: z.number().optional(),
+  glowIntensity: z.number().optional()
 });
 
 export const Engine2DSchema = z.object({
-  layoutStructure: z.enum(["hud_circles", "floating_glass_cards", "kinetic_stream", "hud_interface", "minimal_ui_cards", "typographic_kinetic"]).default("floating_glass_cards"),
-  style: z.string().optional(),
-  colorPalette: z.array(z.string()).default(["#00f0ff", "#ff007f", "#7000ff"]),
+  layoutStructure: z.enum(["hud_circles", "floating_glass_shapes", "abstract_data_waves"]).default("hud_circles"),
+  colorPalette: z.array(z.string()).default(["#00f0ff", "#ff007f", "#7000ff", "#00ffaa"]),
   colors: z.array(z.string()).optional(),
-  elements: z.array(Engine2DElementSchema).default([]),
-  textLayers: z.array(z.string()).optional(),
-  headline: z.string().optional(),
-  subheadline: z.string().optional(),
-  title: z.string().optional(),
-  subtitle: z.string().optional()
+  elements: z.array(Engine2DElementSchema).default([
+    { type: "data_ring", scale: 1.0, thickness: 3 },
+    { type: "glass_blob", size: 320 },
+    { type: "hud_grid", rows: 4, cols: 6 }
+  ])
 }).optional();
 
 export const SEOPackageSchema = z.object({

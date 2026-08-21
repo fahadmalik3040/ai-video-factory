@@ -113,16 +113,10 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
     return { valid: false, reason: `REJECTED: layoutMath '${math}' must be one of: ${validMath.join(', ')}.` };
   }
 
-  // Strict 2D validation
+  // Pure visual 2D validation
   if (candidate.renderModes.includes("2D")) {
     if (!candidate.engine2D || !Array.isArray(candidate.engine2D.elements) || candidate.engine2D.elements.length === 0) {
-      return { valid: false, reason: "REJECTED: '2D' renderMode requires non-empty engine2D.elements." };
-    }
-
-    // Check that elements are topic-specific and not generic placeholders
-    const joinedContent = candidate.engine2D.elements.map((el: any) => (el.content || '') + ' ' + (el.title || '')).join(' ').toLowerCase();
-    if (joinedContent.includes("step 01") && joinedContent.includes("step 02") && !joinedContent.includes(promptTopic.toLowerCase().split(' ')[0])) {
-      return { valid: false, reason: "REJECTED: engine2D.elements contains generic placeholder text instead of topic-specific insights." };
+      return { valid: false, reason: "REJECTED: '2D' renderMode requires non-empty visual engine2D.elements." };
     }
   }
 
@@ -138,7 +132,7 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
 }
 
 async function generate() {
-  console.log("🚀 INITIATING DUAL-AGENT DUAL-RENDER ORCHESTRATOR WITH TOPIC-BOUND 2D DATA (NVIDIA 550B)...");
+  console.log("🚀 INITIATING DUAL-AGENT VISUAL ABSTRACT DIRECTOR (NVIDIA 550B)...");
   
   const apiKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
@@ -168,18 +162,18 @@ async function generate() {
 
     let userPrompt = `Analyze the trending topic: "${promptContent}".
 You are the Lead Visual Director and Director of Photography (Virtual DP).
-Stock footage requires slow, hypnotic, and continuous camera movements. Never generate fast or erratic cuts.
+Stock footage requires slow, hypnotic, and continuous camera movements with ZERO text overlays.
 
 CRITICAL MANDATES:
 1. 3D IS ALWAYS MANDATORY: You MUST generate an abstract 3D visual metaphor (engine3D) for EVERY topic, using only SOLID geometries and slow continuous cinematography (slow_orbit | smooth_dolly_in | macro_pan_up).
-2. DUAL-RENDER FOR SOFTWARE/UI/APPS: If the topic discusses software, apps, UI, platforms, tools, AI models, or company updates, add '2D' to the renderModes array and generate deep, topic-specific engine2D parameters.
-3. CRITICAL TOPIC RELEVANCE: The text content inside engine2D.elements MUST specifically summarize and reflect the provided trending topic ("${promptContent}"). NEVER output generic placeholder text like 'Step 01', 'Startups', or generic templates. If the topic is '${promptContent}', every element must directly analyze and explain aspects of '${promptContent}'.
+2. DUAL-RENDER FOR SOFTWARE/UI/APPS: If the topic discusses software, apps, UI, platforms, tools, AI models, or tech services, add '2D' to the renderModes array and generate purely visual engine2D parameters.
+3. PURE VISUAL ABSTRACT 2D: For 2D, you are creating PURELY VISUAL abstract motion graphics (like high-tech HUDs or organic glass blobs). Do NOT generate any text, words, paragraphs, or numbers in engine2D. Only visual mathematical parameters (data_ring, glass_blob, hud_grid, waveform_bars).
 
 Output STRICT JSON conforming to this schema:
 {
   "seoPackage": {
-    "title": "string (unique, cinematic, highly descriptive title specifically about ${promptContent})",
-    "description": "string (deep analytical summary of ${promptContent})",
+    "title": "string (unique, cinematic, highly descriptive stock title specifically for ${promptContent})",
+    "description": "string (deep technical visual description)",
     "seoTags": ["array of 30-50 high-quality niche trending stock video tags"]
   },
   "renderModes": ["3D"] | ["3D", "2D"],
@@ -195,25 +189,22 @@ Output STRICT JSON conforming to this schema:
     "colors": ["#hex1", "#hex2", "#hex3"],
     "cameraSpeed": 1.0,
     "bloomIntensity": 2.0,
-    "complexity": 1.2
+    "complexity": 1.0
   },
   "engine2D": {
-    "layoutStructure": "hud_circles" | "floating_glass_cards" | "kinetic_stream",
+    "layoutStructure": "hud_circles" | "floating_glass_shapes" | "abstract_data_waves",
     "colorPalette": ["#hex1", "#hex2", "#hex3", "#hex4"],
-    "headline": "string (concise headline specifically about ${promptContent})",
     "elements": [
-      {
-        "badge": "string (e.g. ARCHITECTURE | BENCHMARK | MARKET IMPACT | SECURITY)",
-        "title": "string (short specific title)",
-        "content": "string (rich, detailed sentence specifically discussing ${promptContent})",
-        "metric": "string (e.g. +42.8% | 1.8M OPS | $13B | 99.4%)"
-      }
+      { "type": "data_ring", "scale": 1.0, "thickness": 3 },
+      { "type": "glass_blob", "size": 380 },
+      { "type": "hud_grid", "rows": 5, "cols": 8 },
+      { "type": "waveform_bars", "scale": 1.0 }
     ]
   }
 }`;
 
     if (rejectionFeedback) {
-      userPrompt += `\n\nCRITICAL DIRECTIVE FROM CRITIC AGENT: ${rejectionFeedback} Generate a completely unique, highly relevant configuration specifically about ${promptContent}.`;
+      userPrompt += `\n\nCRITICAL DIRECTIVE FROM CRITIC AGENT: ${rejectionFeedback} Generate a completely unique, highly relevant configuration.`;
     }
 
     const payload = {
@@ -221,7 +212,7 @@ Output STRICT JSON conforming to this schema:
       messages: [
         { 
           role: "system", 
-          content: "You are an elite Hollywood Director of Photography and Motion Graphics Architect. Output STRICT JSON only. Absolutely NO markdown outside the JSON. 3D is ALWAYS MANDATORY with solid PBR geometries. In engine2D.elements, ALL text MUST be 100% specific to the given topic. Never use placeholder text." 
+          content: "You are an elite Hollywood Director of Photography and Motion Graphics Architect. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must be purely abstract motion graphics with ZERO text, letters, or words in engine2D." 
         },
         { 
           role: "user", 
@@ -273,13 +264,21 @@ Output STRICT JSON conforming to this schema:
           };
         }
 
-        // Normalize engine2D elements
+        // Normalize engine2D visual elements (PURGE all text)
         if (candidate.engine2D) {
           if (!candidate.engine2D.layoutStructure && candidate.engine2D.style) {
             candidate.engine2D.layoutStructure = candidate.engine2D.style;
           }
           if (!candidate.engine2D.colorPalette && candidate.engine2D.colors) {
             candidate.engine2D.colorPalette = candidate.engine2D.colors;
+          }
+          if (!Array.isArray(candidate.engine2D.elements) || candidate.engine2D.elements.length === 0) {
+            candidate.engine2D.elements = [
+              { type: "data_ring", scale: 1.0, thickness: 3 },
+              { type: "glass_blob", size: 380 },
+              { type: "hud_grid", rows: 5, cols: 8 },
+              { type: "waveform_bars", scale: 1.0 }
+            ];
           }
         }
 
@@ -292,7 +291,7 @@ Output STRICT JSON conforming to this schema:
         const criticResult = validateWithCritic(candidate, history, promptContent);
 
         if (criticResult.valid) {
-          console.log(`✅ [Critic Agent] APPROVED! Candidate passed topic-binding & Dual-Render validation.`);
+          console.log(`✅ [Critic Agent] APPROVED! Candidate passed Visual Abstract Dual-Render validation.`);
           approvedJson = candidate;
         } else {
           console.warn(`🛑 [Critic Agent] ${criticResult.reason}`);
@@ -306,7 +305,7 @@ Output STRICT JSON conforming to this schema:
   }
 
   if (!approvedJson) {
-    console.warn("⚠️ Critic validation or API limits reached. Generating dynamic topic-specific Dual-Render fallback config.");
+    console.warn("⚠️ Critic validation or API limits reached. Generating dynamic pure visual Dual-Render fallback config.");
     const isSoftwareUI = promptContent.toLowerCase().includes("app") ||
                          promptContent.toLowerCase().includes("calendar") ||
                          promptContent.toLowerCase().includes("software") ||
@@ -322,9 +321,9 @@ Output STRICT JSON conforming to this schema:
 
     approvedJson = {
       seoPackage: {
-        title: `Deep Analysis & 3D Visualization: ${promptContent}`,
-        description: `4K High-End Motion Graphics and In-Depth Technical Breakdown of ${promptContent}`,
-        seoTags: ["solid 3d", "4k", "procedural", "motion graphics", "stock video", "pbr materials", "deep analysis", promptContent.toLowerCase()]
+        title: `Abstract 4K Motion Graphics: ${promptContent}`,
+        description: `4K Pure Visual Abstract Motion Graphics and PBR Solid Visualization of ${promptContent}`,
+        seoTags: ["solid 3d", "4k", "procedural", "motion graphics", "stock video", "pbr materials", "pure visual", promptContent.toLowerCase()]
       },
       renderModes: renderModes,
       engine3D: {
@@ -339,47 +338,26 @@ Output STRICT JSON conforming to this schema:
         colors: ["#00f0ff", "#ff007f", "#7000ff"],
         cameraSpeed: 1.0,
         bloomIntensity: 2.0,
-        complexity: 1.2
+        complexity: 1.0
       },
       engine2D: isSoftwareUI ? {
-        layoutStructure: "floating_glass_cards",
-        colorPalette: ["#3b82f6", "#10b981", "#8b5cf6", "#ffffff"],
-        headline: promptContent,
+        layoutStructure: "hud_circles",
+        colorPalette: ["#00f0ff", "#ff007f", "#7000ff", "#00ffaa"],
         elements: [
-          {
-            badge: "CORE DEVELOPMENT",
-            title: "Market Transition",
-            content: `Strategic technological advancement in ${promptContent} driving industry adoption.`,
-            metric: "+38.4%"
-          },
-          {
-            badge: "ARCHITECTURE",
-            title: "System Integration",
-            content: `Next-generation distributed infrastructure deployed to scale operations globally.`,
-            metric: "99.99%"
-          },
-          {
-            badge: "OUTCOME",
-            title: "Performance Trajectory",
-            content: `Real-time data feeds confirm acceleration in efficiency and user engagement.`,
-            metric: "4.8x"
-          },
-          {
-            badge: "STRATEGIC IMPACT",
-            title: "Long-term Value",
-            content: `Sustainable competitive advantages established through proprietary neural systems.`,
-            metric: "OPTIMAL"
-          }
+          { type: "data_ring", scale: 1.0, thickness: 3 },
+          { type: "glass_blob", size: 380 },
+          { type: "hud_grid", rows: 5, cols: 8 },
+          { type: "waveform_bars", scale: 1.0 }
         ]
       } : undefined,
-      title: `Deep Analysis: ${promptContent}`,
+      title: `Abstract 4K Visual: ${promptContent}`,
       solid_core: "abstract_solid_waves",
       sceneType: "abstract_solid_waves",
       movementStyle: "quantum_flow",
       colors: ["#00f0ff", "#ff007f", "#7000ff"],
       cameraSpeed: 1.0,
       bloomIntensity: 2.0,
-      complexity: 1.2
+      complexity: 1.0
     };
   }
 
@@ -410,7 +388,7 @@ Output STRICT JSON conforming to this schema:
   fs.writeFileSync('out/metadata.txt', metadataContent);
   fs.writeFileSync(`out/metadata_${jobIndex}.txt`, metadataContent);
 
-  console.log(`✅ TOPIC-BOUND METADATA SAVED FOR JOB ${jobIndex} (MODES: ${approvedJson.renderModes.join(' + ')})!`);
+  console.log(`✅ PURE VISUAL ABSTRACT METADATA SAVED FOR JOB ${jobIndex} (MODES: ${approvedJson.renderModes.join(' + ')})!`);
 }
 
 generate();

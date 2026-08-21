@@ -197,5 +197,65 @@
         }
       ]
     }
+  },
+  {
+    "timestamp": "2026-08-21T15:27:14.444Z",
+    "title": "Neural Signal Collapse: Abstract Visualization of AI Hallucination and Gibberish Output Failure",
+    "renderModes": [
+      "3D",
+      "2D"
+    ],
+    "engine3D": {
+      "solidGeometry": "TorusGeometry",
+      "layoutMath": "concentric_rings",
+      "physicalMaterial": {
+        "metalness": 0.95,
+        "roughness": 0.05
+      },
+      "cinematographyDP": {
+        "cameraPath": "slow_orbit",
+        "pacing": "extremely_slow_and_cinematic",
+        "focusDistance": 0
+      },
+      "colors": [
+        "#030305",
+        "#00FFFF",
+        "#FFB300",
+        "#FF00FF",
+        "#FFFFFF"
+      ],
+      "cameraSpeed": 0.15,
+      "bloomIntensity": 3.5,
+      "complexity": 1
+    },
+    "engine2D": {
+      "layoutStructure": "abstract_data_waves",
+      "colorPalette": [
+        "#050508",
+        "#00F3FF",
+        "#FFD600",
+        "#FF10F0"
+      ],
+      "elements": [
+        {
+          "type": "data_ring",
+          "scale": 1.2,
+          "thickness": 2.5
+        },
+        {
+          "type": "glass_blob",
+          "size": 420
+        },
+        {
+          "type": "waveform_bars",
+          "scale": 0.8
+        },
+        {
+          "type": "hud_grid",
+          "rows": 6,
+          "cols": 10
+        }
+      ]
+    }
   }
 ]
