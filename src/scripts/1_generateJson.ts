@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-function getNextTopic(): string {
+function getNextTopic(): { topic: string; jobIndex: number } {
   const promptsPath = 'data/prompts.csv';
   const usedTopicsPath = 'data/used_topics.json';
   const jobIndex = parseInt(process.env.JOB_INDEX || '0', 10);
@@ -53,6 +53,7 @@ function getNextTopic(): string {
       "Quantum Solid Data Matrix Flow",
       "Algorithmic Candlestick High Frequency Finance",
       "Synthetic DNA Double Helix Molecular Array",
+      "Smart Calendar Real-Time Cloud Synchronization",
       "Abstract Displaced Tech Waves Real-time 4K"
     ];
   }
@@ -74,53 +75,49 @@ function getNextTopic(): string {
   }
 
   console.log(`🎯 JOB INDEX ${jobIndex} SELECTED UNIQUE FRESH TOPIC (${usedTopics.length}/${topics.length} used): "${selectedTopic}"`);
-  return selectedTopic;
+  return { topic: selectedTopic, jobIndex };
 }
 
 interface HistoryItem {
   timestamp: string;
   title: string;
-  solid_core: string;
-  movementStyle: string;
-  colors: string[];
-  seoTags: string[];
+  renderModes: string[];
+  engine3D: any;
+  engine2D?: any;
 }
 
 function validateWithCritic(candidate: any, history: HistoryItem[]): { valid: boolean; reason?: string } {
-  if (!candidate.title || typeof candidate.title !== 'string' || candidate.title.trim().length < 5) {
+  const title = candidate.seoPackage?.title || candidate.title;
+  if (!title || typeof title !== 'string' || title.trim().length < 5) {
     return { valid: false, reason: "REJECTED: Title is missing or too short." };
   }
 
-  if (!Array.isArray(candidate.seoTags) || candidate.seoTags.length < 15) {
-    return { valid: false, reason: "REJECTED: SEO tags count is insufficient (must be at least 15 high-quality niche tags)." };
+  const seoTags = candidate.seoPackage?.seoTags || candidate.seoTags;
+  if (!Array.isArray(seoTags) || seoTags.length < 10) {
+    return { valid: false, reason: "REJECTED: SEO tags count is insufficient (must be at least 10 high-quality niche tags)." };
   }
 
-  if (!Array.isArray(candidate.colors) || candidate.colors.length < 2) {
-    return { valid: false, reason: "REJECTED: Color palette is weak or missing." };
+  if (!Array.isArray(candidate.renderModes) || !candidate.renderModes.includes("3D")) {
+    return { valid: false, reason: "REJECTED: '3D' renderMode is strictly MANDATORY for all generations." };
   }
 
-  const validCores = ["candlestick_boxes", "dna_molecules", "abstract_solid_waves"];
-  const solidCore = candidate.solid_core || candidate.solidCore || candidate.sceneType;
-  if (!solidCore || !validCores.includes(solidCore)) {
-    return { valid: false, reason: `REJECTED: solid_core '${solidCore}' must be one of: ${validCores.join(', ')}.` };
+  const validGeometries = ["BoxGeometry", "SphereGeometry", "CylinderGeometry", "TorusGeometry"];
+  const geom = candidate.engine3D?.solidGeometry;
+  if (geom && !validGeometries.includes(geom)) {
+    return { valid: false, reason: `REJECTED: solidGeometry '${geom}' must be one of: ${validGeometries.join(', ')}.` };
   }
 
-  const validMovements = ["vortex", "wave", "orbital", "expansion", "quantum_flow"];
-  if (!candidate.movementStyle || !validMovements.includes(candidate.movementStyle)) {
-    return { valid: false, reason: `REJECTED: Movement style '${candidate.movementStyle}' is invalid.` };
+  const validMath = ["grid", "concentric_rings", "dna_helix", "wave_plane"];
+  const math = candidate.engine3D?.layoutMath;
+  if (math && !validMath.includes(math)) {
+    return { valid: false, reason: `REJECTED: layoutMath '${math}' must be one of: ${validMath.join(', ')}.` };
   }
 
   for (const past of history) {
-    const candTitleLower = candidate.title.toLowerCase();
-    const pastTitleLower = past.title.toLowerCase();
+    const candTitleLower = title.toLowerCase();
+    const pastTitleLower = past.title?.toLowerCase() || '';
     if (candTitleLower === pastTitleLower || (candTitleLower.length > 10 && pastTitleLower.includes(candTitleLower))) {
-      return { valid: false, reason: `REJECTED: Topic/Title "${candidate.title}" is too similar to past run "${past.title}".` };
-    }
-
-    if (past.solid_core === solidCore &&
-        past.movementStyle === candidate.movementStyle &&
-        past.colors && past.colors[0] === candidate.colors[0]) {
-      return { valid: false, reason: `REJECTED: Visual combo (${solidCore} + ${candidate.movementStyle} + ${candidate.colors[0]}) is identical to past generation.` };
+      return { valid: false, reason: `REJECTED: Title "${title}" is too similar to past run "${past.title}".` };
     }
   }
 
@@ -128,13 +125,13 @@ function validateWithCritic(candidate: any, history: HistoryItem[]): { valid: bo
 }
 
 async function generate() {
-  console.log("🚀 INITIATING DUAL-AGENT (ACTOR-CRITIC) SOLID GEOMETRY DIRECTOR (NVIDIA 550B)...");
+  console.log("🚀 INITIATING DUAL-AGENT DUAL-RENDER ORCHESTRATOR (NVIDIA 550B)...");
   
   const apiKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
   const model = "nvidia/nemotron-3-ultra-550b-a55b";
 
-  const promptContent = getNextTopic();
+  const { topic: promptContent, jobIndex } = getNextTopic();
   const historyPath = 'data/history_log.json';
 
   let history: HistoryItem[] = [];
@@ -156,27 +153,36 @@ async function generate() {
     attempt++;
     console.log(`⏳ [Actor Generator] Attempt ${attempt} of ${MAX_ATTEMPTS}...`);
 
-    let userPrompt = `Analyze the trending topic: "${promptContent}". 
-Do not invent particle systems. You must map the topic to one of the robust solid geometric cores and provide cinematic colors.
-Select strictly from:
-- "candlestick_boxes" (for finance, markets, analytics, crypto, economy)
-- "dna_molecules" (for biology, genetics, medicine, chemistry, neural structures)
-- "abstract_solid_waves" (for tech, computing, AI, energy, cyberspace, physics)
+    let userPrompt = `Analyze the trending topic: "${promptContent}".
+You MUST ALWAYS generate an abstract 3D visual metaphor (engine3D) for EVERY topic, using only SOLID geometries. If the topic heavily leans towards software/apps/UI/platforms/tools, add '2D' to the renderModes array and populate the engine2D parameters. NEVER omit the 3D generation.
 
-Output strictly matching this JSON schema:
+Output STRICT JSON conforming to this schema:
 {
-  "title": "string (unique, cinematic, highly descriptive title)",
-  "seoTags": ["array of 50 high-quality niche trending stock video tags"],
-  "solid_core": "candlestick_boxes" | "dna_molecules" | "abstract_solid_waves",
-  "movementStyle": "vortex" | "wave" | "orbital" | "expansion" | "quantum_flow",
-  "colors": ["#hex1", "#hex2", "#hex3"],
-  "cameraSpeed": 1.5,
-  "bloomIntensity": 2.0,
-  "complexity": 1.2
+  "seoPackage": {
+    "title": "string (unique, cinematic, highly descriptive title)",
+    "description": "string (engaging description)",
+    "seoTags": ["array of 30-50 high-quality niche trending stock video tags"]
+  },
+  "renderModes": ["3D"] | ["3D", "2D"],
+  "engine3D": {
+    "solidGeometry": "BoxGeometry" | "SphereGeometry" | "CylinderGeometry" | "TorusGeometry",
+    "layoutMath": "grid" | "concentric_rings" | "dna_helix" | "wave_plane",
+    "physicalMaterial": { "metalness": 0.9, "roughness": 0.1 },
+    "cameraMotion": "orbit_slow" | "macro_dolly_in",
+    "colors": ["#hex1", "#hex2", "#hex3"],
+    "cameraSpeed": 1.5,
+    "bloomIntensity": 2.0,
+    "complexity": 1.2
+  },
+  "engine2D": {
+    "style": "hud_interface" | "minimal_ui_cards" | "typographic_kinetic",
+    "colors": ["#hex1", "#hex2", "#hex3"],
+    "textLayers": ["3 to 4 short bullet/feature texts to display"]
+  }
 }`;
 
     if (rejectionFeedback) {
-      userPrompt += `\n\nCRITICAL DIRECTIVE FROM CRITIC AGENT: ${rejectionFeedback} Generate a completely new, highly complex visual parameter set with solid_core and colors.`;
+      userPrompt += `\n\nCRITICAL DIRECTIVE FROM CRITIC AGENT: ${rejectionFeedback} Generate a completely unique, highly complex configuration.`;
     }
 
     const payload = {
@@ -184,7 +190,7 @@ Output strictly matching this JSON schema:
       messages: [
         { 
           role: "system", 
-          content: "You are an elite 3D procedural motion graphics director. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must use solid 3D geometries (boxes, DNA molecules, or displaced solid waves) with metallic physical materials. Particles are strictly forbidden." 
+          content: "You are an elite motion graphics director. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All 3D visuals must use solid PBR geometries (BoxGeometry, SphereGeometry, CylinderGeometry, TorusGeometry). 3D is ALWAYS MANDATORY in renderModes. If software/UI/app, renderModes is [\"3D\", \"2D\"]." 
         },
         { 
           role: "user", 
@@ -222,26 +228,20 @@ Output strictly matching this JSON schema:
         
         const candidate = JSON.parse(jsonStr);
 
-        // Normalize solid_core property
-        if (!candidate.solid_core && candidate.solidCore) {
-          candidate.solid_core = candidate.solidCore;
-        }
-        if (!candidate.solid_core) {
-          const lower = (candidate.title + " " + promptContent).toLowerCase();
-          if (lower.includes("finance") || lower.includes("stock") || lower.includes("market") || lower.includes("trade") || lower.includes("crypto")) {
-            candidate.solid_core = "candlestick_boxes";
-          } else if (lower.includes("bio") || lower.includes("dna") || lower.includes("gene") || lower.includes("chem") || lower.includes("molecule")) {
-            candidate.solid_core = "dna_molecules";
-          } else {
-            candidate.solid_core = "abstract_solid_waves";
-          }
-        }
+        // Ensure 3D is always present
+        if (!Array.isArray(candidate.renderModes)) candidate.renderModes = ["3D"];
+        if (!candidate.renderModes.includes("3D")) candidate.renderModes.unshift("3D");
 
-        console.log(`🔍 [Critic Agent] Evaluating Solid Candidate: "${candidate.title}" (Core: ${candidate.solid_core})...`);
+        // Set top-level aliases for backward compatibility
+        candidate.title = candidate.seoPackage?.title || candidate.title || "Solid 3D Procedural Scene";
+        candidate.seoTags = candidate.seoPackage?.seoTags || candidate.seoTags || [];
+        candidate.colors = candidate.engine3D?.colors || candidate.colors || ["#00f0ff", "#ff007f", "#7000ff"];
+
+        console.log(`🔍 [Critic Agent] Evaluating Candidate: "${candidate.title}" (Modes: ${candidate.renderModes.join(' + ')})...`);
         const criticResult = validateWithCritic(candidate, history);
 
         if (criticResult.valid) {
-          console.log(`✅ [Critic Agent] APPROVED! Solid Geometry Candidate passed Quality Control validation.`);
+          console.log(`✅ [Critic Agent] APPROVED! Candidate passed Dual-Render validation.`);
           approvedJson = candidate;
         } else {
           console.warn(`🛑 [Critic Agent] ${criticResult.reason}`);
@@ -255,28 +255,42 @@ Output strictly matching this JSON schema:
   }
 
   if (!approvedJson) {
-    console.warn("⚠️ Critic validation or API limits reached. Generating dynamic solid geometric fallback config.");
-    const solidCores: Array<"candlestick_boxes" | "dna_molecules" | "abstract_solid_waves"> = ["candlestick_boxes", "dna_molecules", "abstract_solid_waves"];
-    const fallbackMovements = ["vortex", "wave", "orbital", "expansion", "quantum_flow"];
-    
-    // Choose core based on prompt content
-    const lowerPrompt = promptContent.toLowerCase();
-    let chosenCore: "candlestick_boxes" | "dna_molecules" | "abstract_solid_waves" = "abstract_solid_waves";
-    if (lowerPrompt.includes("finance") || lowerPrompt.includes("stock") || lowerPrompt.includes("market") || lowerPrompt.includes("trade") || lowerPrompt.includes("crypto")) {
-      chosenCore = "candlestick_boxes";
-    } else if (lowerPrompt.includes("bio") || lowerPrompt.includes("dna") || lowerPrompt.includes("gene") || lowerPrompt.includes("chem") || lowerPrompt.includes("molecule")) {
-      chosenCore = "dna_molecules";
-    } else {
-      chosenCore = solidCores[Math.floor(Math.random() * solidCores.length)];
-    }
+    console.warn("⚠️ Critic validation or API limits reached. Generating dynamic Dual-Render fallback config.");
+    const isSoftwareUI = promptContent.toLowerCase().includes("app") ||
+                         promptContent.toLowerCase().includes("calendar") ||
+                         promptContent.toLowerCase().includes("software") ||
+                         promptContent.toLowerCase().includes("tool") ||
+                         promptContent.toLowerCase().includes("traffic") ||
+                         promptContent.toLowerCase().includes("feature");
 
-    const chosenMovement = fallbackMovements[Math.floor(Math.random() * fallbackMovements.length)];
+    const renderModes: ("3D" | "2D")[] = isSoftwareUI ? ["3D", "2D"] : ["3D"];
 
     approvedJson = {
-      title: `Cinematic 3D Solid ${chosenCore.replace('_', ' ').toUpperCase()} Procedural 4K`,
-      seoTags: ["solid 3d", "4k", "procedural", "motion graphics", "stock video", chosenCore, chosenMovement, "cinema 4d render", "pbr materials"],
-      solid_core: chosenCore,
-      movementStyle: chosenMovement,
+      seoPackage: {
+        title: `Cinematic 3D Procedural Visual: ${promptContent}`,
+        description: `4K High-End Motion Graphics Visualization for ${promptContent}`,
+        seoTags: ["solid 3d", "4k", "procedural", "motion graphics", "stock video", "pbr materials", "render"]
+      },
+      renderModes: renderModes,
+      engine3D: {
+        solidGeometry: "BoxGeometry",
+        layoutMath: "wave_plane",
+        physicalMaterial: { metalness: 0.9, roughness: 0.1 },
+        cameraMotion: "orbit_slow",
+        colors: ["#00f0ff", "#ff007f", "#7000ff"],
+        cameraSpeed: 1.5,
+        bloomIntensity: 2.0,
+        complexity: 1.2
+      },
+      engine2D: isSoftwareUI ? {
+        style: "minimal_ui_cards",
+        colors: ["#3b82f6", "#10b981", "#8b5cf6"],
+        textLayers: ["Automated Processing", "Real-Time Cloud Sync", "Intelligent Analytics", "Secure Architecture"]
+      } : undefined,
+      title: `Cinematic 3D Procedural Visual: ${promptContent}`,
+      solid_core: "abstract_solid_waves",
+      sceneType: "abstract_solid_waves",
+      movementStyle: "quantum_flow",
       colors: ["#00f0ff", "#ff007f", "#7000ff"],
       cameraSpeed: 1.5,
       bloomIntensity: 2.0,
@@ -286,11 +300,10 @@ Output strictly matching this JSON schema:
 
   const historyEntry: HistoryItem = {
     timestamp: new Date().toISOString(),
-    title: approvedJson.title,
-    solid_core: approvedJson.solid_core || "abstract_solid_waves",
-    movementStyle: approvedJson.movementStyle || "quantum_flow",
-    colors: approvedJson.colors || ["#00f0ff", "#ff007f"],
-    seoTags: approvedJson.seoTags || []
+    title: approvedJson.seoPackage?.title || approvedJson.title,
+    renderModes: approvedJson.renderModes,
+    engine3D: approvedJson.engine3D,
+    engine2D: approvedJson.engine2D
   };
 
   history.push(historyEntry);
@@ -299,10 +312,20 @@ Output strictly matching this JSON schema:
 
   fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
   fs.writeFileSync('data/sceneData.json', JSON.stringify(approvedJson, null, 2));
+  fs.writeFileSync(`data/metadata_${jobIndex}.json`, JSON.stringify(approvedJson, null, 2));
   
-  const tags = Array.isArray(approvedJson.seoTags) ? approvedJson.seoTags.join(", ") : "3d, solid geometry, 4k, r3f, procedural, stock footage";
-  fs.writeFileSync('out/metadata.txt', `TITLE:\n${approvedJson.title || "Procedural 3D Solid Geometry Stock Visual"}\n\nTAGS:\n${tags}`);
-  console.log("✅ DUAL-AGENT VALIDATED SOLID SCENE & METADATA SAVED SUCCESSFULLY!");
+  const seoTitle = approvedJson.seoPackage?.title || approvedJson.title || "Procedural 3D Stock Visual";
+  const tags = Array.isArray(approvedJson.seoPackage?.seoTags)
+    ? approvedJson.seoPackage.seoTags.join(", ")
+    : Array.isArray(approvedJson.seoTags)
+    ? approvedJson.seoTags.join(", ")
+    : "3d, solid geometry, 4k, r3f, procedural, stock footage";
+
+  const metadataContent = `TITLE:\n${seoTitle}\n\nMODES:\n${approvedJson.renderModes.join(", ")}\n\nTAGS:\n${tags}`;
+  fs.writeFileSync('out/metadata.txt', metadataContent);
+  fs.writeFileSync(`out/metadata_${jobIndex}.txt`, metadataContent);
+
+  console.log(`✅ DUAL-RENDER METADATA SAVED FOR JOB ${jobIndex} (MODES: ${approvedJson.renderModes.join(' + ')})!`);
 }
 
 generate();

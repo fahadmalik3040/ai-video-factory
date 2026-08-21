@@ -4,18 +4,21 @@ import { google } from 'googleapis';
 async function uploadDrive() {
   console.log("☁️ CHECKING GOOGLE DRIVE CREDENTIALS...");
 
-  // Check if credentials are set in environment
-  const hasCreds = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || fs.existsSync('credentials.json') || process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GDRIVE_CREDENTIALS;
+  const hasCreds =
+    process.env.GOOGLE_SERVICE_ACCOUNT_KEY ||
+    fs.existsSync('credentials.json') ||
+    process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+    process.env.GDRIVE_CREDENTIALS;
 
   if (!hasCreds) {
     console.warn("⚠️ WARNING: Google Drive credentials not found in environment or workspace.");
     console.warn("📁 Skipping Google Drive upload. Remotion render is safe in 'out/' folder!");
-    return; // Exit gracefully without crashing the pipeline
+    return;
   }
 
   try {
     const auth = new google.auth.GoogleAuth({
-      scopes: ['https://www.googleapis.com/auth/drive']
+      scopes: ['https://www.googleapis.com/auth/drive'],
     });
 
     const drive = google.drive({ version: 'v3', auth });
@@ -26,9 +29,10 @@ async function uploadDrive() {
       fields: 'files(id, name)',
     });
 
-    let folderId = searchResponse.data.files && searchResponse.data.files.length > 0 
-      ? searchResponse.data.files[0].id 
-      : null;
+    let folderId =
+      searchResponse.data.files && searchResponse.data.files.length > 0
+        ? searchResponse.data.files[0].id
+        : null;
 
     if (!folderId) {
       const folderMetadata = {
@@ -43,37 +47,38 @@ async function uploadDrive() {
     }
 
     const outFiles = fs.readdirSync('out');
-    const videoFile = outFiles.find(file => file.endsWith('.mp4'));
+    const videoFiles = outFiles.filter(file => file.endsWith('.mp4'));
 
-    if (!videoFile) {
-      throw new Error("❌ No MP4 video found in 'out/' directory!");
+    if (videoFiles.length === 0) {
+      throw new Error("❌ No MP4 videos found in 'out/' directory!");
     }
 
-    const videoPath = `out/${videoFile}`;
-    console.log(`📤 Uploading video file: ${videoFile} into '${targetFolderName}'...`);
+    console.log(`📤 Found ${videoFiles.length} video(s) to upload into '${targetFolderName}'...`);
 
-    const fileMetadata = {
-      name: videoFile,
-      parents: folderId ? [folderId] : [],
-    };
-    
-    const media = {
-      mimeType: 'video/mp4',
-      body: fs.createReadStream(videoPath),
-    };
+    for (const videoFile of videoFiles) {
+      const videoPath = `out/${videoFile}`;
+      console.log(`📤 Uploading: ${videoFile}...`);
 
-    const response = await drive.files.create({
-      requestBody: fileMetadata,
-      media: media,
-      fields: 'id, webViewLink',
-    });
+      const fileMetadata = {
+        name: videoFile,
+        parents: folderId ? [folderId] : [],
+      };
 
-    console.log(`🎉 SUCCESS! Video uploaded inside 'AI FACTORY OUT-PUT'.`);
-    console.log(`🔗 Link: ${response.data.webViewLink}`);
+      const media = {
+        mimeType: 'video/mp4',
+        body: fs.createReadStream(videoPath),
+      };
 
+      const response = await drive.files.create({
+        requestBody: fileMetadata,
+        media: media,
+        fields: 'id, webViewLink',
+      });
+
+      console.log(`🎉 Uploaded ${videoFile} -> Link: ${response.data.webViewLink}`);
+    }
   } catch (err: any) {
     console.error("❌ Google Drive upload error:", err.message || err);
-    // Do not kill the process if credentials are just missing
   }
 }
 

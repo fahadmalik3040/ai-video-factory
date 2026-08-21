@@ -60,5 +60,46 @@
       "E-E-A-T",
       "helpful content system"
     ]
+  },
+  {
+    "timestamp": "2026-08-21T14:42:18.564Z",
+    "title": "Corporate Espionage Unraveling: The Rippling vs Runlayer Legal Implosion — A Founder's Warning",
+    "renderModes": [
+      "3D",
+      "2D"
+    ],
+    "engine3D": {
+      "solidGeometry": "TorusGeometry",
+      "layoutMath": "concentric_rings",
+      "physicalMaterial": {
+        "metalness": 0.95,
+        "roughness": 0.05
+      },
+      "cameraMotion": "macro_dolly_in",
+      "colors": [
+        "#0A192F",
+        "#E94560",
+        "#FFFFFF",
+        "#64FFDA"
+      ],
+      "cameraSpeed": 1.2,
+      "bloomIntensity": 2.5,
+      "complexity": 1.5
+    },
+    "engine2D": {
+      "style": "hud_interface",
+      "colors": [
+        "#0A192F",
+        "#E94560",
+        "#64FFDA",
+        "#FFFFFF"
+      ],
+      "textLayers": [
+        "ALLEGATIONS: CORPORATE ESPIONAGE & DATA EXFILTRATION",
+        "OUTCOME: LAWSUITS DROPPED, REPUTATIONS FRACTURED",
+        "LESSON: TRUST IS INFRASTRUCTURE — DON'T BREACH IT",
+        "FOUNDER TAKEAWAY: ETHICAL MOAT > COMPETITIVE EDGE"
+      ]
+    }
   }
 ]
