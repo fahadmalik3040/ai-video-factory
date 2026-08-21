@@ -147,14 +147,20 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
   return { valid: true };
 }
 
+// ----------------------------------------------------
+// Robust Multi-Provider LLM Query with 120s Timeout
+// ----------------------------------------------------
 async function queryLlm(payload: any): Promise<any> {
   const groqKey = process.env.GROQ_API_KEY || ["gsk_O8X46VIgiLLrIyvvq51nWGdyb3FYiaTUep", "agdYmEr8gsW0cHFnYQ"].join("");
   const nvidiaKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
 
   const groqModels = ["llama-3.1-8b-instant", "llama3-70b-8192"];
 
-  // 1. High-Speed Groq Engine with Temperature = 0.95 & Top_P = 0.95
+  // 1. High-Speed Groq Engine with 120s Timeout
   for (const model of groqModels) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+
     try {
       const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -170,22 +176,26 @@ async function queryLlm(payload: any): Promise<any> {
           max_tokens: 4096,
           response_format: { type: "json_object" }
         }),
-        signal: AbortSignal.timeout(8000)
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
       const groqData = await groqRes.json();
       if (groqData.choices && groqData.choices[0]?.message?.content) {
         console.log(`⚡ [LLM Engine] Generated with high entropy via Groq (${model})`);
         return groqData.choices[0].message.content;
       }
     } catch {
-      // try next
+      clearTimeout(timeoutId);
     }
   }
 
-  // 2. Secondary Engine: Nvidia Cloud API with Temperature = 0.95 & Top_P = 0.95
-  const nvidiaModels = ["meta/llama-3.3-70b-instruct", "mistralai/mistral-large-2-instruct"];
+  // 2. Secondary Engine: Nvidia Cloud API with 120s Timeout
+  const nvidiaModels = ["meta/llama-3.3-70b-instruct", "nvidia/nemotron-3-ultra-550b-a55b"];
   for (const model of nvidiaModels) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+
     try {
       const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
         method: "POST",
@@ -201,16 +211,17 @@ async function queryLlm(payload: any): Promise<any> {
           top_p: 0.95,
           max_tokens: 4096
         }),
-        signal: AbortSignal.timeout(10000)
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
       const data = await response.json();
       if (data.choices && data.choices[0]?.message?.content) {
         console.log(`⚡ [LLM Engine] Generated with high entropy via Nvidia (${model})`);
         return data.choices[0].message.content;
       }
     } catch {
-      // try next
+      clearTimeout(timeoutId);
     }
   }
 
@@ -237,7 +248,7 @@ function getDynamicPalette(topic: string, seed: string): string[] {
 }
 
 async function generate() {
-  console.log("🚀 INITIATING ENTROPY-BOOSTED DUAL-RENDER VFX DIRECTOR (TEMP: 0.95 + TOP_P: 0.95)...");
+  console.log("🚀 INITIATING ENTROPY-BOOSTED DUAL-RENDER VFX DIRECTOR (120s TIMEOUT)...");
 
   const { topic: promptContent, jobIndex } = getNextTopic();
   const historyPath = 'data/history_log.json';
@@ -267,7 +278,7 @@ Your generation random seed is: ${randomSeed}.
 You are an Elite VFX Director. Output a STRICT JSON object.
 
 CRITICAL MANDATES:
-1. STRICT TOPIC COMPLIANCE: Your generated visual title, 3D metaphor, and 2D visual layout MUST specifically represent "${promptContent}". DO NOT return generic or repeated scenes like 'Supercomputer Liquid Cooling Manifold'.
+1. STRICT TOPIC COMPLIANCE: Your generated visual title, 3D metaphor, and 2D visual layout MUST specifically represent "${promptContent}". DO NOT return generic or previous responses like 'Supercomputer Liquid Cooling Manifold'.
 2. DUAL-RENDER IS STRICTLY MANDATORY: renderModes MUST ALWAYS be ["3D", "2D"]. You must generate BOTH engine3D AND engine2D.
 3. ENGINE 3D: Generate abstract solid PBR geometry (BoxGeometry | SphereGeometry | CylinderGeometry | TorusGeometry) with continuous slow cinematography (slow_orbit | smooth_dolly_in | macro_pan_up).
 4. ENGINE 2D (PURE VISUAL): Generate abstract motion graphics (hud_circles | floating_glass_shapes | abstract_data_waves) with ZERO text, letters, or words. Only visual mathematical parameters (data_ring, glass_blob, hud_grid, waveform_bars).
