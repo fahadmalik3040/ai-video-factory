@@ -1,168 +1,53 @@
 {
   "seoPackage": {
-    "title": "Neural Signal Collapse: Abstract Visualization of AI Hallucination and Gibberish Output Failure",
-    "description": "Ultra-high definition abstract 3D and 2D motion graphics depicting the catastrophic degradation of coherent latent space traversal into entropic noise. Visualizes the moment token probability distributions flatten, attention heads desynchronize, and semantic structure dissolves into geometric chaos. Features concentric toroidal data streams fracturing into chromatic aberration, polymorphic glass probability clouds shattering under thermodynamic pressure, and waveform topologies flatlining into stochastic static. Cinematic slow-orbit cinematography captures the silent death of meaning in synthetic cognition. Zero text, pure mathematical aesthetics.",
+    "title": "Cinematic 4K VFX Motion Graphics: Neuromorphic Synaptic Computing Network",
+    "description": "High-End 4K Visual Motion Graphics and Solid PBR Simulation of Neuromorphic Synaptic Computing Network",
     "seoTags": [
-      "ai hallucination visualization",
-      "neural network failure art",
-      "generative ai glitch",
-      "abstract technology background",
-      "latent space collapse",
-      "token probability distortion",
-      "synthetic cognition error",
-      "machine learning breakdown",
-      "data corruption aesthetics",
-      "entropy visualization",
-      "signal to noise ratio",
-      "attention mechanism failure",
-      "transformer architecture glitch",
-      "llm output failure",
-      "grok ai metaphor",
-      "abstract 3d animation",
-      "motion graphics background",
-      "cinematic tech loop",
-      "holographic data decay",
-      "chromatic aberration art",
-      "glass morphism animation",
-      "waveform collapse",
-      "stochastic process visual",
-      "high tech abstract loop",
-      "digital entropy art",
-      "computational irreducibility",
-      "semantic dissolution",
-      "polymorphic geometry",
-      "concentric rings animation",
-      "slow orbit camera",
-      "volumetric lighting tech",
-      "ray traced abstract",
-      "8k stock footage",
-      "seamless loop background",
-      "futuristic hud elements",
-      "data visualization art",
-      "algorithmic chaos theory",
-      "neural pathway degradation",
-      "black box interpretation",
-      "explainability crisis",
-      "ai safety visualization",
-      "alignment failure art",
-      "emergent behavior glitch",
-      "technological singularity fail",
-      "digital artifact aesthetics",
-      "procedural generation error",
-      "abstract sci-fi backgrounds"
+      "solid 3d",
+      "4k",
+      "procedural",
+      "motion graphics",
+      "stock video",
+      "vfx template",
+      "pbr materials",
+      "pure visual",
+      "neuromorphic synaptic computing network"
     ]
   },
   "renderModes": [
-    "3D",
-    "2D"
+    "3D"
   ],
   "engine3D": {
-    "solidGeometry": "TorusGeometry",
-    "layoutMath": "concentric_rings",
+    "solidGeometry": "BoxGeometry",
+    "layoutMath": "wave_plane",
     "physicalMaterial": {
-      "metalness": 0.95,
-      "roughness": 0.05
+      "metalness": 0.9,
+      "roughness": 0.1
     },
     "cinematographyDP": {
-      "cameraPath": "slow_orbit",
+      "cameraPath": "smooth_dolly_in",
       "pacing": "extremely_slow_and_cinematic",
       "focusDistance": 0
     },
     "colors": [
-      "#030305",
-      "#00FFFF",
-      "#FFB300",
-      "#FF00FF",
-      "#FFFFFF"
+      "#00f0ff",
+      "#ff007f",
+      "#7000ff"
     ],
-    "cameraSpeed": 0.15,
-    "bloomIntensity": 3.5,
+    "cameraSpeed": 1,
+    "bloomIntensity": 2,
     "complexity": 1
   },
-  "engine2D": {
-    "layoutStructure": "abstract_data_waves",
-    "colorPalette": [
-      "#050508",
-      "#00F3FF",
-      "#FFD600",
-      "#FF10F0"
-    ],
-    "elements": [
-      {
-        "type": "data_ring",
-        "scale": 1.2,
-        "thickness": 2.5
-      },
-      {
-        "type": "glass_blob",
-        "size": 420
-      },
-      {
-        "type": "waveform_bars",
-        "scale": 0.8
-      },
-      {
-        "type": "hud_grid",
-        "rows": 6,
-        "cols": 10
-      }
-    ]
-  },
-  "title": "Neural Signal Collapse: Abstract Visualization of AI Hallucination and Gibberish Output Failure",
-  "seoTags": [
-    "ai hallucination visualization",
-    "neural network failure art",
-    "generative ai glitch",
-    "abstract technology background",
-    "latent space collapse",
-    "token probability distortion",
-    "synthetic cognition error",
-    "machine learning breakdown",
-    "data corruption aesthetics",
-    "entropy visualization",
-    "signal to noise ratio",
-    "attention mechanism failure",
-    "transformer architecture glitch",
-    "llm output failure",
-    "grok ai metaphor",
-    "abstract 3d animation",
-    "motion graphics background",
-    "cinematic tech loop",
-    "holographic data decay",
-    "chromatic aberration art",
-    "glass morphism animation",
-    "waveform collapse",
-    "stochastic process visual",
-    "high tech abstract loop",
-    "digital entropy art",
-    "computational irreducibility",
-    "semantic dissolution",
-    "polymorphic geometry",
-    "concentric rings animation",
-    "slow orbit camera",
-    "volumetric lighting tech",
-    "ray traced abstract",
-    "8k stock footage",
-    "seamless loop background",
-    "futuristic hud elements",
-    "data visualization art",
-    "algorithmic chaos theory",
-    "neural pathway degradation",
-    "black box interpretation",
-    "explainability crisis",
-    "ai safety visualization",
-    "alignment failure art",
-    "emergent behavior glitch",
-    "technological singularity fail",
-    "digital artifact aesthetics",
-    "procedural generation error",
-    "abstract sci-fi backgrounds"
-  ],
+  "title": "Cinematic 4K VFX: Neuromorphic Synaptic Computing Network",
+  "solid_core": "abstract_solid_waves",
+  "sceneType": "abstract_solid_waves",
+  "movementStyle": "quantum_flow",
   "colors": [
-    "#030305",
-    "#00FFFF",
-    "#FFB300",
-    "#FF00FF",
-    "#FFFFFF"
-  ]
+    "#00f0ff",
+    "#ff007f",
+    "#7000ff"
+  ],
+  "cameraSpeed": 1,
+  "bloomIntensity": 2,
+  "complexity": 1
 }

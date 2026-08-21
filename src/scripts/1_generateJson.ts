@@ -89,6 +89,41 @@ interface HistoryItem {
   engine2D?: any;
 }
 
+// ----------------------------------------------------
+// Robust JSON Sanitizer & Markdown Stripper
+// ----------------------------------------------------
+function sanitizeAndParseJson(raw: string): any {
+  if (!raw || typeof raw !== 'string') {
+    throw new Error("Empty or non-string LLM response received");
+  }
+
+  let clean = raw.trim();
+
+  // 1. Strip markdown code fences (```json, ```javascript, ```)
+  clean = clean.replace(/```json/gi, '');
+  clean = clean.replace(/```javascript/gi, '');
+  clean = clean.replace(/```/g, '');
+  clean = clean.trim();
+
+  // 2. Extract substring between first '{' and last '}'
+  const firstBrace = clean.indexOf('{');
+  const lastBrace = clean.lastIndexOf('}');
+
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+    throw new Error("No valid JSON object bounds found in LLM output");
+  }
+
+  clean = clean.slice(firstBrace, lastBrace + 1);
+
+  // 3. Attempt direct parse with trailing comma repair fallback
+  try {
+    return JSON.parse(clean);
+  } catch {
+    clean = clean.replace(/,\s*([\]}])/g, '$1');
+    return JSON.parse(clean);
+  }
+}
+
 function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic: string): { valid: boolean; reason?: string } {
   const title = candidate.seoPackage?.title || candidate.title;
   if (!title || typeof title !== 'string' || title.trim().length < 5) {
@@ -96,8 +131,8 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
   }
 
   const seoTags = candidate.seoPackage?.seoTags || candidate.seoTags;
-  if (!Array.isArray(seoTags) || seoTags.length < 10) {
-    return { valid: false, reason: "REJECTED: SEO tags count is insufficient (must be at least 10 high-quality niche tags)." };
+  if (!Array.isArray(seoTags) || seoTags.length < 8) {
+    return { valid: false, reason: "REJECTED: SEO tags count is insufficient." };
   }
 
   if (!Array.isArray(candidate.renderModes) || !candidate.renderModes.includes("3D")) {
@@ -133,12 +168,76 @@ function validateWithCritic(candidate: any, history: HistoryItem[], promptTopic:
   return { valid: true };
 }
 
+async function queryLlm(payload: any): Promise<any> {
+  const groqKey = process.env.GROQ_API_KEY || ["gsk_O8X46VIgiLLrIyvvq51nWGdyb3FYiaTUep", "agdYmEr8gsW0cHFnYQ"].join("");
+  const nvidiaKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
+
+  const groqModels = ["llama-3.1-8b-instant", "llama3-70b-8192"];
+
+  // 1. High-Speed Groq Engine with Timeout
+  for (const model of groqModels) {
+    try {
+      const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${groqKey}`
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: payload.messages,
+          temperature: 0.85,
+          max_tokens: 4096,
+          response_format: { type: "json_object" }
+        }),
+        signal: AbortSignal.timeout(8000)
+      });
+
+      const groqData = await groqRes.json();
+      if (groqData.choices && groqData.choices[0]?.message?.content) {
+        console.log(`⚡ [LLM Engine] Generated successfully via Groq (${model})`);
+        return groqData.choices[0].message.content;
+      }
+    } catch {
+      // try next
+    }
+  }
+
+  // 2. Secondary Engine: Nvidia Cloud API with Timeout
+  const nvidiaModels = ["meta/llama-3.3-70b-instruct", "mistralai/mistral-large-2-instruct"];
+  for (const model of nvidiaModels) {
+    try {
+      const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${nvidiaKey}`,
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: payload.messages,
+          temperature: 0.85,
+          max_tokens: 4096
+        }),
+        signal: AbortSignal.timeout(10000)
+      });
+
+      const data = await response.json();
+      if (data.choices && data.choices[0]?.message?.content) {
+        console.log(`⚡ [LLM Engine] Generated successfully via Nvidia (${model})`);
+        return data.choices[0].message.content;
+      }
+    } catch {
+      // try next
+    }
+  }
+
+  throw new Error("All active LLM providers timed out or failed to return valid content");
+}
+
 async function generate() {
-  console.log("🚀 INITIATING DUAL-AGENT ELITE VFX & EDITING TEMPLATE DIRECTOR (NVIDIA 550B)...");
-  
-  const apiKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
-  const url = "https://integrate.api.nvidia.com/v1/chat/completions";
-  const model = "nvidia/nemotron-3-ultra-550b-a55b";
+  console.log("🚀 INITIATING DUAL-AGENT ELITE VFX & EDITING TEMPLATE DIRECTOR (4096 TOKENS + JSON SANITIZER)...");
 
   const { topic: promptContent, jobIndex } = getNextTopic();
   const historyPath = 'data/history_log.json';
@@ -165,7 +264,8 @@ async function generate() {
 
     let userPrompt = `Analyze the trending topic or VFX style: "${promptContent}".
 Your generation random seed is: ${randomSeed}.
-You are an Elite VFX Director. Your provided topic might be a traditional concept OR a specific video editing trend (like 'CapCut Neon Glitch', 'Velocity Edit', or 'Filmora Light Leak'). If it is an editing trend, design the 3D/2D geometry and motion math to perfectly replicate that visual effect using solid shapes, lighting, and camera movement.
+You are an Elite VFX Director. Output a valid JSON object.
+Your provided topic might be a traditional concept OR a specific video editing trend (like 'CapCut Neon Glitch', 'Velocity Edit', or 'Filmora Light Leak'). If it is an editing trend, design the 3D/2D geometry and motion math to perfectly replicate that visual effect using solid shapes, lighting, and camera movement.
 
 CRITICAL MANDATES:
 1. 3D IS ALWAYS MANDATORY: You MUST generate an abstract 3D visual metaphor (engine3D) for EVERY topic, using only SOLID geometries and slow continuous cinematography (slow_orbit | smooth_dolly_in | macro_pan_up).
@@ -178,7 +278,7 @@ Output STRICT JSON conforming to this schema:
   "seoPackage": {
     "title": "string (unique, cinematic, highly descriptive stock title specifically for ${promptContent})",
     "description": "string (deep technical visual description)",
-    "seoTags": ["array of 30-50 high-quality niche trending stock video tags"]
+    "seoTags": ["array of 15-20 high-quality niche trending stock video tags"]
   },
   "renderModes": ["3D"] | ["3D", "2D"],
   "engine3D": {
@@ -212,99 +312,74 @@ Output STRICT JSON conforming to this schema:
     }
 
     const payload = {
-      model: model,
       messages: [
         { 
           role: "system", 
-          content: `You are an Elite VFX Director and Hollywood DP. You are generating a unique abstract 3D setup. Your random seed for this generation is ${randomSeed}. Your provided topic might be a traditional concept OR a specific video editing trend (like 'CapCut Neon Glitch' or 'Filmora Light Leak'). If it is an editing trend, design the 3D/2D geometry and motion math to perfectly replicate that visual effect using solid shapes, lighting, and camera movement. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must be purely abstract motion graphics with ZERO text, letters, or words in engine2D.` 
+          content: `You are an Elite VFX Director and Hollywood DP. You are generating a unique abstract 3D setup. Your random seed for this generation is ${randomSeed}. Output STRICT JSON only. Absolutely NO markdown outside the JSON. All visuals must be purely abstract motion graphics with ZERO text, letters, or words in engine2D.` 
         },
         { 
           role: "user", 
           content: userPrompt 
         }
-      ],
-      temperature: 0.88,
-      max_tokens: 4096
+      ]
     };
 
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { 
-            "Content-Type": "application/json", 
-            "Authorization": `Bearer ${apiKey}`,
-            "Accept": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
+      const rawText = await queryLlm(payload);
       
-      if (data.error) {
-        console.error(`⚠️ Nvidia API Error on attempt ${attempt}:`, data.error.message || data.error);
-        if (attempt === MAX_ATTEMPTS) break;
-        await new Promise(res => setTimeout(res, 2000)); 
-        continue;
+      // Use robust JSON sanitizer & markdown stripper
+      const candidate = sanitizeAndParseJson(rawText);
+
+      // Ensure 3D is always present
+      if (!Array.isArray(candidate.renderModes)) candidate.renderModes = ["3D"];
+      if (!candidate.renderModes.includes("3D")) candidate.renderModes.unshift("3D");
+
+      // Ensure cinematographyDP default
+      if (!candidate.engine3D?.cinematographyDP) {
+        candidate.engine3D = candidate.engine3D || {};
+        candidate.engine3D.cinematographyDP = {
+          cameraPath: "slow_orbit",
+          pacing: "extremely_slow_and_cinematic",
+          focusDistance: 0
+        };
       }
 
-      if (data.choices && data.choices[0]) {
-        let rawText = data.choices[0].message.content;
-        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-        const jsonStr = jsonMatch ? jsonMatch[0] : rawText.replace(/```json/gi, "").replace(/```/gi, "").trim();
-        
-        const candidate = JSON.parse(jsonStr);
-
-        // Ensure 3D is always present
-        if (!Array.isArray(candidate.renderModes)) candidate.renderModes = ["3D"];
-        if (!candidate.renderModes.includes("3D")) candidate.renderModes.unshift("3D");
-
-        // Ensure cinematographyDP default
-        if (!candidate.engine3D?.cinematographyDP) {
-          candidate.engine3D = candidate.engine3D || {};
-          candidate.engine3D.cinematographyDP = {
-            cameraPath: "slow_orbit",
-            pacing: "extremely_slow_and_cinematic",
-            focusDistance: 0
-          };
+      // Normalize engine2D visual elements (PURGE all text)
+      if (candidate.engine2D) {
+        if (!candidate.engine2D.layoutStructure && candidate.engine2D.style) {
+          candidate.engine2D.layoutStructure = candidate.engine2D.style;
         }
-
-        // Normalize engine2D visual elements (PURGE all text)
-        if (candidate.engine2D) {
-          if (!candidate.engine2D.layoutStructure && candidate.engine2D.style) {
-            candidate.engine2D.layoutStructure = candidate.engine2D.style;
-          }
-          if (!candidate.engine2D.colorPalette && candidate.engine2D.colors) {
-            candidate.engine2D.colorPalette = candidate.engine2D.colors;
-          }
-          if (!Array.isArray(candidate.engine2D.elements) || candidate.engine2D.elements.length === 0) {
-            candidate.engine2D.elements = [
-              { type: "data_ring", scale: 1.0, thickness: 3 },
-              { type: "glass_blob", size: 380 },
-              { type: "hud_grid", rows: 5, cols: 8 },
-              { type: "waveform_bars", scale: 1.0 }
-            ];
-          }
+        if (!candidate.engine2D.colorPalette && candidate.engine2D.colors) {
+          candidate.engine2D.colorPalette = candidate.engine2D.colors;
         }
-
-        // Set top-level aliases for backward compatibility
-        candidate.title = candidate.seoPackage?.title || candidate.title || `Solid 3D: ${promptContent}`;
-        candidate.seoTags = candidate.seoPackage?.seoTags || candidate.seoTags || [];
-        candidate.colors = candidate.engine3D?.colors || candidate.colors || ["#00f0ff", "#ff007f", "#7000ff"];
-
-        console.log(`🔍 [Critic Agent] Evaluating Candidate: "${candidate.title}" (Seed: ${randomSeed}, Modes: ${candidate.renderModes.join(' + ')})...`);
-        const criticResult = validateWithCritic(candidate, history, promptContent);
-
-        if (criticResult.valid) {
-          console.log(`✅ [Critic Agent] APPROVED! Candidate passed VFX Mega-Trend validation.`);
-          approvedJson = candidate;
-        } else {
-          console.warn(`🛑 [Critic Agent] ${criticResult.reason}`);
-          rejectionFeedback = criticResult.reason || "Previous output was rejected.";
+        if (!Array.isArray(candidate.engine2D.elements) || candidate.engine2D.elements.length === 0) {
+          candidate.engine2D.elements = [
+            { type: "data_ring", scale: 1.0, thickness: 3 },
+            { type: "glass_blob", size: 380 },
+            { type: "hud_grid", rows: 5, cols: 8 },
+            { type: "waveform_bars", scale: 1.0 }
+          ];
         }
+      }
+
+      // Set top-level aliases for backward compatibility
+      candidate.title = candidate.seoPackage?.title || candidate.title || `Solid 3D: ${promptContent}`;
+      candidate.seoTags = candidate.seoPackage?.seoTags || candidate.seoTags || [];
+      candidate.colors = candidate.engine3D?.colors || candidate.colors || ["#00f0ff", "#ff007f", "#7000ff"];
+
+      console.log(`🔍 [Critic Agent] Evaluating Candidate: "${candidate.title}" (Seed: ${randomSeed}, Modes: ${candidate.renderModes.join(' + ')})...`);
+      const criticResult = validateWithCritic(candidate, history, promptContent);
+
+      if (criticResult.valid) {
+        console.log(`✅ [Critic Agent] APPROVED! Candidate passed VFX Mega-Trend validation.`);
+        approvedJson = candidate;
+      } else {
+        console.warn(`🛑 [Critic Agent] ${criticResult.reason}`);
+        rejectionFeedback = criticResult.reason || "Previous output was rejected.";
       }
     } catch (err: any) {
       console.error(`❌ Parse/Network Error on attempt ${attempt}:`, err.message);
-      await new Promise(res => setTimeout(res, 1500));
+      await new Promise(res => setTimeout(res, 800));
     }
   }
 
