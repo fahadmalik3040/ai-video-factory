@@ -25,8 +25,8 @@ export interface Main2DProps {
   data?: any;
 }
 
-export const Main2D: React.FC<Main2DProps> = (props) => {
-  const activeData = props.sceneData || props.data || {};
+export const Main2D: React.FC<Main2DProps> = (props: any) => {
+  const activeData = props?.sceneData || props?.data || props || {};
   const e2d = activeData.engine2D || {};
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

@@ -8,7 +8,7 @@ const main = async (): Promise<void> => {
   const jobIndex = process.env.JOB_INDEX || "0";
   const outputDirectory = path.resolve(projectRoot, "out");
 
-  // Locate scene metadata
+  // Locate dynamic job metadata
   const jobMetadataPath = path.resolve(projectRoot, "data", `metadata_${jobIndex}.json`);
   const sceneDataPath = path.resolve(projectRoot, "data", "sceneData.json");
 
@@ -21,23 +21,46 @@ const main = async (): Promise<void> => {
     throw new Error(`Scene data not found: ${activeDataPath}`);
   }
 
-  console.log(`🎬 Reading scene data from: ${activeDataPath}`);
-  const parsedJson = JSON.parse(fs.readFileSync(activeDataPath, "utf8"));
+  console.log(`🎬 Reading dynamic scene data from: ${activeDataPath}`);
+  const rawData = fs.readFileSync(activeDataPath, "utf8");
+  const parsedJson = JSON.parse(rawData);
 
   const renderModes: string[] = Array.isArray(parsedJson.renderModes)
     ? parsedJson.renderModes
     : ["3D"];
 
-  // Ensure 3D is always present
   if (!renderModes.includes("3D")) {
     renderModes.unshift("3D");
   }
 
   console.log(`🎯 DUAL-RENDER ORCHESTRATOR DETECTED MODES FOR JOB ${jobIndex}: [${renderModes.join(", ")}]`);
 
-  console.log("📦 Bundling Remotion project for multi-composition rendering...");
+  // STEP 3: Nuke Remotion & Webpack Bundler Cache
+  console.log("🧹 Clearing Remotion & Webpack bundler caches to guarantee dynamic data injection...");
+  const cacheDirs = [
+    path.resolve(projectRoot, ".remotion"),
+    path.resolve(projectRoot, "node_modules", ".cache", "remotion"),
+    path.resolve(projectRoot, "node_modules", ".cache", "webpack"),
+  ];
+
+  for (const dir of cacheDirs) {
+    try {
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    } catch {
+      // Ignore cleanup warnings
+    }
+  }
+
+  console.log("📦 Bundling Remotion project with dynamic inputProps...");
   const bundleLocation = await bundle({
     entryPoint: path.resolve(projectRoot, "src/index.ts"),
+    // Webpack override to disable caching and ensure fresh dynamic bundle
+    webpackOverride: (config) => ({
+      ...config,
+      cache: false,
+    }),
   });
 
   fs.mkdirSync(outputDirectory, { recursive: true });
@@ -46,21 +69,21 @@ const main = async (): Promise<void> => {
   // PASS 1: Mandatory 3D Procedural Video Rendering
   // -----------------------------------------------------------
   if (renderModes.includes("3D")) {
-    console.log(`\n🚀 [PASS 1/2] Resolving and Rendering Mandatory 3D Scene (Main3D)...`);
+    console.log(`\n🚀 [PASS 1/2] Resolving and Rendering Dynamic 3D Scene (Main3D)...`);
     const comp3D = await selectComposition({
       serveUrl: bundleLocation,
       id: "Main3D",
-      inputProps: { sceneData: parsedJson },
+      inputProps: parsedJson,
     });
 
     const output3DLocation = path.resolve(outputDirectory, `output_${jobIndex}_3d.mp4`);
-    console.log(`🎥 Rendering 3D H.264 MP4 to: ${output3DLocation}`);
+    console.log(`🎥 Rendering 3D H.264 MP4 with dynamic props to: ${output3DLocation}`);
 
     await renderMedia({
       composition: comp3D,
       serveUrl: bundleLocation,
       outputLocation: output3DLocation,
-      inputProps: { sceneData: parsedJson },
+      inputProps: parsedJson,
       codec: "h264",
       crf: 16,
       concurrency: 1,
@@ -77,24 +100,24 @@ const main = async (): Promise<void> => {
   }
 
   // -----------------------------------------------------------
-  // PASS 2: Optional 2D Motion Graphics UI/Software Rendering
+  // PASS 2: Optional 2D Motion Graphics UI/VFX Rendering
   // -----------------------------------------------------------
   if (renderModes.includes("2D")) {
-    console.log(`\n🎨 [PASS 2/2] Resolving and Rendering Secondary 2D Motion Graphics (Main2D)...`);
+    console.log(`\n🎨 [PASS 2/2] Resolving and Rendering Dynamic 2D Motion Graphics (Main2D)...`);
     const comp2D = await selectComposition({
       serveUrl: bundleLocation,
       id: "Main2D",
-      inputProps: { sceneData: parsedJson },
+      inputProps: parsedJson,
     });
 
     const output2DLocation = path.resolve(outputDirectory, `output_${jobIndex}_2d.mp4`);
-    console.log(`🎥 Rendering 2D H.264 MP4 to: ${output2DLocation}`);
+    console.log(`🎥 Rendering 2D H.264 MP4 with dynamic props to: ${output2DLocation}`);
 
     await renderMedia({
       composition: comp2D,
       serveUrl: bundleLocation,
       outputLocation: output2DLocation,
-      inputProps: { sceneData: parsedJson },
+      inputProps: parsedJson,
       codec: "h264",
       crf: 16,
       concurrency: 1,

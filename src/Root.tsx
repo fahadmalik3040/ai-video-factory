@@ -1,11 +1,9 @@
 import React from "react";
 import { Composition } from "remotion";
-import { SceneSchema, type SceneData } from "./config/ZodSchema";
-import { SceneRouter } from "./components/SceneRouter";
-import { Scene2DRouter } from "./components/Scene2DRouter";
-import generatedSceneData from "../data/sceneData.json";
+import { Main3D, type Main3DProps } from "./scenes/Main3D";
+import { Main2D, type Main2DProps } from "./scenes/Main2D";
 
-const fallbackSceneData: SceneData = {
+const defaultSceneProps: Main3DProps = {
   seoPackage: {
     title: "Futuristic Solid 3D Procedural Scene",
     description: "Cinematic 4K Motion Graphics Stock Visual",
@@ -28,22 +26,20 @@ const fallbackSceneData: SceneData = {
     complexity: 1.0,
   },
   engine2D: {
-    style: "minimal_ui_cards",
-    colors: ["#3b82f6", "#10b981", "#8b5cf6"],
-    textLayers: ["Smart Automation", "Intelligent Processing", "Real-Time Sync"],
+    layoutStructure: "hud_circles",
+    colorPalette: ["#00f0ff", "#ff007f", "#7000ff", "#00ffaa"],
+    elements: [
+      { type: "data_ring", scale: 1.0, thickness: 3 },
+      { type: "glass_blob", size: 380 },
+      { type: "hud_grid", rows: 5, cols: 8 },
+      { type: "waveform_bars", scale: 1.0 },
+    ],
   },
-  title: "Futuristic Solid 3D Procedural Scene",
-  solid_core: "abstract_solid_waves",
-  sceneType: "abstract_solid_waves",
-  movementStyle: "quantum_flow",
   colors: ["#00f0ff", "#ff007f", "#7000ff"],
   cameraSpeed: 1.0,
   bloomIntensity: 2.0,
   complexity: 1.0,
 };
-
-const parsedSceneData = SceneSchema.safeParse(generatedSceneData);
-const sceneData = parsedSceneData.success ? parsedSceneData.data : fallbackSceneData;
 
 const RemotionRoot: React.FC = () => {
   return (
@@ -51,34 +47,34 @@ const RemotionRoot: React.FC = () => {
       {/* Primary Mandatory 3D Procedural Stock Video Composition (15 seconds @ 30fps) */}
       <Composition
         id="Main3D"
-        component={SceneRouter}
+        component={Main3D}
         durationInFrames={450}
         fps={30}
         width={3840}
         height={2160}
-        defaultProps={{ sceneData }}
+        defaultProps={defaultSceneProps}
       />
 
       {/* Secondary 2D Motion Graphics Composition (15 seconds @ 30fps) */}
       <Composition
         id="Main2D"
-        component={Scene2DRouter}
+        component={Main2D}
         durationInFrames={450}
         fps={30}
         width={3840}
         height={2160}
-        defaultProps={{ sceneData }}
+        defaultProps={defaultSceneProps as unknown as Main2DProps}
       />
 
       {/* MainVideo Alias for universal compatibility */}
       <Composition
         id="MainVideo"
-        component={SceneRouter}
+        component={Main3D}
         durationInFrames={450}
         fps={30}
         width={3840}
         height={2160}
-        defaultProps={{ sceneData }}
+        defaultProps={defaultSceneProps}
       />
     </>
   );
