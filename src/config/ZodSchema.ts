@@ -25,10 +25,22 @@ export const Engine3DSchema = z.object({
   complexity: z.number().default(1.2)
 });
 
+export const Engine2DElementSchema = z.object({
+  title: z.string().optional(),
+  content: z.string(),
+  badge: z.string().optional(),
+  metric: z.string().optional()
+});
+
 export const Engine2DSchema = z.object({
-  style: z.enum(["hud_interface", "minimal_ui_cards", "typographic_kinetic"]).default("minimal_ui_cards"),
-  colors: z.array(z.string()).default(["#3b82f6", "#10b981", "#8b5cf6"]),
-  textLayers: z.array(z.string()).default([]),
+  layoutStructure: z.enum(["hud_circles", "floating_glass_cards", "kinetic_stream", "hud_interface", "minimal_ui_cards", "typographic_kinetic"]).default("floating_glass_cards"),
+  style: z.string().optional(),
+  colorPalette: z.array(z.string()).default(["#00f0ff", "#ff007f", "#7000ff"]),
+  colors: z.array(z.string()).optional(),
+  elements: z.array(Engine2DElementSchema).default([]),
+  textLayers: z.array(z.string()).optional(),
+  headline: z.string().optional(),
+  subheadline: z.string().optional(),
   title: z.string().optional(),
   subtitle: z.string().optional()
 }).optional();
