@@ -40,6 +40,25 @@ class ThreeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 }
 
 // ----------------------------------------------------
+// DYNAMIC GEOMETRY SWITCHER (Zero Lazy Hardcoding)
+// ----------------------------------------------------
+export const DynamicGeometry: React.FC<{ solidGeometry?: string; scale?: number }> = ({ solidGeometry, scale = 1 }) => {
+  switch (solidGeometry) {
+    case 'SphereGeometry':
+      return <sphereGeometry args={[1 * scale, 32, 32]} />;
+    case 'TorusGeometry':
+      return <torusGeometry args={[1 * scale, 0.35 * scale, 16, 64]} />;
+    case 'CylinderGeometry':
+      return <cylinderGeometry args={[0.8 * scale, 0.8 * scale, 2 * scale, 32]} />;
+    case 'IcosahedronGeometry':
+      return <icosahedronGeometry args={[1.2 * scale, 0]} />;
+    case 'BoxGeometry':
+    default:
+      return <boxGeometry args={[1 * scale, 1 * scale, 1 * scale]} />;
+  }
+};
+
+// ----------------------------------------------------
 // VIRTUAL DP CAMERA RIG (Safe Framing & Zero Clipping)
 // ----------------------------------------------------
 interface VirtualDPCameraProps {
@@ -58,7 +77,6 @@ const VirtualDPCamera: React.FC<VirtualDPCameraProps> = ({
   const totalFrames = durationInFrames || 450;
   const progress = Math.min(Math.max(frame / totalFrames, 0), 1);
 
-  // 1. Safe Continuous 360 Orbit Spline (Framed at safe distance)
   const orbitCurve = useMemo(() => {
     return new THREE.CatmullRomCurve3(
       [
@@ -76,7 +94,6 @@ const VirtualDPCamera: React.FC<VirtualDPCameraProps> = ({
     );
   }, []);
 
-  // 2. Safe Cinema Dolly-In Spline (Stops well before intersecting geometry)
   const dollyCurve = useMemo(() => {
     return new THREE.CatmullRomCurve3([
       new THREE.Vector3(0, 5, 42),
@@ -87,7 +104,6 @@ const VirtualDPCamera: React.FC<VirtualDPCameraProps> = ({
     ]);
   }, [focusDistance]);
 
-  // 3. Safe Vertical Crane / Macro Pan Up
   const panUpCurve = useMemo(() => {
     return new THREE.CatmullRomCurve3([
       new THREE.Vector3(-8, -10, 30),
@@ -124,7 +140,7 @@ const VirtualDPCamera: React.FC<VirtualDPCameraProps> = ({
 };
 
 // ----------------------------------------------------
-// Solid Fallback Scene (ZERO Particles & Safe Bounds)
+// Solid Fallback Scene (ZERO Particles)
 // ----------------------------------------------------
 const SolidFallbackScene: React.FC<{ colors: string[] }> = ({ colors }) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -158,77 +174,79 @@ const SolidFallbackScene: React.FC<{ colors: string[] }> = ({ colors }) => {
 };
 
 // ----------------------------------------------------
-// CORE A: Solid 3D Candlestick & Box Grid (Safe Bounds)
+// CORE A: Dynamic 3D Solid Grid (Candlesticks / Cubes / Spheres)
 // ----------------------------------------------------
-const CandlestickCore: React.FC<{
+const DynamicGridCore: React.FC<{
+  solidGeometry: string;
   colors: string[];
   speed: number;
   complexity: number;
   metalness: number;
   roughness: number;
-}> = ({ colors, speed, complexity, metalness, roughness }) => {
-  const candleCount = 48; // Scaled for safe frame bounds
-  const bodyMeshRef = useRef<THREE.InstancedMesh>(null);
-  const wickMeshRef = useRef<THREE.InstancedMesh>(null);
+}> = ({ solidGeometry, colors, speed, complexity, metalness, roughness }) => {
+  const count = 48;
+  const meshRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
   const frame = useCurrentFrame();
 
   const c1 = new THREE.Color(colors[0] || "#00f0ff");
   const c2 = new THREE.Color(colors[1] || "#ff007f");
+  const c3 = new THREE.Color(colors[2] || "#7000ff");
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  const chartData = useMemo(() => {
-    return Array.from({ length: candleCount }, (_, i) => {
-      // Clamped horizontal spread to keep inside safe 16:9 box
-      const x = (i - candleCount / 2) * 0.42;
-      const baseHeight = 0.8 + Math.sin(i * 0.3) * 0.6 + Math.cos(i * 0.7) * 0.4;
-      const isBullish = i % 3 !== 0;
-      return { x, baseHeight, isBullish };
+  const gridData = useMemo(() => {
+    return Array.from({ length: count }, (_, i) => {
+      const col = i % 8 - 3.5;
+      const row = Math.floor(i / 8) - 2.5;
+      const x = col * 2.2;
+      const z = row * 2.2;
+      const baseHeight = 0.8 + Math.sin(i * 0.4) * 0.5;
+      return { x, z, baseHeight };
     });
-  }, [candleCount]);
+  }, [count]);
 
   useFrame(() => {
     const t = (frame / 30) * 0.12 * speed;
 
     if (groupRef.current) {
       groupRef.current.rotation.y = t * 0.12;
-      groupRef.current.rotation.z = Math.sin(t * 0.15) * 0.04;
+      groupRef.current.rotation.x = Math.sin(t * 0.15) * 0.05;
     }
 
-    if (bodyMeshRef.current && wickMeshRef.current) {
-      for (let i = 0; i < candleCount; i++) {
-        const item = chartData[i];
+    if (meshRef.current) {
+      for (let i = 0; i < count; i++) {
+        const item = gridData[i];
         const dynamicH = Math.max(0.3, item.baseHeight + Math.sin(t * 1.5 + i * 0.3) * 0.8 * Math.min(complexity, 1.2));
-        const yOffset = Math.sin(t * 0.8 + i * 0.15) * 0.8;
+        const yOffset = Math.sin(t * 0.8 + i * 0.2) * 0.6;
 
-        dummy.position.set(item.x, yOffset, Math.cos(i * 0.25 + t) * 0.6);
-        dummy.scale.set(0.32, dynamicH, 0.32);
-        dummy.rotation.set(0, 0, 0);
+        dummy.position.set(item.x, yOffset, item.z);
+        if (solidGeometry === 'BoxGeometry') {
+          dummy.scale.set(0.65, dynamicH * 1.8, 0.65);
+        } else if (solidGeometry === 'CylinderGeometry') {
+          dummy.scale.set(0.5, dynamicH * 1.5, 0.5);
+        } else {
+          dummy.scale.set(0.7, 0.7, 0.7);
+        }
+        dummy.rotation.set(t * 0.2 + i * 0.1, t * 0.3, 0);
         dummy.updateMatrix();
-        bodyMeshRef.current.setMatrixAt(i, dummy.matrix);
-        bodyMeshRef.current.setColorAt(i, item.isBullish ? c1 : c2);
+        meshRef.current.setMatrixAt(i, dummy.matrix);
 
-        const wickHeight = dynamicH + 1.2;
-        dummy.position.set(item.x, yOffset, Math.cos(i * 0.25 + t) * 0.6);
-        dummy.scale.set(0.06, wickHeight, 0.06);
-        dummy.updateMatrix();
-        wickMeshRef.current.setMatrixAt(i, dummy.matrix);
-        wickMeshRef.current.setColorAt(i, item.isBullish ? c1 : c2);
+        let col = c1;
+        if (i % 3 === 1) col = c2;
+        else if (i % 3 === 2) col = c3;
+        meshRef.current.setColorAt(i, col);
       }
 
-      bodyMeshRef.current.instanceMatrix.needsUpdate = true;
-      if (bodyMeshRef.current.instanceColor) bodyMeshRef.current.instanceColor.needsUpdate = true;
-
-      wickMeshRef.current.instanceMatrix.needsUpdate = true;
-      if (wickMeshRef.current.instanceColor) wickMeshRef.current.instanceColor.needsUpdate = true;
+      meshRef.current.instanceMatrix.needsUpdate = true;
+      if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
     }
   });
 
   return (
     <group ref={groupRef}>
-      <instancedMesh ref={bodyMeshRef} args={[undefined, undefined, candleCount]}>
-        <boxGeometry args={[1, 1, 1]} />
+      <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+        <DynamicGeometry solidGeometry={solidGeometry} scale={1.0} />
         <meshPhysicalMaterial
           metalness={metalness}
           roughness={roughness}
@@ -236,30 +254,21 @@ const CandlestickCore: React.FC<{
           clearcoatRoughness={0.1}
         />
       </instancedMesh>
-
-      <instancedMesh ref={wickMeshRef} args={[undefined, undefined, candleCount]}>
-        <cylinderGeometry args={[1, 1, 1, 8]} />
-        <meshPhysicalMaterial
-          metalness={metalness}
-          roughness={roughness}
-          clearcoat={1.0}
-          clearcoatRoughness={0.05}
-        />
-      </instancedMesh>
     </group>
   );
 };
 
 // ----------------------------------------------------
-// CORE B: Solid DNA Double Helix (Safe Bounds)
+// CORE B: Dynamic 3D Helix / Molecular Structure
 // ----------------------------------------------------
-const DnaMoleculesCore: React.FC<{
+const DynamicHelixCore: React.FC<{
+  solidGeometry: string;
   colors: string[];
   speed: number;
   complexity: number;
   metalness: number;
   roughness: number;
-}> = ({ colors, speed, complexity, metalness, roughness }) => {
+}> = ({ solidGeometry, colors, speed, complexity, metalness, roughness }) => {
   const nodeCount = 44;
   const totalNodes = nodeCount * 2;
   const rungsCount = nodeCount;
@@ -284,8 +293,7 @@ const DnaMoleculesCore: React.FC<{
     }
 
     if (nodeMeshRef.current && rungMeshRef.current) {
-      // Clamped radius and height spread to ensure full visibility within camera FOV
-      const radius = 2.4 * Math.min(complexity, 1.1);
+      const radius = 2.5 * Math.min(complexity, 1.1);
       const heightSpread = 0.38;
 
       for (let i = 0; i < nodeCount; i++) {
@@ -299,14 +307,15 @@ const DnaMoleculesCore: React.FC<{
         const z2 = Math.sin(angle + Math.PI) * radius;
 
         dummy.position.set(x1, y, z1);
-        dummy.scale.set(0.48, 0.48, 0.48);
-        dummy.rotation.set(0, 0, 0);
+        dummy.scale.set(0.5, 0.5, 0.5);
+        dummy.rotation.set(0, angle, 0);
         dummy.updateMatrix();
         nodeMeshRef.current.setMatrixAt(i, dummy.matrix);
         nodeMeshRef.current.setColorAt(i, c1);
 
         dummy.position.set(x2, y, z2);
-        dummy.scale.set(0.48, 0.48, 0.48);
+        dummy.scale.set(0.5, 0.5, 0.5);
+        dummy.rotation.set(0, angle + Math.PI, 0);
         dummy.updateMatrix();
         nodeMeshRef.current.setMatrixAt(i + nodeCount, dummy.matrix);
         nodeMeshRef.current.setColorAt(i + nodeCount, c2);
@@ -332,7 +341,7 @@ const DnaMoleculesCore: React.FC<{
   return (
     <group ref={groupRef}>
       <instancedMesh ref={nodeMeshRef} args={[undefined, undefined, totalNodes]}>
-        <sphereGeometry args={[1, 24, 24]} />
+        <DynamicGeometry solidGeometry={solidGeometry} scale={0.8} />
         <meshPhysicalMaterial
           metalness={metalness}
           roughness={roughness}
@@ -355,17 +364,18 @@ const DnaMoleculesCore: React.FC<{
 };
 
 // ----------------------------------------------------
-// CORE C: Solid Concentric Rings (Safe Bounds)
+// CORE C: Dynamic 3D Concentric Rings / Geometry Gyroscope
 // ----------------------------------------------------
-const ConcentricRingsCore: React.FC<{
+const DynamicConcentricCore: React.FC<{
+  solidGeometry: string;
   colors: string[];
   speed: number;
   complexity: number;
   metalness: number;
   roughness: number;
-}> = ({ colors, speed, complexity, metalness, roughness }) => {
-  const ringCount = 10;
-  const torusMeshRef = useRef<THREE.InstancedMesh>(null);
+}> = ({ solidGeometry, colors, speed, complexity, metalness, roughness }) => {
+  const ringCount = 12;
+  const meshRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
   const frame = useCurrentFrame();
 
@@ -383,34 +393,33 @@ const ConcentricRingsCore: React.FC<{
       groupRef.current.rotation.x = Math.sin(t * 0.12) * 0.08;
     }
 
-    if (torusMeshRef.current) {
+    if (meshRef.current) {
       for (let i = 0; i < ringCount; i++) {
-        // Clamped maximum radius
-        const radius = (i + 1) * 0.72 * Math.min(complexity, 1.1);
+        const radius = (i + 1) * 0.75 * Math.min(complexity, 1.1);
         dummy.position.set(0, Math.sin(t * 0.8 + i * 0.3) * 0.4, 0);
         dummy.scale.set(radius, radius, radius);
         dummy.rotation.set(
           i % 2 === 0 ? t * 0.25 + i * 0.12 : -t * 0.2 - i * 0.12,
           i * 0.15,
-          0
+          i * 0.1
         );
         dummy.updateMatrix();
-        torusMeshRef.current.setMatrixAt(i, dummy.matrix);
+        meshRef.current.setMatrixAt(i, dummy.matrix);
 
         let col = c1;
         if (i % 3 === 1) col = c2;
         else if (i % 3 === 2) col = c3;
-        torusMeshRef.current.setColorAt(i, col);
+        meshRef.current.setColorAt(i, col);
       }
-      torusMeshRef.current.instanceMatrix.needsUpdate = true;
-      if (torusMeshRef.current.instanceColor) torusMeshRef.current.instanceColor.needsUpdate = true;
+      meshRef.current.instanceMatrix.needsUpdate = true;
+      if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
     }
   });
 
   return (
     <group ref={groupRef}>
-      <instancedMesh ref={torusMeshRef} args={[undefined, undefined, ringCount]}>
-        <torusGeometry args={[1, 0.06, 16, 48]} />
+      <instancedMesh ref={meshRef} args={[undefined, undefined, ringCount]}>
+        <DynamicGeometry solidGeometry={solidGeometry || 'TorusGeometry'} scale={1.0} />
         <meshPhysicalMaterial
           metalness={metalness}
           roughness={roughness}
@@ -423,15 +432,16 @@ const ConcentricRingsCore: React.FC<{
 };
 
 // ----------------------------------------------------
-// CORE D: Solid Abstract Displaced Waves (Safe Bounds)
+// CORE D: Dynamic Displaced Wave Plane & Monolith Array
 // ----------------------------------------------------
-const AbstractSolidWavesCore: React.FC<{
+const DynamicWaveCore: React.FC<{
+  solidGeometry: string;
   colors: string[];
   speed: number;
   complexity: number;
   metalness: number;
   roughness: number;
-}> = ({ colors, speed, complexity, metalness, roughness }) => {
+}> = ({ solidGeometry, colors, speed, complexity, metalness, roughness }) => {
   const planeRef = useRef<THREE.Mesh>(null);
   const monolithRef = useRef<THREE.InstancedMesh>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -444,7 +454,6 @@ const AbstractSolidWavesCore: React.FC<{
   const monolithCount = 25;
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const segments = 64;
-  // Clamped plane size to 16x16
   const planeGeometry = useMemo(() => new THREE.PlaneGeometry(16, 16, segments, segments), [segments]);
 
   useFrame(() => {
@@ -485,7 +494,7 @@ const AbstractSolidWavesCore: React.FC<{
         const posZ = 1.6 + Math.sin(t * 0.8 + i * 0.4) * 0.8;
 
         dummy.position.set(posX, posY, posZ);
-        dummy.scale.set(0.5, 0.5, 1.2 + Math.sin(t * 0.6 + i) * 0.4);
+        dummy.scale.set(0.6, 0.6, 0.6 + Math.sin(t * 0.6 + i) * 0.4);
         dummy.rotation.set(t * 0.4 + i * 0.1, t * 0.2, 0);
         dummy.updateMatrix();
 
@@ -516,7 +525,7 @@ const AbstractSolidWavesCore: React.FC<{
       </mesh>
 
       <instancedMesh ref={monolithRef} args={[undefined, undefined, monolithCount]}>
-        <boxGeometry args={[1, 1, 1]} />
+        <DynamicGeometry solidGeometry={solidGeometry} scale={0.7} />
         <meshPhysicalMaterial
           metalness={metalness}
           roughness={roughness}
@@ -557,8 +566,6 @@ interface MasterSceneProps {
     solid_core?: string;
     solidCore?: string;
     sceneType?: string;
-    particleShape?: string;
-    movementStyle?: string;
     colors?: string[];
     cameraSpeed?: number;
     bloomIntensity?: number;
@@ -568,21 +575,8 @@ interface MasterSceneProps {
 
 export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
   const e3d = data?.engine3D;
-  const layout = e3d?.layoutMath;
-  const geom = e3d?.solidGeometry;
-  const rawCore = data?.solid_core || data?.solidCore || data?.sceneType || '';
-
-  let activeCore: 'candlestick_boxes' | 'dna_molecules' | 'concentric_rings' | 'abstract_solid_waves' = 'abstract_solid_waves';
-
-  if (layout === 'concentric_rings' || geom === 'TorusGeometry' || rawCore.includes('ring') || rawCore.includes('torus')) {
-    activeCore = 'concentric_rings';
-  } else if (layout === 'grid' || geom === 'BoxGeometry' || rawCore === 'candlestick_boxes' || rawCore.includes('candlestick') || rawCore.includes('box') || rawCore.includes('finance')) {
-    activeCore = 'candlestick_boxes';
-  } else if (layout === 'dna_helix' || geom === 'SphereGeometry' || geom === 'CylinderGeometry' || rawCore === 'dna_molecules' || rawCore.includes('dna') || rawCore.includes('bio')) {
-    activeCore = 'dna_molecules';
-  } else {
-    activeCore = 'abstract_solid_waves';
-  }
+  const layout = e3d?.layoutMath || 'wave_plane';
+  const geom = e3d?.solidGeometry || 'BoxGeometry';
 
   const dpConfig = e3d?.cinematographyDP;
   let cameraPath: 'slow_orbit' | 'smooth_dolly_in' | 'macro_pan_up' = dpConfig?.cameraPath || 'slow_orbit';
@@ -616,8 +610,9 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
       <pointLight position={[15, 15, 10]} intensity={2.2} color={colors[0] || '#00f0ff'} />
       <Environment preset="city" />
 
-      {activeCore === 'candlestick_boxes' && (
-        <CandlestickCore
+      {layout === 'grid' && (
+        <DynamicGridCore
+          solidGeometry={geom}
           colors={colors}
           speed={cameraSpeed}
           complexity={complexity}
@@ -626,8 +621,9 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
         />
       )}
 
-      {activeCore === 'dna_molecules' && (
-        <DnaMoleculesCore
+      {layout === 'dna_helix' && (
+        <DynamicHelixCore
+          solidGeometry={geom}
           colors={colors}
           speed={cameraSpeed}
           complexity={complexity}
@@ -636,8 +632,9 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
         />
       )}
 
-      {activeCore === 'concentric_rings' && (
-        <ConcentricRingsCore
+      {layout === 'concentric_rings' && (
+        <DynamicConcentricCore
+          solidGeometry={geom}
           colors={colors}
           speed={cameraSpeed}
           complexity={complexity}
@@ -646,8 +643,9 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
         />
       )}
 
-      {activeCore === 'abstract_solid_waves' && (
-        <AbstractSolidWavesCore
+      {layout === 'wave_plane' && (
+        <DynamicWaveCore
+          solidGeometry={geom}
           colors={colors}
           speed={cameraSpeed}
           complexity={complexity}
@@ -666,3 +664,5 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
     </ThreeErrorBoundary>
   );
 };
+
+export default MasterScene;
