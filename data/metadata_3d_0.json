@@ -1,29 +1,28 @@
 {
+  "vfxCategory": "chemical_reaction",
+  "uniforms": {
+    "color1": "#33ff33",
+    "color2": "#0099ff",
+    "speed": 1.4,
+    "density": 3.2
+  },
   "seoPackage": {
-    "title": "4K Stock VFX: Retro Pixel Dither Glitch Wave - Data Tunnel",
-    "description": "High-end commercial stock VFX overlay of Retro Pixel Dither Glitch Wave featuring Data Tunnel.",
+    "title": "4K Procedural GLSL VFX: Retro Pixel Dither Glitch Wave - CHEMICAL REACTION",
+    "description": "Pure mathematical raymarched and fluid GLSL simulation of Retro Pixel Dither Glitch Wave.",
     "seoTags": [
-      "3d vfx",
-      "4k stock",
-      "pro vfx",
-      "b-roll",
-      "drei",
-      "apple commercial",
-      "data_tunnel",
+      "glsl",
+      "shader",
+      "shadertoy",
+      "4k vfx",
+      "fluid simulation",
+      "raymarching",
+      "chemical_reaction",
       "retro pixel dither glitch wave"
     ]
   },
-  "engine3D": {
-    "activeModule": "Data_Tunnel",
-    "themeColors": [
-      "#fbbf24",
-      "#f87171"
-    ],
-    "speedMultiplier": 0.8,
-    "cameraMotion": "slow_pan"
-  },
+  "glslFragmentShader": "\n    uniform float u_time;\n    uniform vec2 u_resolution;\n    uniform vec3 u_color1;\n    uniform vec3 u_color2;\n    uniform float u_speed;\n    uniform float u_density;\n    varying vec2 vUv;\n\n    void main() {\n      vec2 p = (gl_FragCoord.xy * 2.0 - u_resolution) / min(u_resolution.x, u_resolution.y);\n      float t = u_time * 0.5 * u_speed;\n\n      for(int i = 1; i < 7; i++) {\n        float fi = float(i);\n        p.x += 0.3 / fi * sin(fi * 3.0 * p.y + t + 0.3 * fi) + 0.5;\n        p.y += 0.3 / fi * cos(fi * 3.0 * p.x + t + 0.3 * fi) - 0.5;\n      }\n\n      float v = sin(p.x * u_density) * cos(p.y * u_density) * 0.5 + 0.5;\n      vec3 col = mix(u_color1, u_color2, v);\n      col += vec3(0.3) * sin(v * 6.28318 + t * 2.0);\n      gl_FragColor = vec4(col, 1.0);\n    }\n  ",
   "colors": [
-    "#fbbf24",
-    "#f87171"
+    "#33ff33",
+    "#0099ff"
   ]
 }

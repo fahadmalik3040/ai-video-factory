@@ -1,29 +1,27 @@
 {
+  "vfxCategory": "quantum_waterfall",
+  "uniforms": {
+    "color1": "#ff0066",
+    "color2": "#cc00ff",
+    "speed": 1.2,
+    "density": 2.8
+  },
   "seoPackage": {
-    "title": "4K Motion Overlay: AI Neural Network Data Flow - Light Leak",
-    "description": "High-utility professional video editor overlay for AI Neural Network Data Flow with Light Leak.",
+    "title": "4K GLSL Motion Overlay: AI Neural Network Data Flow - QUANTUM WATERFALL",
+    "description": "Pure mathematical GLSL fluid and plasma shader backdrop for AI Neural Network Data Flow.",
     "seoTags": [
-      "2d overlay",
-      "vfx overlay",
-      "premiere pro",
-      "light leak",
-      "glitch",
-      "hud",
-      "light_leak",
+      "glsl overlay",
+      "shader overlay",
+      "4k stock",
+      "plasma",
+      "fluid",
+      "quantum_waterfall",
       "ai neural network data flow"
     ]
   },
-  "engine2D": {
-    "activeOverlay": "Light_Leak",
-    "blendMode": "screen",
-    "intensity": 0.85,
-    "colors": [
-      "#ff3366",
-      "#33ccff"
-    ]
-  },
+  "glslFragmentShader": "\n    uniform float u_time;\n    uniform vec2 u_resolution;\n    uniform vec3 u_color1;\n    uniform vec3 u_color2;\n    uniform float u_speed;\n    uniform float u_density;\n    varying vec2 vUv;\n\n    void main() {\n      vec2 uv = gl_FragCoord.xy / u_resolution.xy;\n      float t = u_time * 0.6 * u_speed;\n      \n      float wave = sin(uv.x * 20.0 * u_density + t * 3.0) * 0.05;\n      wave += cos(uv.y * 30.0 + t * 2.0) * 0.03;\n      \n      float stream = fract((uv.y + wave - t * 0.5) * 8.0 * u_density);\n      float intensity = smoothstep(0.0, 0.4, stream) * (1.0 - smoothstep(0.4, 0.9, stream));\n      \n      vec3 col = mix(u_color1, u_color2, uv.y + sin(uv.x * 10.0 + t) * 0.2);\n      col += vec3(intensity * 1.5);\n      col += vec3(0.1, 0.3, 0.5) * (1.0 - uv.y);\n      \n      gl_FragColor = vec4(col, 1.0);\n    }\n  ",
   "colors": [
-    "#ff3366",
-    "#33ccff"
+    "#ff0066",
+    "#cc00ff"
   ]
 }

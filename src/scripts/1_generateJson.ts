@@ -3,26 +3,27 @@ import { getJobTopic } from './llmHelper';
 import { run3DAISwarm } from './generate_3d_swarm';
 import { run2DAISwarm } from './generate_2d_swarm';
 
-async function orchestrateProVFXPipelines() {
+async function orchestratePureGLSLPipelines() {
   console.log("=======================================================================");
-  console.log("🎬 PRO-VFX DIRECTOR ENGINE: INITIATING HIGH-END 3D & 2D MODULE ROUTING");
+  console.log("🔥 PURE GLSL SHADER ARCHITECTURE: INITIATING PROCEDURAL FLUID SIMULATION");
   console.log("=======================================================================");
 
   const { topic: promptContent, jobIndex } = getJobTopic();
   console.log(`🎯 TARGET TOPIC FOR JOB ${jobIndex}: "${promptContent}"`);
 
-  // 1. Execute 3D Pro-VFX Module Selection
+  // 1. Generate 3D Pure GLSL Shader Payload
   const metadata3D = await run3DAISwarm(promptContent, jobIndex);
 
-  // 2. Execute 2D Pro-Overlay Selection
+  // 2. Generate 2D Pure GLSL Shader Payload
   const metadata2D = await run2DAISwarm(promptContent, jobIndex);
 
-  // 3. Assemble Unified Scene Data for Backward Compatibility
+  // 3. Assemble Unified Scene Data for Compatibility
   const unifiedData = {
-    ...metadata3D,
-    ...metadata2D,
+    vfxCategory: metadata3D.vfxCategory || metadata2D.vfxCategory,
+    glslFragmentShader: metadata3D.glslFragmentShader || metadata2D.glslFragmentShader,
+    uniforms: metadata3D.uniforms || metadata2D.uniforms,
     seoPackage: {
-      title: `${metadata3D.seoPackage?.title || promptContent} | 4K Pro VFX Assets`,
+      title: `${metadata3D.seoPackage?.title || promptContent} | 4K GLSL Procedural Shader`,
       description: `${metadata3D.seoPackage?.description || ''} & ${metadata2D.seoPackage?.description || ''}`,
       seoTags: Array.from(new Set([
         ...(metadata3D.seoPackage?.seoTags || []),
@@ -30,10 +31,10 @@ async function orchestrateProVFXPipelines() {
       ]))
     },
     renderModes: ["3D", "2D"],
-    engine3D: metadata3D.engine3D,
-    engine2D: metadata2D.engine2D,
-    colors: metadata3D.engine3D?.themeColors || metadata2D.engine2D?.colors,
-    title: `Pro VFX 4K: ${promptContent}`
+    metadata3D,
+    metadata2D,
+    colors: metadata3D.colors || metadata2D.colors,
+    title: `GLSL 4K: ${promptContent}`
   };
 
   if (!fs.existsSync('data')) fs.mkdirSync('data', { recursive: true });
@@ -42,11 +43,11 @@ async function orchestrateProVFXPipelines() {
   fs.writeFileSync('data/sceneData.json', JSON.stringify(unifiedData, null, 2));
   fs.writeFileSync(`data/metadata_${jobIndex}.json`, JSON.stringify(unifiedData, null, 2));
 
-  const metadataContent = `TITLE:\n${unifiedData.seoPackage.title}\n\n3D PRO MODULE:\n${metadata3D.engine3D?.activeModule}\n\n2D PRO OVERLAY:\n${metadata2D.engine2D?.activeOverlay}\n\nTAGS:\n${unifiedData.seoPackage.seoTags.join(", ")}`;
+  const metadataContent = `TITLE:\n${unifiedData.seoPackage.title}\n\nGLSL VFX CATEGORY:\n${unifiedData.vfxCategory}\n\nUNIFORM SPEED:\n${unifiedData.uniforms?.speed}\n\nUNIFORM DENSITY:\n${unifiedData.uniforms?.density}\n\nTAGS:\n${unifiedData.seoPackage.seoTags.join(", ")}`;
   fs.writeFileSync('out/metadata.txt', metadataContent);
   fs.writeFileSync(`out/metadata_${jobIndex}.txt`, metadataContent);
 
-  console.log(`\n🎉 [PRO-VFX COMPLETE] 3D (${metadata3D.engine3D?.activeModule}) & 2D (${metadata2D.engine2D?.activeOverlay}) READY FOR JOB ${jobIndex}!`);
+  console.log(`\n🎉 [GLSL COMPLETE] 3D (${metadata3D.vfxCategory}) & 2D (${metadata2D.vfxCategory}) COMPILED FOR JOB ${jobIndex}!`);
 }
 
-orchestrateProVFXPipelines();
+orchestratePureGLSLPipelines();
