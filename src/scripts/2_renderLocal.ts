@@ -38,21 +38,19 @@ const main = async (): Promise<void> => {
 
   const dynamicProps3D = {
     ...parsed3D,
-    engine3D: parsed3D.engine3D,
-    colors: parsed3D.colors || parsed3D.engine3D?.colors,
     sceneData: parsed3D,
   };
 
   const dynamicProps2D = {
     ...parsed2D,
-    engine2D: parsed2D.engine2D,
-    colors: parsed2D.colors || parsed2D.engine2D?.colorPalette,
     sceneData: parsed2D,
   };
 
+  console.log(`\n======================================================`);
   console.log(`🎯 DUAL INDEPENDENT RENDER ORCHESTRATOR FOR JOB ${jobIndex}:`);
-  console.log(`   3D Target: ${parsed3D.engine3D?.solidGeometry} (${parsed3D.engine3D?.layoutMath})`);
-  console.log(`   2D Archetype: ${parsed2D.engine2D?.layoutStructure}`);
+  console.log(`   3D Concept: ${parsed3D.commercialConcept || "Procedural GLSL Shader"}`);
+  console.log(`   2D Overlay: ${parsed2D.engine2DOverlay?.overlayType || "Cinematic Light Leak"}`);
+  console.log(`======================================================\n`);
 
   // Clear Remotion & Webpack bundler caches
   console.log("🧹 Clearing Remotion & Webpack bundler caches...");
@@ -99,26 +97,16 @@ const main = async (): Promise<void> => {
   await renderMedia({
     composition: comp3D,
     serveUrl: bundleLocation,
+    codec: "h264",
     outputLocation: output3DLocation,
     inputProps: dynamicProps3D,
-    codec: "h264",
-    crf: 16,
-    concurrency: 1,
-    timeoutInMilliseconds: 300000,
-    chromiumOptions: {
-      disableWebSecurity: true,
-      ignoreCertificateErrors: true,
-      gl: "angle",
-      args: ["--use-gl=angle", "--enable-webgl", "--disable-software-rasterizer"],
-    } as any,
   });
-
-  console.log(`✅ [PASS 1 COMPLETE] 3D Video successfully rendered: ${output3DLocation}`);
+  console.log(`✅ [3D COMPLETE] Dedicated 3D Video Rendered: ${output3DLocation}`);
 
   // -----------------------------------------------------------
-  // PASS 2: Dedicated 2D Motion Graphics UI/VFX Rendering
+  // PASS 2: Dedicated 2D Motion Graphics Video Rendering
   // -----------------------------------------------------------
-  console.log(`\n🎨 [PASS 2/2] Resolving and Rendering Dedicated 2D Motion Graphics (Main2D)...`);
+  console.log(`\n🚀 [PASS 2/2] Resolving and Rendering Dedicated 2D Motion Graphics (Main2D)...`);
   const comp2D = await selectComposition({
     serveUrl: bundleLocation,
     id: "Main2D",
@@ -131,25 +119,28 @@ const main = async (): Promise<void> => {
   await renderMedia({
     composition: comp2D,
     serveUrl: bundleLocation,
+    codec: "h264",
     outputLocation: output2DLocation,
     inputProps: dynamicProps2D,
-    codec: "h264",
-    crf: 16,
-    concurrency: 1,
-    timeoutInMilliseconds: 300000,
-    chromiumOptions: {
-      disableWebSecurity: true,
-      ignoreCertificateErrors: true,
-      gl: "angle",
-      args: ["--use-gl=angle", "--enable-webgl", "--disable-software-rasterizer"],
-    } as any,
   });
+  console.log(`✅ [2D COMPLETE] Dedicated 2D Video Rendered: ${output2DLocation}`);
 
-  console.log(`✅ [PASS 2 COMPLETE] 2D Video successfully rendered: ${output2DLocation}`);
-  console.log(`\n🎉 BOTH DEDICATED 3D & 2D RENDERS COMPLETED SUCCESSFULLY FOR JOB ${jobIndex}!`);
+  // Also create universal output.mp4 copy for CI artifacts
+  const universalOutput = path.resolve(outputDirectory, "output.mp4");
+  try {
+    fs.copyFileSync(output3DLocation, universalOutput);
+  } catch {
+    // Ignore copy error
+  }
+
+  console.log(`\n🎉 [ALL RENDERS COMPLETE FOR JOB ${jobIndex}]`);
+  console.log(`   3D: ${output3DLocation}`);
+  console.log(`   2D: ${output2DLocation}`);
 };
 
-main().catch((error: unknown) => {
-  console.error("❌ Dedicated dual-render execution failed:", error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error("❌ Fatal Error in Local Render Orchestrator:", err);
+    process.exit(1);
+  });

@@ -2,7 +2,7 @@ import React, { useMemo, useRef, Component, ErrorInfo, ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useCurrentFrame } from 'remotion';
 import * as THREE from 'three';
-import { generateProceduralGLSL } from '../scripts/generate_3d_swarm';
+import { generateProceduralGLSL } from '../engine/shaders/defaultShaders';
 
 // ----------------------------------------------------
 // Error Boundary for GLSL Shader Failures
@@ -121,7 +121,6 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
   const speed = typeof u.u_speed === 'number' ? u.u_speed : 1.4;
 
   const fallbackShader = useMemo(() => generateProceduralGLSL('Default Quantum Field', '42'), []);
-
   const fragShader = data?.glslFragmentShader || fallbackShader;
 
   return (
