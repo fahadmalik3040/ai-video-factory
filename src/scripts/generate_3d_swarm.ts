@@ -1,27 +1,48 @@
 import fs from 'fs';
 import { getJobTopic, sanitizeAndParseJson, queryLlm, getDynamicPalette } from './llmHelper';
 
-export const GLSL_CATEGORIES = [
-  "chemical_reaction",
-  "liquid_fire",
-  "quantum_waterfall",
-  "plasma_storm"
-] as const;
+export interface InfiniteGLSLPayload {
+  commercialConcept: string;
+  glslFragmentShader: string;
+  uniforms: {
+    u_colorPrimary: string;
+    u_colorSecondary: string;
+    u_speed: number;
+  };
+  engine2DOverlay: {
+    overlayType: 'glitch_artifacts' | 'cinematic_light_leak' | 'cyberpunk_hud_svg';
+    blendMode: 'screen' | 'color-dodge';
+    opacity: number;
+  };
+  seoPackage: {
+    title: string;
+    description: string;
+    seoTags: string[];
+  };
+  colors: string[];
+}
 
-export type GLSLVfxCategory = typeof GLSL_CATEGORIES[number];
+export function generateProceduralGLSL(topic: string, seed: string): string {
+  // Deterministic high-entropy hash for mathematical variance
+  let hash = 0;
+  const str = `${topic}_${seed}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  const u1 = (Math.abs(hash % 100) / 10.0 + 1.0).toFixed(2);
+  const u2 = (Math.abs((hash >> 4) % 100) / 15.0 + 1.0).toFixed(2);
+  const u3 = (Math.abs((hash >> 8) % 100) / 8.0 + 1.0).toFixed(2);
 
-// Standard Shadertoy-grade Verified GLSL Shaders for Infinite Fluid / Raymarching
-export const DEFAULT_GLSL_SHADERS: Record<GLSLVfxCategory, string> = {
-  liquid_fire: `
+  return `
     uniform float u_time;
     uniform vec2 u_resolution;
-    uniform vec3 u_color1;
-    uniform vec3 u_color2;
+    uniform vec3 u_colorPrimary;
+    uniform vec3 u_colorSecondary;
     uniform float u_speed;
-    uniform float u_density;
     varying vec2 vUv;
 
-    // Simplex Noise
+    // Simplex Noise 3D Implementation
     vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -80,185 +101,129 @@ export const DEFAULT_GLSL_SHADERS: Record<GLSLVfxCategory, string> = {
     }
 
     void main() {
-      vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-      float t = u_time * 0.4 * u_speed;
-      
-      vec3 p = vec3(uv * u_density, t);
-      p.y -= t * 0.8;
-      
-      float q = fbm(p + vec3(0.0));
-      vec3 r = vec3(fbm(p + q + vec3(1.7, 9.2, 0.15 * t)), fbm(p + q + vec3(8.3, 2.8, 0.126 * t)), 0.0);
-      float f = fbm(p + r * 2.0);
-      
-      vec3 col = mix(u_color1, u_color2, clamp((f*f)*4.0, 0.0, 1.0));
-      col = mix(col, vec3(1.0, 0.9, 0.6), clamp(length(q), 0.0, 1.0));
-      col = mix(col, vec3(0.02, 0.01, 0.05), clamp(length(r.x), 0.0, 1.0));
-      
-      col *= (f * f * f + (0.6 * f * f) + (0.5 * f));
+      vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+      float t = u_time * 0.35 * u_speed;
+
+      vec3 p = vec3(uv * (${u1} + sin(t * 0.2) * 0.3), t * 0.4);
+      float q = fbm(p + vec3(0.0, t * 0.2, 0.0));
+      vec3 r = vec3(fbm(p + q * ${u2} + vec3(1.7, 9.2, 0.15 * t)), fbm(p + q * ${u3} + vec3(8.3, 2.8, 0.12 * t)), 0.0);
+      float f = fbm(p + r * 2.5);
+
+      vec3 col = mix(u_colorPrimary, u_colorSecondary, clamp(f * f * 3.5, 0.0, 1.0));
+      col += vec3(0.8, 0.9, 1.0) * pow(clamp(f, 0.0, 1.0), 4.0);
+      col *= (f * f * 1.5 + f * 0.8 + 0.2);
+
+      // Vignette falloff
+      col *= (1.0 - length(uv) * 0.45);
       gl_FragColor = vec4(col, 1.0);
     }
-  `,
+  `;
+}
 
-  chemical_reaction: `
-    uniform float u_time;
-    uniform vec2 u_resolution;
-    uniform vec3 u_color1;
-    uniform vec3 u_color2;
-    uniform float u_speed;
-    uniform float u_density;
-    varying vec2 vUv;
-
-    void main() {
-      vec2 p = (gl_FragCoord.xy * 2.0 - u_resolution) / min(u_resolution.x, u_resolution.y);
-      float t = u_time * 0.5 * u_speed;
-
-      for(int i = 1; i < 7; i++) {
-        float fi = float(i);
-        p.x += 0.3 / fi * sin(fi * 3.0 * p.y + t + 0.3 * fi) + 0.5;
-        p.y += 0.3 / fi * cos(fi * 3.0 * p.x + t + 0.3 * fi) - 0.5;
-      }
-
-      float v = sin(p.x * u_density) * cos(p.y * u_density) * 0.5 + 0.5;
-      vec3 col = mix(u_color1, u_color2, v);
-      col += vec3(0.3) * sin(v * 6.28318 + t * 2.0);
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `,
-
-  quantum_waterfall: `
-    uniform float u_time;
-    uniform vec2 u_resolution;
-    uniform vec3 u_color1;
-    uniform vec3 u_color2;
-    uniform float u_speed;
-    uniform float u_density;
-    varying vec2 vUv;
-
-    void main() {
-      vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-      float t = u_time * 0.6 * u_speed;
-      
-      float wave = sin(uv.x * 20.0 * u_density + t * 3.0) * 0.05;
-      wave += cos(uv.y * 30.0 + t * 2.0) * 0.03;
-      
-      float stream = fract((uv.y + wave - t * 0.5) * 8.0 * u_density);
-      float intensity = smoothstep(0.0, 0.4, stream) * (1.0 - smoothstep(0.4, 0.9, stream));
-      
-      vec3 col = mix(u_color1, u_color2, uv.y + sin(uv.x * 10.0 + t) * 0.2);
-      col += vec3(intensity * 1.5);
-      col += vec3(0.1, 0.3, 0.5) * (1.0 - uv.y);
-      
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `,
-
-  plasma_storm: `
-    uniform float u_time;
-    uniform vec2 u_resolution;
-    uniform vec3 u_color1;
-    uniform vec3 u_color2;
-    uniform float u_speed;
-    uniform float u_density;
-    varying vec2 vUv;
-
-    void main() {
-      vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-      float t = u_time * 0.8 * u_speed;
-      
-      float d = length(uv) * u_density;
-      float a = atan(uv.y, uv.x);
-      
-      float v = sin(d * 10.0 - t * 4.0 + sin(a * 5.0 + t * 2.0) * 3.0);
-      v += cos(d * 8.0 + a * 3.0 - t * 3.0);
-      v = v * 0.5 + 0.5;
-      
-      vec3 col = mix(u_color1, u_color2, v);
-      col += vec3(1.0) * pow(v, 4.0);
-      col *= (1.0 - length(uv) * 0.6);
-      
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `
-};
-
-export async function run3DAISwarm(topic?: string, jobIdx?: number): Promise<any> {
+export async function run3DAISwarm(topic?: string, jobIdx?: number): Promise<InfiniteGLSLPayload> {
   const { topic: promptTopic, jobIndex } = topic && jobIdx !== undefined ? { topic, jobIndex: jobIdx } : getJobTopic();
   const seed = Math.random().toString(36).substring(7);
-  console.log(`🌀 [GLSL Shader Director] Generating Pure Procedural GLSL VFX for: "${promptTopic}" (Job ${jobIndex}, Seed: ${seed})...`);
+  console.log(`🌌 [Infinite GLSL Engine] Synthesizing Bespoke GPU Shader for: "${promptTopic}" (Job ${jobIndex}, Seed: ${seed})...`);
 
   const dynamicPalette = getDynamicPalette(promptTopic, seed);
-  const chosenCat: GLSLVfxCategory = GLSL_CATEGORIES[Math.abs(jobIndex) % GLSL_CATEGORIES.length];
+  let payload: InfiniteGLSLPayload | null = null;
 
-  let resultShader: any = null;
+  const systemPrompt = `You are a World-Class Shadertoy GLSL Shader Engineer and Creative Director.
+You write pure mathematical GLSL fragment shaders (raymarching, fractional brownian motion, domain warping, or cellular noise) that visualize any concept on a fullscreen GPU canvas.
+
+STRICT MANDATES:
+1. The 'glslFragmentShader' MUST be 100% valid GLSL code that compiles without errors.
+2. It MUST use these exact uniforms:
+   - uniform float u_time;
+   - uniform vec2 u_resolution;
+   - uniform vec3 u_colorPrimary;
+   - uniform vec3 u_colorSecondary;
+   - uniform float u_speed;
+3. Output STRICT JSON conforming to the requested schema.`;
 
   const userPrompt = `Topic: "${promptTopic}".
 Seed: "${seed}".
-Suggested Category: "${chosenCat}".
+Primary Color: "${dynamicPalette[0]}".
+Secondary Color: "${dynamicPalette[1]}".
 
-You are an Elite GLSL Shader Engineer for Shadertoy and Adobe Stock VFX. Generate a pure procedural mathematical GLSL fragment shader configuration.
+Generate a completely custom, bespoke GLSL fragment shader and overlay configuration for "${promptTopic}".
 
-Output STRICT JSON:
+JSON SCHEMA:
 {
-  "vfxCategory": "chemical_reaction" | "liquid_fire" | "quantum_waterfall" | "plasma_storm",
+  "commercialConcept": "How this specific shader visualizes ${promptTopic} for commercial video editors",
+  "glslFragmentShader": "string containing complete GLSL code...",
   "uniforms": {
-    "color1": "${dynamicPalette[0]}",
-    "color2": "${dynamicPalette[1]}",
-    "speed": 1.4,
-    "density": 3.2
+    "u_colorPrimary": "${dynamicPalette[0]}",
+    "u_colorSecondary": "${dynamicPalette[1]}",
+    "u_speed": 1.4
+  },
+  "engine2DOverlay": {
+    "overlayType": "glitch_artifacts" | "cinematic_light_leak" | "cyberpunk_hud_svg",
+    "blendMode": "screen" | "color-dodge",
+    "opacity": 0.85
   },
   "seoPackage": {
-    "title": "4K Procedural GLSL VFX: ${promptTopic} - ${chosenCat.replace(/_/g, ' ').toUpperCase()}",
-    "description": "Pure mathematical raymarched and fluid GLSL simulation of ${promptTopic}.",
-    "seoTags": ["glsl", "shader", "shadertoy", "4k vfx", "fluid simulation", "raymarching", "${chosenCat}", "${promptTopic.toLowerCase()}"]
+    "title": "4K Stock VFX: ${promptTopic} | Procedural GLSL Shader",
+    "description": "Bespoke GPU shader mathematical simulation of ${promptTopic} for commercial video editors.",
+    "seoTags": ["glsl", "shader", "4k stock", "procedural", "vfx", "${promptTopic.toLowerCase()}"]
   }
 }`;
 
   try {
     const raw = await queryLlm({
       messages: [
-        {
-          role: "system",
-          content: "You are an Elite GLSL Shader Engineer. Output STRICT JSON conforming to the GLSL schema."
-        },
+        { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ]
     });
     const parsed = sanitizeAndParseJson(raw);
-    if (parsed && parsed.vfxCategory) {
-      resultShader = parsed;
-      console.log(`✅ [GLSL Director] Selected Category: ${parsed.vfxCategory}`);
+    if (parsed && parsed.glslFragmentShader && parsed.uniforms) {
+      payload = parsed;
+      console.log(`✅ [Infinite GLSL Engine] LLM Generated Bespoke Shader (${parsed.commercialConcept?.slice(0, 60)}...)`);
     }
   } catch (err: any) {
-    console.warn(`⚠️ [GLSL Director] Using verified Shadertoy GLSL fallback:`, err.message);
+    console.warn(`⚠️ [Infinite GLSL Engine] Falling back to procedural mathematical GLSL synthesizer:`, err.message);
   }
 
-  if (!resultShader) {
-    resultShader = {
-      vfxCategory: chosenCat,
+  if (!payload) {
+    const proceduralShader = generateProceduralGLSL(promptTopic, seed);
+    const overlayTypes: InfiniteGLSLPayload['engine2DOverlay']['overlayType'][] = [
+      'cinematic_light_leak',
+      'glitch_artifacts',
+      'cyberpunk_hud_svg'
+    ];
+    const chosenOverlay = overlayTypes[Math.abs(jobIndex) % overlayTypes.length];
+
+    payload = {
+      commercialConcept: `Procedural mathematical GPU fluid and raymarched field visualizing ${promptTopic}`,
+      glslFragmentShader: proceduralShader,
       uniforms: {
-        color1: dynamicPalette[0],
-        color2: dynamicPalette[1],
-        speed: 1.4,
-        density: 3.2
+        u_colorPrimary: dynamicPalette[0],
+        u_colorSecondary: dynamicPalette[1],
+        u_speed: 1.4
+      },
+      engine2DOverlay: {
+        overlayType: chosenOverlay,
+        blendMode: 'screen',
+        opacity: 0.85
       },
       seoPackage: {
-        title: `4K Procedural GLSL VFX: ${promptTopic} - ${chosenCat.replace(/_/g, ' ').toUpperCase()}`,
-        description: `Pure mathematical raymarched and fluid GLSL simulation of ${promptTopic}.`,
-        seoTags: ["glsl", "shader", "shadertoy", "4k vfx", "fluid simulation", "raymarching", chosenCat, promptTopic.toLowerCase()]
-      }
+        title: `4K Stock VFX: ${promptTopic} | Procedural GLSL Shader`,
+        description: `Bespoke GPU shader mathematical simulation of ${promptTopic} for commercial video editors.`,
+        seoTags: ["glsl", "shader", "4k stock", "procedural", "vfx", promptTopic.toLowerCase()]
+      },
+      colors: [dynamicPalette[0], dynamicPalette[1]]
     };
   }
 
-  const category = (resultShader.vfxCategory as GLSLVfxCategory) || chosenCat;
-  resultShader.glslFragmentShader = DEFAULT_GLSL_SHADERS[category] || DEFAULT_GLSL_SHADERS.liquid_fire;
-  resultShader.colors = [resultShader.uniforms.color1, resultShader.uniforms.color2];
+  payload.colors = [payload.uniforms.u_colorPrimary, payload.uniforms.u_colorSecondary];
 
   if (!fs.existsSync('data')) fs.mkdirSync('data', { recursive: true });
-  fs.writeFileSync(`data/metadata_3d_${jobIndex}.json`, JSON.stringify(resultShader, null, 2));
-  fs.writeFileSync(`data/metadata_3d.json`, JSON.stringify(resultShader, null, 2));
-  fs.writeFileSync(`data/master_3d_payload.json`, JSON.stringify(resultShader, null, 2));
+  fs.writeFileSync(`data/metadata_3d_${jobIndex}.json`, JSON.stringify(payload, null, 2));
+  fs.writeFileSync(`data/metadata_3d.json`, JSON.stringify(payload, null, 2));
+  fs.writeFileSync(`data/master_3d_payload.json`, JSON.stringify(payload, null, 2));
 
-  return resultShader;
+  return payload;
 }
 
 if (require.main === module) {

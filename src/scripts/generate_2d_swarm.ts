@@ -1,36 +1,40 @@
 import fs from 'fs';
 import { getJobTopic, sanitizeAndParseJson, queryLlm, getDynamicPalette } from './llmHelper';
-import { GLSL_CATEGORIES, GLSLVfxCategory, DEFAULT_GLSL_SHADERS } from './generate_3d_swarm';
+import { generateProceduralGLSL, InfiniteGLSLPayload } from './generate_3d_swarm';
 
-export async function run2DAISwarm(topic?: string, jobIdx?: number): Promise<any> {
+export async function run2DAISwarm(topic?: string, jobIdx?: number): Promise<InfiniteGLSLPayload> {
   const { topic: promptTopic, jobIndex } = topic && jobIdx !== undefined ? { topic, jobIndex: jobIdx } : getJobTopic();
   const seed = Math.random().toString(36).substring(7);
-  console.log(`🎨 [GLSL 2D Director] Designing Pure GLSL Shader Overlay for: "${promptTopic}" (Job ${jobIndex}, Seed: ${seed})...`);
+  console.log(`🎨 [Infinite 2D GLSL Engine] Synthesizing Bespoke 2D Shader & Overlay for: "${promptTopic}" (Job ${jobIndex}, Seed: ${seed})...`);
 
   const dynamicPalette = getDynamicPalette(promptTopic, seed);
-  const chosenCat: GLSLVfxCategory = GLSL_CATEGORIES[Math.abs(jobIndex + 1) % GLSL_CATEGORIES.length];
-
-  let result2D: any = null;
+  let payload: InfiniteGLSLPayload | null = null;
 
   const userPrompt = `Topic: "${promptTopic}".
 Seed: "${seed}".
-Suggested Category: "${chosenCat}".
+Primary Color: "${dynamicPalette[1]}".
+Secondary Color: "${dynamicPalette[2]}".
 
-You are an Elite GLSL 2D Shader Engineer for Adobe Stock & Premiere Pro overlays. Select the best shader category ("chemical_reaction" | "liquid_fire" | "quantum_waterfall" | "plasma_storm") and uniform parameters.
+Generate a completely custom, bespoke GLSL fragment shader and 2D overlay configuration for "${promptTopic}".
 
-Output STRICT JSON:
+JSON SCHEMA:
 {
-  "vfxCategory": "chemical_reaction" | "liquid_fire" | "quantum_waterfall" | "plasma_storm",
+  "commercialConcept": "How this specific 2D visual overlay visualizes ${promptTopic} for video editors",
+  "glslFragmentShader": "string containing complete GLSL code...",
   "uniforms": {
-    "color1": "${dynamicPalette[1]}",
-    "color2": "${dynamicPalette[2]}",
-    "speed": 1.2,
-    "density": 2.8
+    "u_colorPrimary": "${dynamicPalette[1]}",
+    "u_colorSecondary": "${dynamicPalette[2]}",
+    "u_speed": 1.2
+  },
+  "engine2DOverlay": {
+    "overlayType": "glitch_artifacts" | "cinematic_light_leak" | "cyberpunk_hud_svg",
+    "blendMode": "screen" | "color-dodge",
+    "opacity": 0.9
   },
   "seoPackage": {
-    "title": "4K GLSL Motion Overlay: ${promptTopic} - ${chosenCat.replace(/_/g, ' ').toUpperCase()}",
-    "description": "Pure mathematical GLSL fluid and plasma shader backdrop for ${promptTopic}.",
-    "seoTags": ["glsl overlay", "shader overlay", "4k stock", "plasma", "fluid", "${chosenCat}", "${promptTopic.toLowerCase()}"]
+    "title": "4K Motion Overlay: ${promptTopic} | Procedural GLSL VFX",
+    "description": "Bespoke GPU shader mathematical overlay for ${promptTopic}.",
+    "seoTags": ["glsl overlay", "shader overlay", "4k stock", "procedural", promptTopic.toLowerCase()]
   }
 }`;
 
@@ -39,47 +43,59 @@ Output STRICT JSON:
       messages: [
         {
           role: "system",
-          content: "You are an Elite GLSL Shader Engineer. Output STRICT JSON only."
+          content: "You are an Elite GLSL 2D Shader Engineer for Adobe Stock & Premiere Pro overlays. Output STRICT JSON only."
         },
         { role: "user", content: userPrompt }
       ]
     });
     const parsed = sanitizeAndParseJson(raw);
-    if (parsed && parsed.vfxCategory) {
-      result2D = parsed;
-      console.log(`✅ [2D GLSL Director] Selected Category: ${parsed.vfxCategory}`);
+    if (parsed && parsed.glslFragmentShader && parsed.uniforms) {
+      payload = parsed;
+      console.log(`✅ [Infinite 2D GLSL Engine] LLM Generated Bespoke 2D Shader`);
     }
   } catch (err: any) {
-    console.warn(`⚠️ [2D GLSL Director] Using verified Shadertoy GLSL fallback:`, err.message);
+    console.warn(`⚠️ [Infinite 2D GLSL Engine] Using procedural mathematical GLSL fallback:`, err.message);
   }
 
-  if (!result2D) {
-    result2D = {
-      vfxCategory: chosenCat,
+  if (!payload) {
+    const proceduralShader = generateProceduralGLSL(promptTopic, seed);
+    const overlayTypes: InfiniteGLSLPayload['engine2DOverlay']['overlayType'][] = [
+      'glitch_artifacts',
+      'cinematic_light_leak',
+      'cyberpunk_hud_svg'
+    ];
+    const chosenOverlay = overlayTypes[Math.abs(jobIndex + 1) % overlayTypes.length];
+
+    payload = {
+      commercialConcept: `Procedural mathematical GPU fluid and overlay visualizing ${promptTopic}`,
+      glslFragmentShader: proceduralShader,
       uniforms: {
-        color1: dynamicPalette[1],
-        color2: dynamicPalette[2],
-        speed: 1.2,
-        density: 2.8
+        u_colorPrimary: dynamicPalette[1],
+        u_colorSecondary: dynamicPalette[2],
+        u_speed: 1.2
+      },
+      engine2DOverlay: {
+        overlayType: chosenOverlay,
+        blendMode: 'screen',
+        opacity: 0.9
       },
       seoPackage: {
-        title: `4K GLSL Motion Overlay: ${promptTopic} - ${chosenCat.replace(/_/g, ' ').toUpperCase()}`,
-        description: `Pure mathematical GLSL fluid and plasma shader backdrop for ${promptTopic}.`,
-        seoTags: ["glsl overlay", "shader overlay", "4k stock", "plasma", "fluid", chosenCat, promptTopic.toLowerCase()]
-      }
+        title: `4K Motion Overlay: ${promptTopic} | Procedural GLSL VFX`,
+        description: `Bespoke GPU shader mathematical overlay for ${promptTopic}.`,
+        seoTags: ["glsl overlay", "shader overlay", "4k stock", "procedural", promptTopic.toLowerCase()]
+      },
+      colors: [dynamicPalette[1], dynamicPalette[2]]
     };
   }
 
-  const category = (result2D.vfxCategory as GLSLVfxCategory) || chosenCat;
-  result2D.glslFragmentShader = DEFAULT_GLSL_SHADERS[category] || DEFAULT_GLSL_SHADERS.plasma_storm;
-  result2D.colors = [result2D.uniforms.color1, result2D.uniforms.color2];
+  payload.colors = [payload.uniforms.u_colorPrimary, payload.uniforms.u_colorSecondary];
 
   if (!fs.existsSync('data')) fs.mkdirSync('data', { recursive: true });
-  fs.writeFileSync(`data/metadata_2d_${jobIndex}.json`, JSON.stringify(result2D, null, 2));
-  fs.writeFileSync(`data/metadata_2d.json`, JSON.stringify(result2D, null, 2));
-  fs.writeFileSync(`data/master_2d_payload.json`, JSON.stringify(result2D, null, 2));
+  fs.writeFileSync(`data/metadata_2d_${jobIndex}.json`, JSON.stringify(payload, null, 2));
+  fs.writeFileSync(`data/metadata_2d.json`, JSON.stringify(payload, null, 2));
+  fs.writeFileSync(`data/master_2d_payload.json`, JSON.stringify(payload, null, 2));
 
-  return result2D;
+  return payload;
 }
 
 if (require.main === module) {

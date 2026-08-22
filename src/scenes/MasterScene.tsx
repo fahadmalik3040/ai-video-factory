@@ -2,7 +2,7 @@ import React, { useMemo, useRef, Component, ErrorInfo, ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useCurrentFrame } from 'remotion';
 import * as THREE from 'three';
-import { DEFAULT_GLSL_SHADERS, GLSLVfxCategory } from '../scripts/generate_3d_swarm';
+import { generateProceduralGLSL } from '../scripts/generate_3d_swarm';
 
 // ----------------------------------------------------
 // Error Boundary for GLSL Shader Failures
@@ -47,30 +47,28 @@ const VERTEX_SHADER = `
 `;
 
 // ------------------------------------------------------------------
-// FULLSCREEN GLSL SHADER PLANE (Pure Organic Mathematics)
+// FULLSCREEN GLSL SHADER PLANE (Pure Organic GPU Mathematics)
 // ------------------------------------------------------------------
 const GLSLFullscreenQuad: React.FC<{
   fragmentShaderCode: string;
-  color1: string;
-  color2: string;
+  colorPrimary: string;
+  colorSecondary: string;
   speed: number;
-  density: number;
-}> = ({ fragmentShaderCode, color1, color2, speed, density }) => {
+}> = ({ fragmentShaderCode, colorPrimary, colorSecondary, speed }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const frame = useCurrentFrame();
 
-  const c1 = useMemo(() => new THREE.Color(color1 || '#ff3300'), [color1]);
-  const c2 = useMemo(() => new THREE.Color(color2 || '#00ccff'), [color2]);
+  const c1 = useMemo(() => new THREE.Color(colorPrimary || '#ff3300'), [colorPrimary]);
+  const c2 = useMemo(() => new THREE.Color(colorSecondary || '#00ccff'), [colorSecondary]);
 
   const uniforms = useMemo(
     () => ({
       u_time: { value: 0 },
       u_resolution: { value: new THREE.Vector2(3840, 2160) },
-      u_color1: { value: c1 },
-      u_color2: { value: c2 },
+      u_colorPrimary: { value: c1 },
+      u_colorSecondary: { value: c2 },
       u_speed: { value: speed },
-      u_density: { value: density },
     }),
     []
   );
@@ -78,10 +76,9 @@ const GLSLFullscreenQuad: React.FC<{
   useFrame(() => {
     if (materialRef.current) {
       materialRef.current.uniforms.u_time.value = frame / 30.0;
-      materialRef.current.uniforms.u_color1.value = c1;
-      materialRef.current.uniforms.u_color2.value = c2;
+      materialRef.current.uniforms.u_colorPrimary.value = c1;
+      materialRef.current.uniforms.u_colorSecondary.value = c2;
       materialRef.current.uniforms.u_speed.value = speed;
-      materialRef.current.uniforms.u_density.value = density;
     }
   });
 
@@ -101,17 +98,16 @@ const GLSLFullscreenQuad: React.FC<{
 };
 
 // ------------------------------------------------------------------
-// MASTER SCENE: PURE GLSL SHADER ARCHITECTURE
+// MASTER SCENE: PURE INFINITE GLSL SHADER ARCHITECTURE
 // ------------------------------------------------------------------
 export interface MasterSceneProps {
   data: {
-    vfxCategory?: GLSLVfxCategory;
+    commercialConcept?: string;
     glslFragmentShader?: string;
     uniforms?: {
-      color1?: string;
-      color2?: string;
-      speed?: number;
-      density?: number;
+      u_colorPrimary?: string;
+      u_colorSecondary?: string;
+      u_speed?: number;
     };
     colors?: string[];
     [key: string]: any;
@@ -119,39 +115,31 @@ export interface MasterSceneProps {
 }
 
 export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
-  const category = (data?.vfxCategory as GLSLVfxCategory) || 'liquid_fire';
-
-  const fragShader =
-    data?.glslFragmentShader ||
-    DEFAULT_GLSL_SHADERS[category] ||
-    DEFAULT_GLSL_SHADERS.liquid_fire;
-
   const u = data?.uniforms || {};
-  const color1 = u.color1 || data?.colors?.[0] || '#ff4500';
-  const color2 = u.color2 || data?.colors?.[1] || '#00d4ff';
-  const speed = typeof u.speed === 'number' ? u.speed : 1.4;
-  const density = typeof u.density === 'number' ? u.density : 3.2;
+  const colorPrimary = u.u_colorPrimary || data?.colors?.[0] || '#ff4500';
+  const colorSecondary = u.u_colorSecondary || data?.colors?.[1] || '#00d4ff';
+  const speed = typeof u.u_speed === 'number' ? u.u_speed : 1.4;
 
-  const fallbackShader = DEFAULT_GLSL_SHADERS.liquid_fire;
+  const fallbackShader = useMemo(() => generateProceduralGLSL('Default Quantum Field', '42'), []);
+
+  const fragShader = data?.glslFragmentShader || fallbackShader;
 
   return (
     <ShaderErrorBoundary
       fallback={
         <GLSLFullscreenQuad
           fragmentShaderCode={fallbackShader}
-          color1="#ff3300"
-          color2="#00ffff"
+          colorPrimary="#ff3300"
+          colorSecondary="#00ffff"
           speed={1.2}
-          density={3.0}
         />
       }
     >
       <GLSLFullscreenQuad
         fragmentShaderCode={fragShader}
-        color1={color1}
-        color2={color2}
+        colorPrimary={colorPrimary}
+        colorSecondary={colorSecondary}
         speed={speed}
-        density={density}
       />
     </ShaderErrorBoundary>
   );
