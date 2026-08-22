@@ -40,10 +40,12 @@ class ThreeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 }
 
 // ----------------------------------------------------
-// DYNAMIC GEOMETRY SWITCHER (Zero Lazy Hardcoding)
+// DYNAMIC GEOMETRY SWITCHER (Ultra-Detailed Support)
 // ----------------------------------------------------
 export const DynamicGeometry: React.FC<{ solidGeometry?: string; scale?: number }> = ({ solidGeometry, scale = 1 }) => {
   switch (solidGeometry) {
+    case 'TorusKnotGeometry':
+      return <torusKnotGeometry args={[1 * scale, 0.32 * scale, 128, 32]} />;
     case 'SphereGeometry':
       return <sphereGeometry args={[1 * scale, 32, 32]} />;
     case 'TorusGeometry':
@@ -174,7 +176,83 @@ const SolidFallbackScene: React.FC<{ colors: string[] }> = ({ colors }) => {
 };
 
 // ----------------------------------------------------
-// CORE A: Dynamic 3D Solid Grid (Candlesticks / Cubes / Spheres)
+// CORE 1: Dynamic Fibonacci Sphere Instancer
+// ----------------------------------------------------
+const DynamicFibonacciSphereCore: React.FC<{
+  solidGeometry: string;
+  colors: string[];
+  speed: number;
+  complexity: number;
+  metalness: number;
+  roughness: number;
+}> = ({ solidGeometry, colors, speed, complexity, metalness, roughness }) => {
+  const count = 120;
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  const frame = useCurrentFrame();
+
+  const c1 = new THREE.Color(colors[0] || "#00f0ff");
+  const c2 = new THREE.Color(colors[1] || "#ff007f");
+  const c3 = new THREE.Color(colors[2] || "#7000ff");
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  const points = useMemo(() => {
+    const phi = Math.PI * (3 - Math.sqrt(5));
+    return Array.from({ length: count }, (_, i) => {
+      const y = 1 - (i / (count - 1)) * 2;
+      const radius = Math.sqrt(1 - y * y);
+      const theta = phi * i;
+      const x = Math.cos(theta) * radius;
+      const z = Math.sin(theta) * radius;
+      return { x, y, z };
+    });
+  }, [count]);
+
+  useFrame(() => {
+    const t = (frame / 30) * 0.12 * speed;
+    if (groupRef.current) {
+      groupRef.current.rotation.y = t * 0.2;
+      groupRef.current.rotation.x = Math.sin(t * 0.15) * 0.1;
+    }
+
+    if (meshRef.current) {
+      const sphereRadius = 7.5 * Math.min(complexity, 1.2);
+      for (let i = 0; i < count; i++) {
+        const pt = points[i];
+        const pulse = 1 + Math.sin(t * 1.2 + i * 0.2) * 0.15;
+        dummy.position.set(pt.x * sphereRadius * pulse, pt.y * sphereRadius * pulse, pt.z * sphereRadius * pulse);
+        dummy.scale.set(0.45, 0.45, 0.45);
+        dummy.lookAt(0, 0, 0);
+        dummy.updateMatrix();
+        meshRef.current.setMatrixAt(i, dummy.matrix);
+
+        let col = c1;
+        if (i % 3 === 1) col = c2;
+        else if (i % 3 === 2) col = c3;
+        meshRef.current.setColorAt(i, col);
+      }
+      meshRef.current.instanceMatrix.needsUpdate = true;
+      if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+        <DynamicGeometry solidGeometry={solidGeometry} scale={0.7} />
+        <meshPhysicalMaterial
+          metalness={metalness}
+          roughness={roughness}
+          clearcoat={1.0}
+          clearcoatRoughness={0.06}
+        />
+      </instancedMesh>
+    </group>
+  );
+};
+
+// ----------------------------------------------------
+// CORE 2: Dynamic 3D Solid Grid (Candlesticks / Cubes / Spheres)
 // ----------------------------------------------------
 const DynamicGridCore: React.FC<{
   solidGeometry: string;
@@ -259,7 +337,7 @@ const DynamicGridCore: React.FC<{
 };
 
 // ----------------------------------------------------
-// CORE B: Dynamic 3D Helix / Molecular Structure
+// CORE 3: Dynamic 3D Helix / Molecular Structure
 // ----------------------------------------------------
 const DynamicHelixCore: React.FC<{
   solidGeometry: string;
@@ -364,7 +442,7 @@ const DynamicHelixCore: React.FC<{
 };
 
 // ----------------------------------------------------
-// CORE C: Dynamic 3D Concentric Rings / Geometry Gyroscope
+// CORE 4: Dynamic 3D Concentric Rings
 // ----------------------------------------------------
 const DynamicConcentricCore: React.FC<{
   solidGeometry: string;
@@ -432,7 +510,7 @@ const DynamicConcentricCore: React.FC<{
 };
 
 // ----------------------------------------------------
-// CORE D: Dynamic Displaced Wave Plane & Monolith Array
+// CORE 5: Dynamic Displaced Wave Plane
 // ----------------------------------------------------
 const DynamicWaveCore: React.FC<{
   solidGeometry: string;
@@ -547,9 +625,40 @@ interface MasterSceneProps {
       description?: string;
       seoTags?: string[];
     };
+    coreGeometry?: {
+      type?: string;
+      args?: any[];
+    };
+    instancingMath?: {
+      layout?: string;
+      count?: number;
+      spreadRadius?: number;
+    };
+    cinematicLighting?: {
+      ambientHex?: string;
+      ambientIntensity?: number;
+      directionalHex?: string;
+      directionalIntensity?: number;
+      directionalPosition?: [number, number, number];
+      pointLightHex?: string;
+      pointLightIntensity?: number;
+    };
+    pbrMaterial?: {
+      color?: string;
+      metalness?: number;
+      roughness?: number;
+      clearcoat?: number;
+      transmission?: number;
+    };
+    virtualCamera?: {
+      lensFOV?: number;
+      motionPath?: 'slow_orbit' | 'smooth_dolly_in' | 'macro_pan_up';
+      depthOfFieldBlur?: boolean;
+      focusDistance?: number;
+    };
     engine3D?: {
-      solidGeometry?: 'BoxGeometry' | 'SphereGeometry' | 'CylinderGeometry' | 'TorusGeometry';
-      layoutMath?: 'grid' | 'concentric_rings' | 'dna_helix' | 'wave_plane';
+      solidGeometry?: string;
+      layoutMath?: string;
       physicalMaterial?: { metalness?: number; roughness?: number };
       cameraMotion?: 'orbit_slow' | 'macro_dolly_in';
       cinematographyDP?: {
@@ -563,9 +672,6 @@ interface MasterSceneProps {
       complexity?: number;
     };
     title?: string;
-    solid_core?: string;
-    solidCore?: string;
-    sceneType?: string;
     colors?: string[];
     cameraSpeed?: number;
     bloomIntensity?: number;
@@ -575,14 +681,11 @@ interface MasterSceneProps {
 
 export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
   const e3d = data?.engine3D;
-  const layout = e3d?.layoutMath || 'wave_plane';
-  const geom = e3d?.solidGeometry || 'BoxGeometry';
+  const layout = data?.instancingMath?.layout || e3d?.layoutMath || 'wave_plane';
+  const geom = data?.coreGeometry?.type || e3d?.solidGeometry || 'BoxGeometry';
 
-  const dpConfig = e3d?.cinematographyDP;
-  let cameraPath: 'slow_orbit' | 'smooth_dolly_in' | 'macro_pan_up' = dpConfig?.cameraPath || 'slow_orbit';
-  if (!dpConfig?.cameraPath && e3d?.cameraMotion === 'macro_dolly_in') {
-    cameraPath = 'smooth_dolly_in';
-  }
+  const dpConfig = data?.virtualCamera || e3d?.cinematographyDP;
+  let cameraPath: 'slow_orbit' | 'smooth_dolly_in' | 'macro_pan_up' = (dpConfig?.motionPath || (dpConfig as any)?.cameraPath) || 'slow_orbit';
 
   const colors = Array.isArray(e3d?.colors) && e3d!.colors.length >= 2
     ? e3d!.colors
@@ -593,22 +696,42 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
   const cameraSpeed = typeof e3d?.cameraSpeed === 'number' ? e3d.cameraSpeed : typeof data?.cameraSpeed === 'number' ? data.cameraSpeed : 1.0;
   const bloomIntensity = typeof e3d?.bloomIntensity === 'number' ? e3d.bloomIntensity : typeof data?.bloomIntensity === 'number' ? data.bloomIntensity : 2.0;
   const complexity = typeof e3d?.complexity === 'number' ? e3d.complexity : typeof data?.complexity === 'number' ? data.complexity : 1.0;
-  const metalness = typeof e3d?.physicalMaterial?.metalness === 'number' ? e3d.physicalMaterial.metalness : 0.9;
-  const roughness = typeof e3d?.physicalMaterial?.roughness === 'number' ? e3d.physicalMaterial.roughness : 0.1;
+  const metalness = typeof data?.pbrMaterial?.metalness === 'number' ? data.pbrMaterial.metalness : typeof e3d?.physicalMaterial?.metalness === 'number' ? e3d.physicalMaterial.metalness : 0.95;
+  const roughness = typeof data?.pbrMaterial?.roughness === 'number' ? data.pbrMaterial.roughness : typeof e3d?.physicalMaterial?.roughness === 'number' ? e3d.physicalMaterial.roughness : 0.08;
+
+  const light = data?.cinematicLighting;
+  const ambientCol = light?.ambientHex || '#ffffff';
+  const ambientInt = typeof light?.ambientIntensity === 'number' ? light.ambientIntensity : 1.5;
+  const dirCol = light?.directionalHex || '#ffffff';
+  const dirInt = typeof light?.directionalIntensity === 'number' ? light.directionalIntensity : 2.0;
+  const dirPos = light?.directionalPosition || [10, 10, 5];
+  const ptCol = light?.pointLightHex || colors[1] || '#ff007f';
+  const ptInt = typeof light?.pointLightIntensity === 'number' ? light.pointLightIntensity : 3.5;
 
   return (
     <ThreeErrorBoundary fallback={<SolidFallbackScene colors={colors} />}>
       <VirtualDPCamera
         cameraPath={cameraPath}
-        pacing={dpConfig?.pacing || 'extremely_slow_and_cinematic'}
+        pacing={(dpConfig as any)?.pacing || 'extremely_slow_and_cinematic'}
         focusDistance={dpConfig?.focusDistance || 0}
       />
 
-      <ambientLight intensity={1.5} />
-      <directionalLight position={[10, 10, 5]} intensity={2.0} color="#ffffff" />
-      <pointLight position={[-15, -15, -10]} intensity={2.2} color={colors[1] || '#ff007f'} />
-      <pointLight position={[15, 15, 10]} intensity={2.2} color={colors[0] || '#00f0ff'} />
+      <ambientLight intensity={ambientInt} color={ambientCol} />
+      <directionalLight position={dirPos} intensity={dirInt} color={dirCol} />
+      <pointLight position={[-15, -15, -10]} intensity={ptInt} color={ptCol} />
+      <pointLight position={[15, 15, 10]} intensity={ptInt} color={colors[0] || '#00f0ff'} />
       <Environment preset="city" />
+
+      {layout === 'fibonacci_sphere' && (
+        <DynamicFibonacciSphereCore
+          solidGeometry={geom}
+          colors={colors}
+          speed={cameraSpeed}
+          complexity={complexity}
+          metalness={metalness}
+          roughness={roughness}
+        />
+      )}
 
       {layout === 'grid' && (
         <DynamicGridCore
@@ -643,7 +766,7 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
         />
       )}
 
-      {layout === 'wave_plane' && (
+      {(layout === 'wave_plane' || (layout !== 'fibonacci_sphere' && layout !== 'grid' && layout !== 'dna_helix' && layout !== 'concentric_rings')) && (
         <DynamicWaveCore
           solidGeometry={geom}
           colors={colors}
