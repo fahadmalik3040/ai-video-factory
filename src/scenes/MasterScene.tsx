@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, Component, ErrorInfo, ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
+import { Environment, Float, Sparkles, Stars, MeshTransmissionMaterial } from '@react-three/drei';
 import { EffectComposer, Bloom, ChromaticAberration, Noise, Vignette } from '@react-three/postprocessing';
 import { useCurrentFrame, useVideoConfig } from 'remotion';
 import * as THREE from 'three';
@@ -40,294 +40,282 @@ class ThreeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 }
 
 // ----------------------------------------------------
-// SWARM CAMERA RIG (Agent 4 Spline Execution)
+// VIRTUAL DP CINEMATIC CAMERA (Slow Motion Paths)
 // ----------------------------------------------------
-const SwarmCinematographerCamera: React.FC<{
-  splinePoints?: Array<[number, number, number]>;
-  motionStyle?: string;
-  lensFOV?: number;
-}> = ({ splinePoints, motionStyle }) => {
+const VirtualDPCamera: React.FC<{ motion?: string; speed?: number }> = ({ motion = 'slow_pan', speed = 1.0 }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const totalFrames = durationInFrames || 450;
   const progress = Math.min(Math.max(frame / totalFrames, 0), 1);
 
-  const curve = useMemo(() => {
-    if (Array.isArray(splinePoints) && splinePoints.length >= 3) {
-      const vecPoints = splinePoints.map((p) => new THREE.Vector3(p[0], p[1], p[2]));
-      return new THREE.CatmullRomCurve3(vecPoints, false);
-    }
-    // Default cinematic dolly curve
-    return new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 5, 34),
-      new THREE.Vector3(1.5, 3.5, 26),
-      new THREE.Vector3(-1.0, 2.0, 19),
-      new THREE.Vector3(0.5, 1.0, 14),
-      new THREE.Vector3(0, 0.5, 11),
-    ]);
-  }, [splinePoints]);
-
   useFrame(({ camera }) => {
-    const easedT = 0.5 - 0.5 * Math.cos(progress * Math.PI);
-    const targetPos = curve.getPointAt(easedT);
-    const lookTarget = new THREE.Vector3(0, Math.sin(progress * Math.PI) * 0.25, 0);
-
-    camera.position.copy(targetPos);
-    camera.lookAt(lookTarget);
+    const t = progress * speed;
+    if (motion === 'orbit') {
+      const angle = t * Math.PI * 1.5;
+      camera.position.set(Math.sin(angle) * 26, 4 + Math.sin(t * Math.PI) * 2, Math.cos(angle) * 26);
+      camera.lookAt(0, 0, 0);
+    } else {
+      // Default slow pan / dolly in
+      const easedT = 0.5 - 0.5 * Math.cos(t * Math.PI);
+      const z = 32 - easedT * 14;
+      const x = Math.sin(easedT * Math.PI) * 3;
+      const y = 3 + Math.cos(easedT * Math.PI) * 1.5;
+      camera.position.set(x, y, z);
+      camera.lookAt(0, Math.sin(t * Math.PI) * 0.5, 0);
+    }
   });
 
   return null;
 };
 
 // ------------------------------------------------------------------
-// SWARM INSTANCED PARTICLE ENGINE (Agent 2 Math TD Execution)
+// PRO-VFX MODULE 1: DATA TUNNEL (Glowing Wireframe Tube + Sparkles)
 // ------------------------------------------------------------------
-const SwarmInstancedMathEngine: React.FC<{
-  mathTD: any;
-  pbrMaterial: any;
-  colors: string[];
-  frame: number;
-}> = ({ mathTD, pbrMaterial, colors, frame }) => {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const count = mathTD?.particleMath?.instancedCount || 180;
-  const spreadRadius = mathTD?.particleMath?.spreadRadius || 12;
-  const rotFreq = mathTD?.particleMath?.rotationalFrequency || 0.15;
-  const velocity = mathTD?.particleMath?.velocityVector || [0.2, 0.5, 0.1];
+const DataTunnelModule: React.FC<{ colors: string[]; speed: number; frame: number }> = ({ colors, speed, frame }) => {
+  const [c1, c2] = colors;
+  const groupRef = useRef<THREE.Group>(null);
+  const t = (frame / 30) * speed;
 
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const t = (frame / 30) * rotFreq;
+  const curve = useMemo(() => {
+    return new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0, -50),
+      new THREE.Vector3(5, 3, -25),
+      new THREE.Vector3(-4, -2, 0),
+      new THREE.Vector3(3, 4, 25),
+      new THREE.Vector3(0, 0, 50),
+    ]);
+  }, []);
 
-  const points = useMemo(() => {
-    return Array.from({ length: count }, (_, i) => {
-      const phi = Math.acos(-1 + (2 * i) / count);
-      const theta = Math.sqrt(count * Math.PI) * phi;
-      const r = 4 + Math.random() * (spreadRadius - 4);
-      return {
-        x: r * Math.cos(theta) * Math.sin(phi),
-        y: r * Math.sin(theta) * Math.sin(phi),
-        z: r * Math.cos(phi),
-        scale: 0.2 + Math.random() * 0.35,
-        speedMultiplier: 0.8 + Math.random() * 0.6,
-        phase: Math.random() * Math.PI * 2,
-      };
-    });
-  }, [count, spreadRadius]);
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.rotation.z = t * 0.4;
+    }
+  });
 
-  const c1 = new THREE.Color(colors[0] || '#00f0ff');
-  const c2 = new THREE.Color(colors[1] || '#ff007f');
-  const c3 = new THREE.Color(colors[2] || '#7000ff');
+  return (
+    <group ref={groupRef}>
+      {/* Primary Cyber Tube */}
+      <mesh>
+        <tubeGeometry args={[curve, 128, 7.5, 24, false]} />
+        <meshBasicMaterial color={c1} wireframe opacity={0.35} transparent />
+      </mesh>
+
+      {/* Secondary Inner Wireframe Grid */}
+      <mesh>
+        <tubeGeometry args={[curve, 96, 7.2, 16, false]} />
+        <meshBasicMaterial color={c2} wireframe opacity={0.25} transparent />
+      </mesh>
+
+      {/* High-Density Glowing Data Sparkles Streaming in Tunnel */}
+      <Sparkles
+        count={350}
+        scale={[15, 15, 60]}
+        size={8}
+        speed={1.2 * speed}
+        color={c1}
+        opacity={0.9}
+      />
+      <Sparkles
+        count={200}
+        scale={[12, 12, 50]}
+        size={6}
+        speed={1.6 * speed}
+        color={c2}
+        opacity={0.8}
+      />
+    </group>
+  );
+};
+
+// ------------------------------------------------------------------
+// PRO-VFX MODULE 2: CINEMATIC DUST (Floating Stars, Sparkles & Bokeh)
+// ------------------------------------------------------------------
+const CinematicDustModule: React.FC<{ colors: string[]; speed: number; frame: number }> = ({ colors, speed, frame }) => {
+  const [c1, c2] = colors;
+  const t = (frame / 30) * 0.1 * speed;
+
+  return (
+    <group>
+      {/* Deep Space Background Stars */}
+      <Stars
+        radius={100}
+        depth={60}
+        count={7000}
+        factor={6}
+        saturation={0}
+        fade
+        speed={1.5 * speed}
+      />
+
+      {/* Volumetric Floating Ambient Particle Dust */}
+      <Sparkles
+        count={500}
+        scale={[28, 24, 28]}
+        size={10}
+        speed={0.3 * speed}
+        noise={0.6}
+        color={c1}
+        opacity={0.85}
+      />
+      <Sparkles
+        count={300}
+        scale={[22, 18, 22]}
+        size={7}
+        speed={0.5 * speed}
+        noise={0.4}
+        color={c2}
+        opacity={0.75}
+      />
+
+      {/* Floating Monolith Core with Smooth Hover */}
+      <Float speed={1.8 * speed} rotationIntensity={1.2} floatIntensity={2}>
+        <mesh position={[0, 0, 0]}>
+          <icosahedronGeometry args={[2.8, 0]} />
+          <meshPhysicalMaterial
+            color={c1}
+            metalness={0.95}
+            roughness={0.08}
+            clearcoat={1.0}
+            emissive={c2}
+            emissiveIntensity={1.2}
+          />
+        </mesh>
+      </Float>
+    </group>
+  );
+};
+
+// ------------------------------------------------------------------
+// PRO-VFX MODULE 3: GLASS ABSTRACT (Apple-Grade Mesh Transmission)
+// ------------------------------------------------------------------
+const GlassAbstractModule: React.FC<{ colors: string[]; speed: number; frame: number }> = ({ colors, speed, frame }) => {
+  const [c1, c2] = colors;
+  const meshRef = useRef<THREE.Mesh>(null);
+  const t = (frame / 30) * speed;
 
   useFrame(() => {
     if (meshRef.current) {
-      for (let i = 0; i < count; i++) {
-        const pt = points[i];
-        const dispY = pt.y + Math.sin(t * velocity[1] * pt.speedMultiplier + pt.phase) * 1.2;
-        const dispX = pt.x + Math.cos(t * velocity[0] * pt.speedMultiplier + pt.phase) * 0.8;
-        const dispZ = pt.z + Math.sin(t * velocity[2] * pt.speedMultiplier) * 0.8;
-
-        dummy.position.set(dispX, dispY, dispZ);
-        dummy.scale.set(pt.scale, pt.scale, pt.scale);
-        dummy.rotation.set(t * pt.speedMultiplier, t * 0.5 * pt.speedMultiplier, 0);
-        dummy.updateMatrix();
-        meshRef.current.setMatrixAt(i, dummy.matrix);
-
-        let col = c1;
-        if (i % 3 === 1) col = c2;
-        else if (i % 3 === 2) col = c3;
-        meshRef.current.setColorAt(i, col);
-      }
-      meshRef.current.instanceMatrix.needsUpdate = true;
-      if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
+      meshRef.current.rotation.x = t * 0.3;
+      meshRef.current.rotation.y = t * 0.45;
+      meshRef.current.rotation.z = Math.sin(t * 0.2) * 0.2;
     }
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-      <icosahedronGeometry args={[1, 0]} />
-      <meshPhysicalMaterial
-        color={pbrMaterial?.baseColor || colors[0]}
-        metalness={pbrMaterial?.metalness ?? 0.95}
-        roughness={pbrMaterial?.roughness ?? 0.08}
-        clearcoat={pbrMaterial?.clearcoat ?? 1.0}
-        emissive={pbrMaterial?.emissiveHex || colors[1]}
-        emissiveIntensity={pbrMaterial?.emissiveIntensity ?? 1.5}
+    <group>
+      {/* Floating Refractive Glass Hero Sculpture */}
+      <Float speed={2.2 * speed} rotationIntensity={1.4} floatIntensity={2}>
+        <mesh ref={meshRef} scale={1.2}>
+          <torusKnotGeometry args={[2.5, 0.75, 220, 64]} />
+          <MeshTransmissionMaterial
+            ior={1.55}
+            thickness={2.2}
+            chromaticAberration={0.08}
+            roughness={0.06}
+            transmission={0.96}
+            color={c1}
+            attenuationColor={c2}
+            attenuationDistance={1.2}
+          />
+        </mesh>
+      </Float>
+
+      {/* Internal Floating Glowing Nucleus */}
+      <mesh>
+        <octahedronGeometry args={[1.2, 0]} />
+        <meshBasicMaterial color={c2} wireframe />
+      </mesh>
+
+      {/* Subtle Refractive Sparkle Dust */}
+      <Sparkles
+        count={180}
+        scale={[16, 16, 16]}
+        size={6}
+        speed={0.4 * speed}
+        color="#ffffff"
+        opacity={0.8}
       />
-    </instancedMesh>
+    </group>
   );
 };
 
 // ------------------------------------------------------------------
-// SWARM HERO STRUCTURES (Agent 2 Geometry Mesh Type)
-// ------------------------------------------------------------------
-const SwarmHeroCore: React.FC<{
-  meshType: string;
-  pbrMaterial: any;
-  colors: string[];
-  frame: number;
-}> = ({ meshType, pbrMaterial, colors, frame }) => {
-  const [c1, c2, c3] = colors;
-  const knotRef = useRef<THREE.Mesh>(null);
-  const groupRef = useRef<THREE.Group>(null);
-  const t = (frame / 30) * 0.15;
-
-  useFrame(() => {
-    if (knotRef.current) {
-      knotRef.current.rotation.x = t * 0.6;
-      knotRef.current.rotation.y = t * 0.8;
-      knotRef.current.rotation.z = Math.sin(t * 0.3) * 0.2;
-    }
-    if (groupRef.current) {
-      groupRef.current.rotation.y = t * 0.25;
-    }
-  });
-
-  const material = useMemo(() => {
-    return (
-      <meshPhysicalMaterial
-        color={pbrMaterial?.baseColor || c1}
-        metalness={pbrMaterial?.metalness ?? 0.95}
-        roughness={pbrMaterial?.roughness ?? 0.06}
-        transmission={pbrMaterial?.transmission ?? 0.0}
-        clearcoat={pbrMaterial?.clearcoat ?? 1.0}
-        emissive={pbrMaterial?.emissiveHex || c2}
-        emissiveIntensity={pbrMaterial?.emissiveIntensity ?? 1.2}
-      />
-    );
-  }, [pbrMaterial, c1, c2]);
-
-  if (meshType === 'FiberSplines') {
-    return (
-      <group ref={groupRef}>
-        {Array.from({ length: 18 }).map((_, i) => {
-          const angle = (i / 18) * Math.PI * 2;
-          const curve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(Math.cos(angle) * 14, Math.sin(angle) * 8, -15),
-            new THREE.Vector3(Math.cos(angle + 1) * 6, Math.sin(angle + 1) * 4, 0),
-            new THREE.Vector3(Math.cos(angle + 2) * 10, Math.sin(angle + 2) * 6, 15),
-          ]);
-          return (
-            <mesh key={i}>
-              <tubeGeometry args={[curve, 48, 0.14, 8, false]} />
-              {material}
-            </mesh>
-          );
-        })}
-      </group>
-    );
-  }
-
-  if (meshType === 'BiotechDNA') {
-    return (
-      <group ref={groupRef}>
-        {Array.from({ length: 36 }).map((_, i) => {
-          const angle = i * 0.32 + t * 0.6;
-          const y = (i - 18) * 0.55;
-          const r = 3.2;
-          const x1 = Math.cos(angle) * r;
-          const z1 = Math.sin(angle) * r;
-          const x2 = Math.cos(angle + Math.PI) * r;
-          const z2 = Math.sin(angle + Math.PI) * r;
-
-          return (
-            <group key={i}>
-              <mesh position={[x1, y, z1]}>
-                <sphereGeometry args={[0.5, 24, 24]} />
-                {material}
-              </mesh>
-              <mesh position={[x2, y, z2]}>
-                <sphereGeometry args={[0.5, 24, 24]} />
-                {material}
-              </mesh>
-              <mesh position={[(x1 + x2) / 2, y, (z1 + z2) / 2]} rotation={[0, -angle, Math.PI / 2]}>
-                <cylinderGeometry args={[0.08, 0.08, r * 2, 12]} />
-                <meshBasicMaterial color={c3 || '#ffffff'} />
-              </mesh>
-            </group>
-          );
-        })}
-      </group>
-    );
-  }
-
-  // Default: TorusKnot
-  return (
-    <mesh ref={knotRef} scale={1.2}>
-      <torusKnotGeometry args={[2.8, 0.75, 200, 48]} />
-      {material}
-    </mesh>
-  );
-};
-
-// ------------------------------------------------------------------
-// MASTER 3D SWARM SCENE: PURE EXECUTION ENGINE
+// MASTER 3D PRO-VFX DIRECTOR CANVAS ROUTER
 // ------------------------------------------------------------------
 export interface MasterSceneProps {
-  data: any;
+  data: {
+    engine3D?: {
+      activeModule?: 'Data_Tunnel' | 'Cinematic_Dust' | 'Glass_Abstract';
+      themeColors?: string[];
+      speedMultiplier?: number;
+      cameraMotion?: string;
+    };
+    commercialMarketCategory?: string;
+    colors?: string[];
+    [key: string]: any;
+  };
 }
 
 export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
   const frame = useCurrentFrame();
 
-  const mathTD = data?.mathTD || {};
-  const meshType = mathTD.geometryMeshType || data?.engine3D?.solidGeometry || 'TorusKnot';
-  const pbrMaterial = data?.materialLighting?.pbrMaterial || data?.engine3D?.physicalMaterial || {};
-  const lighting = data?.materialLighting?.cinematicLighting || {};
-  const cinematography = data?.cinematography?.cameraDP || {};
-  const vfx = data?.cinematicVFX || {};
+  const e3d = data?.engine3D || {};
+  let activeModule = e3d.activeModule;
 
-  const colors: string[] = Array.isArray(data?.colors) && data.colors.length >= 2
-    ? data.colors
-    : [lighting.ambientHex || '#00f0ff', lighting.fillLightHex || '#ff007f', lighting.rimLightHex || '#7000ff'];
+  if (!activeModule) {
+    const cat = data?.commercialMarketCategory || '';
+    if (cat.includes('tunnel') || cat.includes('fiber') || cat.includes('data')) {
+      activeModule = 'Data_Tunnel';
+    } else if (cat.includes('dust') || cat.includes('star') || cat.includes('bio') || cat.includes('crypto')) {
+      activeModule = 'Cinematic_Dust';
+    } else {
+      activeModule = 'Glass_Abstract';
+    }
+  }
 
-  const bloomIntensity = typeof vfx.bloomIntensity === 'number' ? vfx.bloomIntensity : 2.5;
-  const caOffset = typeof vfx.chromaticAberrationOffset === 'number' ? vfx.chromaticAberrationOffset : 0.005;
-  const noiseOpacity = typeof vfx.noiseOpacity === 'number' ? vfx.noiseOpacity : 0.035;
-
-  const keyPos = lighting.keyLightPosition || [10, 15, 8];
+  const rawColors = e3d.themeColors || data?.colors || ['#00f0ff', '#ff007f'];
+  const colors: string[] = [rawColors[0] || '#00f0ff', rawColors[1] || '#ff007f'];
+  const speed = typeof e3d.speedMultiplier === 'number' ? e3d.speedMultiplier : 0.8;
+  const cameraMotion = e3d.cameraMotion || 'slow_pan';
 
   return (
     <ThreeErrorBoundary fallback={<mesh><sphereGeometry args={[2, 32, 32]} /><meshBasicMaterial color="#00f0ff" /></mesh>}>
-      <fogExp2 attach="fog" color="#03040a" density={0.02} />
+      <color attach="background" args={['#020308']} />
+      <fogExp2 attach="fog" color="#020308" density={0.018} />
 
-      {/* Swarm Virtual DP Camera Rig */}
-      <SwarmCinematographerCamera
-        splinePoints={cinematography.splinePoints}
-        motionStyle={cinematography.motionStyle}
-        lensFOV={cinematography.lensFOV}
-      />
+      {/* Cinematic Camera Rig */}
+      <VirtualDPCamera motion={cameraMotion} speed={speed} />
 
-      {/* Swarm 3-Point Cinematic Lighting Rig */}
-      <ambientLight intensity={lighting.ambientIntensity ?? 1.2} color={lighting.ambientHex || '#ffffff'} />
-      <directionalLight position={keyPos} intensity={lighting.keyLightIntensity ?? 2.8} color={lighting.keyLightHex || '#ffffff'} />
-      <pointLight position={[-15, -12, -10]} intensity={lighting.fillLightIntensity ?? 4.2} color={lighting.fillLightHex || colors[1]} />
-      <pointLight position={[15, 12, 10]} intensity={lighting.rimLightIntensity ?? 3.8} color={lighting.rimLightHex || colors[0]} />
+      {/* Studio Lighting */}
+      <ambientLight intensity={0.9} />
+      <directionalLight position={[10, 15, 8]} intensity={2.2} color="#ffffff" />
+      <pointLight position={[-12, -10, -10]} intensity={4.5} color={colors[1]} />
+      <pointLight position={[12, 12, 10]} intensity={4.5} color={colors[0]} />
       <Environment preset="city" />
 
-      {/* Hero Structure */}
-      <SwarmHeroCore
-        meshType={meshType}
-        pbrMaterial={pbrMaterial}
-        colors={colors}
-        frame={frame}
-      />
-
-      {/* Instanced Physics Particle Cloud */}
-      <SwarmInstancedMathEngine
-        mathTD={mathTD}
-        pbrMaterial={pbrMaterial}
-        colors={colors}
-        frame={frame}
-      />
+      {/* PRO-VFX MODULE ROUTER */}
+      {activeModule === 'Data_Tunnel' && (
+        <DataTunnelModule colors={colors} speed={speed} frame={frame} />
+      )}
+      {activeModule === 'Cinematic_Dust' && (
+        <CinematicDustModule colors={colors} speed={speed} frame={frame} />
+      )}
+      {activeModule === 'Glass_Abstract' && (
+        <GlassAbstractModule colors={colors} speed={speed} frame={frame} />
+      )}
+      {activeModule !== 'Data_Tunnel' && activeModule !== 'Cinematic_Dust' && activeModule !== 'Glass_Abstract' && (
+        <GlassAbstractModule colors={colors} speed={speed} frame={frame} />
+      )}
 
       {/* Heavy Cinematic Post-Processing Pipeline */}
       <EffectComposer disableNormalPass>
         <Bloom
-          luminanceThreshold={0.2}
-          luminanceSmoothing={0.8}
-          intensity={bloomIntensity}
+          luminanceThreshold={0.25}
+          luminanceSmoothing={0.85}
+          intensity={2.4}
         />
-        <ChromaticAberration offset={new THREE.Vector2(caOffset, caOffset)} />
-        <Noise opacity={noiseOpacity} />
+        <ChromaticAberration offset={new THREE.Vector2(0.005, 0.005)} />
+        <Noise opacity={0.035} />
         <Vignette eskil={false} offset={0.1} darkness={1.1} />
       </EffectComposer>
     </ThreeErrorBoundary>

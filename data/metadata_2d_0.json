@@ -1,86 +1,29 @@
 {
   "seoPackage": {
-    "title": "4K Motion Graphics: Retro Pixel Dither Glitch Wave | Abstract 2D VFX",
-    "description": "Dynamic pure visual mathematical choreography of cyber matrix telemetry. 100% pure visual procedural motion graphics.",
+    "title": "4K Motion Overlay: Retro Pixel Dither Glitch Wave - Glitch Overlay",
+    "description": "High-utility professional video editor overlay for Retro Pixel Dither Glitch Wave with Glitch Overlay.",
     "seoTags": [
-      "2d motion graphics",
-      "abstract",
-      "4k",
-      "hud",
-      "mograph",
+      "2d overlay",
       "vfx overlay",
-      "swarm",
+      "premiere pro",
+      "light leak",
+      "glitch",
+      "hud",
+      "glitch_overlay",
       "retro pixel dither glitch wave"
     ]
   },
-  "motionDirector": {
-    "visualStructure": {
-      "archetypeName": "cyber_matrix_telemetry",
-      "structuralDescription": "Dynamic pure visual mathematical choreography of cyber matrix telemetry",
-      "energySpeed": 1.1,
-      "complexity": 1.3
-    }
-  },
-  "colorTheorist": {
-    "colorTheory": {
-      "primaryTechGlow": "#e0e7ff",
-      "secondaryAccent": "#6366f1",
-      "glowHighlight": "#a855f7",
-      "backgroundAmbiance": "#03040a",
-      "paletteArray": [
-        "#e0e7ff",
-        "#6366f1",
-        "#a855f7",
-        "#ec4899"
-      ]
-    }
-  },
-  "compositor": {
-    "compositingVFX": {
-      "bloomIntensity": 2.8,
-      "bloomThreshold": 0.2,
-      "chromaticAberrationOffset": 0.005,
-      "filmGrainNoise": 0.035,
-      "vignetteDarkness": 1.1
-    }
-  },
-  "commercialMarketCategory": "cyberpunk_hacker_hud",
   "engine2D": {
-    "layoutStructure": "cyber_matrix_telemetry",
-    "colorPalette": [
-      "#e0e7ff",
-      "#6366f1",
-      "#a855f7",
-      "#ec4899"
-    ],
-    "energySpeed": 1.1,
-    "complexity": 1.3,
-    "glowIntensity": 2.8,
-    "elements": [
-      {
-        "type": "data_ring",
-        "scale": 1,
-        "thickness": 3
-      },
-      {
-        "type": "glass_blob",
-        "size": 400
-      },
-      {
-        "type": "hud_grid",
-        "rows": 5,
-        "cols": 8
-      },
-      {
-        "type": "waveform_bars",
-        "scale": 1.1
-      }
+    "activeOverlay": "Glitch_Overlay",
+    "blendMode": "screen",
+    "intensity": 0.85,
+    "colors": [
+      "#4ade80",
+      "#22d3ee"
     ]
   },
   "colors": [
-    "#e0e7ff",
-    "#6366f1",
-    "#a855f7",
-    "#ec4899"
+    "#4ade80",
+    "#22d3ee"
   ]
 }

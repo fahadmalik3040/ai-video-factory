@@ -1,82 +1,50 @@
 {
   "seoPackage": {
-    "title": "Cinematic 4K Solid 3D: AI Neural Network Data Flow | 4K Stock Visuals",
-    "description": "Procedural 3D solid geometry simulation of AI Neural Network Data Flow & Ultra-clean abstract 2D procedural motion graphics of AI Neural Network Data Flow",
+    "title": "4K Stock VFX: AI Neural Network Data Flow - Cinematic Dust | 4K Pro VFX Assets",
+    "description": "High-end commercial stock VFX overlay of AI Neural Network Data Flow featuring Cinematic Dust. & High-utility professional video editor overlay for AI Neural Network Data Flow with Light Leak.",
     "seoTags": [
-      "3d",
-      "procedural",
-      "4k",
-      "stock video",
-      "pbr",
+      "3d vfx",
+      "4k stock",
+      "pro vfx",
+      "b-roll",
+      "drei",
+      "apple commercial",
+      "cinematic_dust",
       "ai neural network data flow",
-      "2d mograph",
-      "motion graphics",
-      "abstract",
+      "2d overlay",
+      "vfx overlay",
+      "premiere pro",
+      "light leak",
+      "glitch",
       "hud",
-      "pure visual"
+      "light_leak"
+    ]
+  },
+  "engine3D": {
+    "activeModule": "Cinematic_Dust",
+    "themeColors": [
+      "#e0e7ff",
+      "#6366f1"
+    ],
+    "speedMultiplier": 0.8,
+    "cameraMotion": "slow_pan"
+  },
+  "colors": [
+    "#e0e7ff",
+    "#6366f1"
+  ],
+  "engine2D": {
+    "activeOverlay": "Light_Leak",
+    "blendMode": "screen",
+    "intensity": 0.85,
+    "colors": [
+      "#ff3366",
+      "#33ccff"
     ]
   },
   "renderModes": [
     "3D",
     "2D"
   ],
-  "engine3D": {
-    "solidGeometry": "SphereGeometry",
-    "layoutMath": "concentric_rings",
-    "physicalMaterial": {
-      "metalness": 0.9,
-      "roughness": 0.1
-    },
-    "cinematographyDP": {
-      "cameraPath": "smooth_dolly_in",
-      "pacing": "extremely_slow_and_cinematic",
-      "focusDistance": 0
-    },
-    "colors": [
-      "#e0e7ff",
-      "#6366f1",
-      "#a855f7"
-    ],
-    "cameraSpeed": 1,
-    "bloomIntensity": 2,
-    "complexity": 1
-  },
-  "engine2D": {
-    "layoutStructure": "organic_liquid_prism",
-    "colorPalette": [
-      "#10b981",
-      "#3b82f6",
-      "#f59e0b",
-      "#ef4444"
-    ],
-    "energySpeed": 1.15,
-    "complexity": 1.2,
-    "glowIntensity": 2.5,
-    "elements": [
-      {
-        "type": "data_ring",
-        "scale": 1,
-        "thickness": 3
-      },
-      {
-        "type": "glass_blob",
-        "size": 380
-      },
-      {
-        "type": "hud_grid",
-        "rows": 5,
-        "cols": 8
-      },
-      {
-        "type": "waveform_bars",
-        "scale": 1
-      }
-    ]
-  },
-  "colors": [
-    "#e0e7ff",
-    "#6366f1",
-    "#a855f7"
-  ],
-  "title": "Dual-Render 4K: AI Neural Network Data Flow"
+  "title": "Pro VFX 4K: AI Neural Network Data Flow"
 }

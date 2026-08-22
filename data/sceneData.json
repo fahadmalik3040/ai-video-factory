@@ -1,406 +1,50 @@
 {
   "seoPackage": {
-    "title": "4K Stock Video: Retro Pixel Dither Glitch Wave | Cinematic 3D VFX | 4K Stock Visuals",
-    "description": "Quantum energy flow and structured procedural geometry reflecting Retro Pixel Dither Glitch Wave. Tailored for high-end commercial video editors with cinematic PBR rendering. & Dynamic pure visual mathematical choreography of cyber matrix telemetry. 100% pure visual procedural motion graphics.",
+    "title": "4K Stock VFX: AI Neural Network Data Flow - Cinematic Dust | 4K Pro VFX Assets",
+    "description": "High-end commercial stock VFX overlay of AI Neural Network Data Flow featuring Cinematic Dust. & High-utility professional video editor overlay for AI Neural Network Data Flow with Light Leak.",
     "seoTags": [
-      "3d",
-      "procedural",
-      "4k",
-      "stock video",
-      "vfx",
-      "multi-agent swarm",
-      "pbr",
-      "retro pixel dither glitch wave",
-      "2d motion graphics",
-      "abstract",
-      "hud",
-      "mograph",
+      "3d vfx",
+      "4k stock",
+      "pro vfx",
+      "b-roll",
+      "drei",
+      "apple commercial",
+      "cinematic_dust",
+      "ai neural network data flow",
+      "2d overlay",
       "vfx overlay",
-      "swarm"
+      "premiere pro",
+      "light leak",
+      "glitch",
+      "hud",
+      "light_leak"
     ]
   },
-  "concept": {
-    "conceptTitle": "Cinematic 4K VFX: Retro Pixel Dither Glitch Wave",
-    "visualMetaphor": "Quantum energy flow and structured procedural geometry reflecting Retro Pixel Dither Glitch Wave",
-    "artisticDirection": "High-end commercial stock footage with hyper-realistic PBR materials and deep volumetric lighting",
-    "commercialNiche": "Technology & Scientific Motion Graphics"
-  },
-  "mathTD": {
-    "particleMath": {
-      "instancedCount": 180,
-      "spreadRadius": 12,
-      "noiseScale": 0.45,
-      "velocityVector": [
-        0.2,
-        0.5,
-        0.1
-      ],
-      "rotationalFrequency": 0.15,
-      "dispersionFormula": "sin(t*0.8) * cos(i*0.3)"
-    },
-    "geometryMeshType": "FiberSplines"
-  },
-  "materialLighting": {
-    "cinematicLighting": {
-      "ambientHex": "#00ffcc",
-      "ambientIntensity": 1.2,
-      "keyLightHex": "#ffffff",
-      "keyLightIntensity": 2.8,
-      "keyLightPosition": [
-        10,
-        15,
-        8
-      ],
-      "fillLightHex": "#ff0066",
-      "fillLightIntensity": 4.2,
-      "rimLightHex": "#cc00ff",
-      "rimLightIntensity": 3.8
-    },
-    "pbrMaterial": {
-      "baseColor": "#00ffcc",
-      "metalness": 0.95,
-      "roughness": 0.08,
-      "transmission": 0,
-      "ior": 1.5,
-      "clearcoat": 1,
-      "emissiveHex": "#ff0066",
-      "emissiveIntensity": 1.8
-    }
-  },
-  "cinematography": {
-    "cameraDP": {
-      "lensFOV": 32,
-      "motionStyle": "ultra_slow_continuous",
-      "focusDistance": 0,
-      "depthOfFieldBokeh": true,
-      "splinePoints": [
-        [
-          0,
-          5,
-          34
-        ],
-        [
-          1.5,
-          3.5,
-          26
-        ],
-        [
-          -1,
-          2,
-          19
-        ],
-        [
-          0.5,
-          1,
-          14
-        ],
-        [
-          0,
-          0.5,
-          11
-        ]
-      ]
-    }
-  },
-  "cinematicVFX": {
-    "bloomIntensity": 2.5,
-    "chromaticAberrationOffset": 0.005,
-    "noiseOpacity": 0.035,
-    "vignette": true
-  },
-  "commercialMarketCategory": "cyberpunk_hacker_hud",
   "engine3D": {
-    "solidGeometry": "FiberSplines",
-    "layoutMath": "swarm_instanced_physics",
-    "colors": [
-      "#00ffcc",
-      "#ff0066",
-      "#cc00ff"
+    "activeModule": "Cinematic_Dust",
+    "themeColors": [
+      "#e0e7ff",
+      "#6366f1"
     ],
-    "cameraSpeed": 1,
-    "bloomIntensity": 2.5,
-    "complexity": 1.2
+    "speedMultiplier": 0.8,
+    "cameraMotion": "slow_pan"
   },
   "colors": [
-    "#00ffcc",
-    "#ff0066",
-    "#cc00ff"
+    "#e0e7ff",
+    "#6366f1"
   ],
-  "motionDirector": {
-    "visualStructure": {
-      "archetypeName": "cyber_matrix_telemetry",
-      "structuralDescription": "Dynamic pure visual mathematical choreography of cyber matrix telemetry",
-      "energySpeed": 1.1,
-      "complexity": 1.3
-    }
-  },
-  "colorTheorist": {
-    "colorTheory": {
-      "primaryTechGlow": "#e0e7ff",
-      "secondaryAccent": "#6366f1",
-      "glowHighlight": "#a855f7",
-      "backgroundAmbiance": "#03040a",
-      "paletteArray": [
-        "#e0e7ff",
-        "#6366f1",
-        "#a855f7",
-        "#ec4899"
-      ]
-    }
-  },
-  "compositor": {
-    "compositingVFX": {
-      "bloomIntensity": 2.8,
-      "bloomThreshold": 0.2,
-      "chromaticAberrationOffset": 0.005,
-      "filmGrainNoise": 0.035,
-      "vignetteDarkness": 1.1
-    }
-  },
   "engine2D": {
-    "layoutStructure": "cyber_matrix_telemetry",
-    "colorPalette": [
-      "#e0e7ff",
-      "#6366f1",
-      "#a855f7",
-      "#ec4899"
-    ],
-    "energySpeed": 1.1,
-    "complexity": 1.3,
-    "glowIntensity": 2.8,
-    "elements": [
-      {
-        "type": "data_ring",
-        "scale": 1,
-        "thickness": 3
-      },
-      {
-        "type": "glass_blob",
-        "size": 400
-      },
-      {
-        "type": "hud_grid",
-        "rows": 5,
-        "cols": 8
-      },
-      {
-        "type": "waveform_bars",
-        "scale": 1.1
-      }
+    "activeOverlay": "Light_Leak",
+    "blendMode": "screen",
+    "intensity": 0.85,
+    "colors": [
+      "#ff3366",
+      "#33ccff"
     ]
   },
   "renderModes": [
     "3D",
     "2D"
   ],
-  "master3D": {
-    "seoPackage": {
-      "title": "4K Stock Video: Retro Pixel Dither Glitch Wave | Cinematic 3D VFX",
-      "description": "Quantum energy flow and structured procedural geometry reflecting Retro Pixel Dither Glitch Wave. Tailored for high-end commercial video editors with cinematic PBR rendering.",
-      "seoTags": [
-        "3d",
-        "procedural",
-        "4k",
-        "stock video",
-        "vfx",
-        "multi-agent swarm",
-        "pbr",
-        "retro pixel dither glitch wave"
-      ]
-    },
-    "concept": {
-      "conceptTitle": "Cinematic 4K VFX: Retro Pixel Dither Glitch Wave",
-      "visualMetaphor": "Quantum energy flow and structured procedural geometry reflecting Retro Pixel Dither Glitch Wave",
-      "artisticDirection": "High-end commercial stock footage with hyper-realistic PBR materials and deep volumetric lighting",
-      "commercialNiche": "Technology & Scientific Motion Graphics"
-    },
-    "mathTD": {
-      "particleMath": {
-        "instancedCount": 180,
-        "spreadRadius": 12,
-        "noiseScale": 0.45,
-        "velocityVector": [
-          0.2,
-          0.5,
-          0.1
-        ],
-        "rotationalFrequency": 0.15,
-        "dispersionFormula": "sin(t*0.8) * cos(i*0.3)"
-      },
-      "geometryMeshType": "FiberSplines"
-    },
-    "materialLighting": {
-      "cinematicLighting": {
-        "ambientHex": "#00ffcc",
-        "ambientIntensity": 1.2,
-        "keyLightHex": "#ffffff",
-        "keyLightIntensity": 2.8,
-        "keyLightPosition": [
-          10,
-          15,
-          8
-        ],
-        "fillLightHex": "#ff0066",
-        "fillLightIntensity": 4.2,
-        "rimLightHex": "#cc00ff",
-        "rimLightIntensity": 3.8
-      },
-      "pbrMaterial": {
-        "baseColor": "#00ffcc",
-        "metalness": 0.95,
-        "roughness": 0.08,
-        "transmission": 0,
-        "ior": 1.5,
-        "clearcoat": 1,
-        "emissiveHex": "#ff0066",
-        "emissiveIntensity": 1.8
-      }
-    },
-    "cinematography": {
-      "cameraDP": {
-        "lensFOV": 32,
-        "motionStyle": "ultra_slow_continuous",
-        "focusDistance": 0,
-        "depthOfFieldBokeh": true,
-        "splinePoints": [
-          [
-            0,
-            5,
-            34
-          ],
-          [
-            1.5,
-            3.5,
-            26
-          ],
-          [
-            -1,
-            2,
-            19
-          ],
-          [
-            0.5,
-            1,
-            14
-          ],
-          [
-            0,
-            0.5,
-            11
-          ]
-        ]
-      }
-    },
-    "cinematicVFX": {
-      "bloomIntensity": 2.5,
-      "chromaticAberrationOffset": 0.005,
-      "noiseOpacity": 0.035,
-      "vignette": true
-    },
-    "commercialMarketCategory": "fiber_optic_data_flow",
-    "engine3D": {
-      "solidGeometry": "FiberSplines",
-      "layoutMath": "swarm_instanced_physics",
-      "colors": [
-        "#00ffcc",
-        "#ff0066",
-        "#cc00ff"
-      ],
-      "cameraSpeed": 1,
-      "bloomIntensity": 2.5,
-      "complexity": 1.2
-    },
-    "colors": [
-      "#00ffcc",
-      "#ff0066",
-      "#cc00ff"
-    ]
-  },
-  "master2D": {
-    "seoPackage": {
-      "title": "4K Motion Graphics: Retro Pixel Dither Glitch Wave | Abstract 2D VFX",
-      "description": "Dynamic pure visual mathematical choreography of cyber matrix telemetry. 100% pure visual procedural motion graphics.",
-      "seoTags": [
-        "2d motion graphics",
-        "abstract",
-        "4k",
-        "hud",
-        "mograph",
-        "vfx overlay",
-        "swarm",
-        "retro pixel dither glitch wave"
-      ]
-    },
-    "motionDirector": {
-      "visualStructure": {
-        "archetypeName": "cyber_matrix_telemetry",
-        "structuralDescription": "Dynamic pure visual mathematical choreography of cyber matrix telemetry",
-        "energySpeed": 1.1,
-        "complexity": 1.3
-      }
-    },
-    "colorTheorist": {
-      "colorTheory": {
-        "primaryTechGlow": "#e0e7ff",
-        "secondaryAccent": "#6366f1",
-        "glowHighlight": "#a855f7",
-        "backgroundAmbiance": "#03040a",
-        "paletteArray": [
-          "#e0e7ff",
-          "#6366f1",
-          "#a855f7",
-          "#ec4899"
-        ]
-      }
-    },
-    "compositor": {
-      "compositingVFX": {
-        "bloomIntensity": 2.8,
-        "bloomThreshold": 0.2,
-        "chromaticAberrationOffset": 0.005,
-        "filmGrainNoise": 0.035,
-        "vignetteDarkness": 1.1
-      }
-    },
-    "commercialMarketCategory": "cyberpunk_hacker_hud",
-    "engine2D": {
-      "layoutStructure": "cyber_matrix_telemetry",
-      "colorPalette": [
-        "#e0e7ff",
-        "#6366f1",
-        "#a855f7",
-        "#ec4899"
-      ],
-      "energySpeed": 1.1,
-      "complexity": 1.3,
-      "glowIntensity": 2.8,
-      "elements": [
-        {
-          "type": "data_ring",
-          "scale": 1,
-          "thickness": 3
-        },
-        {
-          "type": "glass_blob",
-          "size": 400
-        },
-        {
-          "type": "hud_grid",
-          "rows": 5,
-          "cols": 8
-        },
-        {
-          "type": "waveform_bars",
-          "scale": 1.1
-        }
-      ]
-    },
-    "colors": [
-      "#e0e7ff",
-      "#6366f1",
-      "#a855f7",
-      "#ec4899"
-    ]
-  },
-  "title": "Swarm VFX 4K: Retro Pixel Dither Glitch Wave"
+  "title": "Pro VFX 4K: AI Neural Network Data Flow"
 }
