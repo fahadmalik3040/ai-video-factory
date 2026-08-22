@@ -1,0 +1,47 @@
+{
+  "seoPackage": {
+    "title": "Cinematic 4K 2D Mograph: AI Neural Network Data Flow",
+    "description": "Ultra-clean abstract 2D procedural motion graphics of AI Neural Network Data Flow",
+    "seoTags": [
+      "2d mograph",
+      "motion graphics",
+      "4k",
+      "abstract",
+      "hud",
+      "pure visual",
+      "ai neural network data flow"
+    ]
+  },
+  "engine2D": {
+    "layoutStructure": "organic_liquid_prism",
+    "colorPalette": [
+      "#10b981",
+      "#3b82f6",
+      "#f59e0b",
+      "#ef4444"
+    ],
+    "energySpeed": 1.15,
+    "complexity": 1.2,
+    "glowIntensity": 2.5,
+    "elements": [
+      {
+        "type": "data_ring",
+        "scale": 1,
+        "thickness": 3
+      },
+      {
+        "type": "glass_blob",
+        "size": 380
+      },
+      {
+        "type": "hud_grid",
+        "rows": 5,
+        "cols": 8
+      },
+      {
+        "type": "waveform_bars",
+        "scale": 1
+      }
+    ]
+  }
+}

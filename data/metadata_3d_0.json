@@ -1,0 +1,35 @@
+{
+  "seoPackage": {
+    "title": "Cinematic 4K Solid 3D: Retro Pixel Dither Glitch Wave",
+    "description": "Procedural 3D solid geometry simulation of Retro Pixel Dither Glitch Wave",
+    "seoTags": [
+      "3d",
+      "procedural",
+      "4k",
+      "stock video",
+      "pbr",
+      "retro pixel dither glitch wave"
+    ]
+  },
+  "engine3D": {
+    "solidGeometry": "BoxGeometry",
+    "layoutMath": "grid",
+    "physicalMaterial": {
+      "metalness": 0.9,
+      "roughness": 0.1
+    },
+    "cinematographyDP": {
+      "cameraPath": "slow_orbit",
+      "pacing": "extremely_slow_and_cinematic",
+      "focusDistance": 0
+    },
+    "colors": [
+      "#4ade80",
+      "#22d3ee",
+      "#e879f9"
+    ],
+    "cameraSpeed": 1,
+    "bloomIntensity": 2,
+    "complexity": 1
+  }
+}

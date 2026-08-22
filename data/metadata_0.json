@@ -1,17 +1,19 @@
 {
   "seoPackage": {
-    "title": "Cinematic 4K VFX Dual-Render: Stock Market Finance Candlesticks Abstract",
-    "description": "High-End 4K Visual Motion Graphics and Solid PBR Simulation of Stock Market Finance Candlesticks Abstract",
+    "title": "Cinematic 4K Solid 3D: Retro Pixel Dither Glitch Wave | 4K Stock Visuals",
+    "description": "Procedural 3D solid geometry simulation of Retro Pixel Dither Glitch Wave & Ultra-clean abstract 2D procedural motion graphics of Retro Pixel Dither Glitch Wave",
     "seoTags": [
-      "solid 3d",
-      "4k",
+      "3d",
       "procedural",
-      "motion graphics",
+      "4k",
       "stock video",
-      "vfx template",
-      "pbr materials",
-      "pure visual",
-      "stock market finance candlesticks abstract"
+      "pbr",
+      "retro pixel dither glitch wave",
+      "2d mograph",
+      "motion graphics",
+      "abstract",
+      "hud",
+      "pure visual"
     ]
   },
   "renderModes": [
@@ -20,33 +22,36 @@
   ],
   "engine3D": {
     "solidGeometry": "BoxGeometry",
-    "layoutMath": "wave_plane",
+    "layoutMath": "grid",
     "physicalMaterial": {
       "metalness": 0.9,
       "roughness": 0.1
     },
     "cinematographyDP": {
-      "cameraPath": "smooth_dolly_in",
+      "cameraPath": "slow_orbit",
       "pacing": "extremely_slow_and_cinematic",
       "focusDistance": 0
     },
     "colors": [
-      "#00f0ff",
-      "#ff007f",
-      "#7000ff"
+      "#4ade80",
+      "#22d3ee",
+      "#e879f9"
     ],
     "cameraSpeed": 1,
     "bloomIntensity": 2,
     "complexity": 1
   },
   "engine2D": {
-    "layoutStructure": "hud_circles",
+    "layoutStructure": "cyber_matrix_telemetry",
     "colorPalette": [
-      "#00f0ff",
-      "#ff007f",
-      "#7000ff",
-      "#00ffaa"
+      "#00ffcc",
+      "#ff0066",
+      "#cc00ff",
+      "#ffffff"
     ],
+    "energySpeed": 1,
+    "complexity": 1,
+    "glowIntensity": 2.5,
     "elements": [
       {
         "type": "data_ring",
@@ -68,16 +73,10 @@
       }
     ]
   },
-  "title": "Cinematic 4K VFX: Stock Market Finance Candlesticks Abstract",
-  "solid_core": "abstract_solid_waves",
-  "sceneType": "abstract_solid_waves",
-  "movementStyle": "quantum_flow",
   "colors": [
-    "#00f0ff",
-    "#ff007f",
-    "#7000ff"
+    "#4ade80",
+    "#22d3ee",
+    "#e879f9"
   ],
-  "cameraSpeed": 1,
-  "bloomIntensity": 2,
-  "complexity": 1
+  "title": "Dual-Render 4K: Retro Pixel Dither Glitch Wave"
 }

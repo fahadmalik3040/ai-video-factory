@@ -1,0 +1,47 @@
+{
+  "seoPackage": {
+    "title": "Cinematic 4K 2D Mograph: Retro Pixel Dither Glitch Wave",
+    "description": "Ultra-clean abstract 2D procedural motion graphics of Retro Pixel Dither Glitch Wave",
+    "seoTags": [
+      "2d mograph",
+      "motion graphics",
+      "4k",
+      "abstract",
+      "hud",
+      "pure visual",
+      "retro pixel dither glitch wave"
+    ]
+  },
+  "engine2D": {
+    "layoutStructure": "cyber_matrix_telemetry",
+    "colorPalette": [
+      "#00ffcc",
+      "#ff0066",
+      "#cc00ff",
+      "#ffffff"
+    ],
+    "energySpeed": 1,
+    "complexity": 1,
+    "glowIntensity": 2.5,
+    "elements": [
+      {
+        "type": "data_ring",
+        "scale": 1,
+        "thickness": 3
+      },
+      {
+        "type": "glass_blob",
+        "size": 380
+      },
+      {
+        "type": "hud_grid",
+        "rows": 5,
+        "cols": 8
+      },
+      {
+        "type": "waveform_bars",
+        "scale": 1
+      }
+    ]
+  }
+}

@@ -1,17 +1,19 @@
 {
   "seoPackage": {
-    "title": "Cinematic 4K VFX Dual-Render: AI Neural Network Data Flow",
-    "description": "High-End 4K Visual Motion Graphics and Solid PBR Simulation of AI Neural Network Data Flow",
+    "title": "Cinematic 4K Solid 3D: AI Neural Network Data Flow | 4K Stock Visuals",
+    "description": "Procedural 3D solid geometry simulation of AI Neural Network Data Flow & Ultra-clean abstract 2D procedural motion graphics of AI Neural Network Data Flow",
     "seoTags": [
-      "solid 3d",
-      "4k",
+      "3d",
       "procedural",
-      "motion graphics",
+      "4k",
       "stock video",
-      "vfx template",
-      "pbr materials",
-      "pure visual",
-      "ai neural network data flow"
+      "pbr",
+      "ai neural network data flow",
+      "2d mograph",
+      "motion graphics",
+      "abstract",
+      "hud",
+      "pure visual"
     ]
   },
   "renderModes": [
@@ -31,22 +33,25 @@
       "focusDistance": 0
     },
     "colors": [
-      "#ff9900",
-      "#ff0033",
-      "#6600cc"
+      "#e0e7ff",
+      "#6366f1",
+      "#a855f7"
     ],
     "cameraSpeed": 1,
     "bloomIntensity": 2,
     "complexity": 1
   },
   "engine2D": {
-    "layoutStructure": "floating_glass_shapes",
+    "layoutStructure": "organic_liquid_prism",
     "colorPalette": [
-      "#ff9900",
-      "#ff0033",
-      "#6600cc",
-      "#00ccff"
+      "#10b981",
+      "#3b82f6",
+      "#f59e0b",
+      "#ef4444"
     ],
+    "energySpeed": 1.15,
+    "complexity": 1.2,
+    "glowIntensity": 2.5,
     "elements": [
       {
         "type": "data_ring",
@@ -68,16 +73,10 @@
       }
     ]
   },
-  "title": "Cinematic 4K VFX: AI Neural Network Data Flow",
-  "solid_core": "abstract_solid_waves",
-  "sceneType": "abstract_solid_waves",
-  "movementStyle": "quantum_flow",
   "colors": [
-    "#ff9900",
-    "#ff0033",
-    "#6600cc"
+    "#e0e7ff",
+    "#6366f1",
+    "#a855f7"
   ],
-  "cameraSpeed": 1,
-  "bloomIntensity": 2,
-  "complexity": 1
+  "title": "Dual-Render 4K: AI Neural Network Data Flow"
 }
