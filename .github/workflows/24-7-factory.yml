@@ -34,7 +34,7 @@ jobs:
           npx --yes tsx src/scripts/1_generateJson.ts
         
       - name: Install WebGL dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-glx libegl1-mesa xvfb
+        run: sudo apt-get update && sudo apt-get install -y libgl1 libegl1 xvfb
 
       - name: Phase 3 & 4 - 4K Render Engine
         run: npm run render:cloud
