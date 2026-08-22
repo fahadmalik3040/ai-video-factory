@@ -1,16 +1,30 @@
 {
+  "commercialMarketCategory": "fiber_optic_data_flow",
+  "visualStructure": {
+    "primaryElementLayout": "Interlocking structured fiber optic data flow elements with clean composition",
+    "complexityLevel": 7
+  },
+  "commercialColors": {
+    "primaryTechGlow": "#ff9900",
+    "backgroundAmbiance": "#04050d",
+    "accentHighlight": "#ff0033"
+  },
+  "cinematicEditorNeeds": {
+    "cameraPacing": "ultra_slow_continuous",
+    "depthOfField": "heavy_bokeh",
+    "negativeSpace": "left_side_open_for_text"
+  },
   "seoPackage": {
-    "title": "Cinematic 4K Multi-Layer 3D VFX: Retro Pixel Dither Glitch Wave",
-    "description": "Multi-layer procedural 3D solid geometry simulation of Retro Pixel Dither Glitch Wave with cinematic post-processing",
+    "title": "4K Stock Footage: Retro Pixel Dither Glitch Wave - FIBER OPTIC DATA FLOW",
+    "description": "High-end commercial stock footage and 3D visual backdrop of Retro Pixel Dither Glitch Wave tailored for video editors.",
     "seoTags": [
-      "3d",
-      "procedural",
+      "stock footage",
       "4k",
-      "stock video",
-      "vfx",
-      "multi-layer",
-      "redshift",
-      "octane",
+      "commercial",
+      "b-roll",
+      "adobe stock",
+      "video editing",
+      "fiber optic data flow",
       "retro pixel dither glitch wave"
     ]
   },
@@ -27,38 +41,37 @@
   },
   "cameraDP": {
     "fov": 30,
-    "motionStyle": "slow_macro_dolly",
-    "motionPath": "slow_macro_dolly"
+    "motionStyle": "slow_macro_dolly"
   },
   "compositionLayers": [
     {
       "role": "Background_Environment",
-      "geometry": "InfiniteGrid",
+      "geometry": "BinaryTunnel",
       "materialStyle": "neon_wireframe",
-      "color": "#ff3366"
+      "color": "#ff9900"
     },
     {
       "role": "Hero_Subject",
-      "geometry": "TorusKnot",
-      "materialStyle": "frosted_glass",
-      "color": "#33ccff",
+      "geometry": "ParametricTubes",
+      "materialStyle": "glowing_plasma",
+      "color": "#ff0033",
       "scale": 1.6
     },
     {
       "role": "Floating_Accents",
       "geometry": "DataCubes",
       "materialStyle": "pure_emission",
-      "color": "#ffcc00",
+      "color": "#6600cc",
       "instancedCount": 150
     }
   ],
   "engine3D": {
-    "solidGeometry": "TorusKnot",
+    "solidGeometry": "ParametricTubes",
     "layoutMath": "multi_layer_composition",
     "colors": [
-      "#ff3366",
-      "#33ccff",
-      "#ffcc00"
+      "#ff9900",
+      "#ff0033",
+      "#6600cc"
     ],
     "cameraSpeed": 1,
     "bloomIntensity": 2.5,

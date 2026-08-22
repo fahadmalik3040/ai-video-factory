@@ -1,53 +1,67 @@
 {
+  "commercialMarketCategory": "fiber_optic_data_flow",
+  "visualStructure": {
+    "primaryElementLayout": "Structured fiber optic data flow motion graphics with clean negative space",
+    "complexityLevel": 7
+  },
+  "commercialColors": {
+    "primaryTechGlow": "#33ff33",
+    "backgroundAmbiance": "#03040a",
+    "accentHighlight": "#0099ff"
+  },
+  "cinematicEditorNeeds": {
+    "cameraPacing": "ultra_slow_continuous",
+    "depthOfField": "heavy_bokeh",
+    "negativeSpace": "left_side_open_for_text"
+  },
   "seoPackage": {
-    "title": "Cinematic 4K 2D Mograph: Retro Pixel Dither Glitch Wave",
-    "description": "Ultra-clean abstract 2D procedural motion graphics of Retro Pixel Dither Glitch Wave",
+    "title": "4K Commercial 2D Motion Graphics: Retro Pixel Dither Glitch Wave - FIBER OPTIC DATA FLOW",
+    "description": "High-utility pure visual 2D motion graphics and overlay backdrop for Retro Pixel Dither Glitch Wave.",
     "seoTags": [
-      "2d mograph",
-      "motion graphics",
+      "2d motion graphics",
+      "commercial",
       "4k",
-      "abstract",
       "hud",
-      "pure visual",
+      "mograph",
+      "vfx overlay",
+      "video editing",
+      "fiber optic data flow",
       "retro pixel dither glitch wave"
     ]
   },
   "visualArchetype": {
-    "name": "cyber_matrix_telemetry",
+    "name": "parametric_audio_equalizer",
     "colorPalette": [
-      "#ff3366",
-      "#33ccff",
-      "#ffcc00",
-      "#9933ff"
+      "#33ff33",
+      "#0099ff",
+      "#ff0099",
+      "#ffff00"
     ],
     "particlePhysics": {
       "count": 64,
-      "speed": 1.2,
-      "glowIntensity": 3,
-      "turbulence": 0.5
+      "speed": 1.1,
+      "glowIntensity": 2.8
     },
     "hudTelemetry": {
       "radarSegments": 8,
       "gridDensity": 24,
-      "scanlineSpeed": 1.5,
-      "laserPulse": true
+      "scanlineSpeed": 1.5
     },
     "glassmorphism": {
       "blur": 40,
-      "refractionOpacity": 0.25,
-      "chromaticBorder": "#33ccff"
+      "refractionOpacity": 0.25
     }
   },
   "engine2D": {
-    "layoutStructure": "cyber_matrix_telemetry",
+    "layoutStructure": "parametric_audio_equalizer",
     "colorPalette": [
-      "#ff3366",
-      "#33ccff",
-      "#ffcc00",
-      "#9933ff"
+      "#33ff33",
+      "#0099ff",
+      "#ff0099",
+      "#ffff00"
     ],
-    "energySpeed": 1,
-    "complexity": 1,
+    "energySpeed": 1.1,
+    "complexity": 1.2,
     "glowIntensity": 2.8,
     "elements": [
       {

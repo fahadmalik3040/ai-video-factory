@@ -1,22 +1,35 @@
 {
+  "commercialMarketCategory": "fiber_optic_data_flow",
+  "visualStructure": {
+    "primaryElementLayout": "Interlocking structured fiber optic data flow elements with clean composition",
+    "complexityLevel": 7
+  },
+  "commercialColors": {
+    "primaryTechGlow": "#ff9900",
+    "backgroundAmbiance": "#04050d",
+    "accentHighlight": "#ff0033"
+  },
+  "cinematicEditorNeeds": {
+    "cameraPacing": "ultra_slow_continuous",
+    "depthOfField": "heavy_bokeh",
+    "negativeSpace": "left_side_open_for_text"
+  },
   "seoPackage": {
-    "title": "Cinematic 4K Multi-Layer 3D VFX: Retro Pixel Dither Glitch Wave | 4K Stock Visuals",
-    "description": "Multi-layer procedural 3D solid geometry simulation of Retro Pixel Dither Glitch Wave with cinematic post-processing & Ultra-clean abstract 2D procedural motion graphics of Retro Pixel Dither Glitch Wave",
+    "title": "4K Stock Footage: Retro Pixel Dither Glitch Wave - FIBER OPTIC DATA FLOW | 4K Commercial Stock Video",
+    "description": "High-end commercial stock footage and 3D visual backdrop of Retro Pixel Dither Glitch Wave tailored for video editors. & High-utility pure visual 2D motion graphics and overlay backdrop for Retro Pixel Dither Glitch Wave.",
     "seoTags": [
-      "3d",
-      "procedural",
+      "stock footage",
       "4k",
-      "stock video",
-      "vfx",
-      "multi-layer",
-      "redshift",
-      "octane",
+      "commercial",
+      "b-roll",
+      "adobe stock",
+      "video editing",
+      "fiber optic data flow",
       "retro pixel dither glitch wave",
-      "2d mograph",
-      "motion graphics",
-      "abstract",
+      "2d motion graphics",
       "hud",
-      "pure visual"
+      "mograph",
+      "vfx overlay"
     ]
   },
   "renderModes": [
@@ -24,27 +37,27 @@
     "2D"
   ],
   "engine3D": {
-    "solidGeometry": "TorusKnot",
+    "solidGeometry": "ParametricTubes",
     "layoutMath": "multi_layer_composition",
     "colors": [
-      "#ff3366",
-      "#33ccff",
-      "#ffcc00"
+      "#ff9900",
+      "#ff0033",
+      "#6600cc"
     ],
     "cameraSpeed": 1,
     "bloomIntensity": 2.5,
     "complexity": 1.2
   },
   "engine2D": {
-    "layoutStructure": "cyber_matrix_telemetry",
+    "layoutStructure": "parametric_audio_equalizer",
     "colorPalette": [
-      "#ff3366",
-      "#33ccff",
-      "#ffcc00",
-      "#9933ff"
+      "#33ff33",
+      "#0099ff",
+      "#ff0099",
+      "#ffff00"
     ],
-    "energySpeed": 1,
-    "complexity": 1,
+    "energySpeed": 1.1,
+    "complexity": 1.2,
     "glowIntensity": 2.8,
     "elements": [
       {
@@ -67,10 +80,47 @@
       }
     ]
   },
-  "colors": [
-    "#ff3366",
-    "#33ccff",
-    "#ffcc00"
+  "cinematicVFX": {
+    "bloomIntensity": 2.5,
+    "chromaticAberrationOffset": 0.005,
+    "noiseOpacity": 0.04,
+    "vignette": true
+  },
+  "environment": {
+    "bgColor": "#04050d",
+    "fogColor": "#04050d",
+    "fogDensity": 0.025
+  },
+  "cameraDP": {
+    "fov": 30,
+    "motionStyle": "slow_macro_dolly"
+  },
+  "compositionLayers": [
+    {
+      "role": "Background_Environment",
+      "geometry": "BinaryTunnel",
+      "materialStyle": "neon_wireframe",
+      "color": "#ff9900"
+    },
+    {
+      "role": "Hero_Subject",
+      "geometry": "ParametricTubes",
+      "materialStyle": "glowing_plasma",
+      "color": "#ff0033",
+      "scale": 1.6
+    },
+    {
+      "role": "Floating_Accents",
+      "geometry": "DataCubes",
+      "materialStyle": "pure_emission",
+      "color": "#6600cc",
+      "instancedCount": 150
+    }
   ],
-  "title": "Dual-Render 4K: Retro Pixel Dither Glitch Wave"
+  "colors": [
+    "#ff9900",
+    "#ff0033",
+    "#6600cc"
+  ],
+  "title": "Commercial 4K: Retro Pixel Dither Glitch Wave"
 }
