@@ -23,8 +23,16 @@ export interface Engine2DData {
 }
 
 export interface Main2DProps {
+  commercialMarketCategory?: string;
+  commercialColors?: {
+    primaryTechGlow?: string;
+    backgroundAmbiance?: string;
+    accentHighlight?: string;
+  };
   engine2D?: Engine2DData;
   sceneData?: {
+    commercialMarketCategory?: string;
+    commercialColors?: any;
     engine2D?: Engine2DData;
     colors?: string[];
   };
@@ -424,7 +432,7 @@ const HolographicNeuralSynapse: React.FC<{ palette: string[]; frame: number; spe
 };
 
 // ------------------------------------------------------------------
-// MAIN 2D ULTRA COMPOSITION (ARCHETYPE ROUTER)
+// MAIN 2D ULTRA COMPOSITION (COMMERCIAL CATEGORY ROUTER)
 // ------------------------------------------------------------------
 export const Main2D: React.FC<Main2DProps> = (props: any) => {
   const frame = useCurrentFrame();
@@ -435,17 +443,34 @@ export const Main2D: React.FC<Main2DProps> = (props: any) => {
     props?.data?.engine2D ||
     {};
 
-  const palette: string[] =
-    dynamicEngine2D.colorPalette ||
-    dynamicEngine2D.colors ||
-    props?.sceneData?.colors ||
-    props?.colors ||
-    ['#00f0ff', '#ff007f', '#7000ff', '#00ffaa'];
+  const category =
+    props?.commercialMarketCategory ||
+    props?.sceneData?.commercialMarketCategory ||
+    dynamicEngine2D.layoutStructure ||
+    'cyber_matrix_telemetry';
 
-  const c1 = palette[0] || '#00f0ff';
-  const c2 = palette[1] || '#ff007f';
+  let layout = dynamicEngine2D.layoutStructure;
+  if (!layout) {
+    if (category === 'fiber_optic_data_flow') layout = 'parametric_audio_equalizer';
+    else if (category === 'abstract_clean_waves') layout = 'organic_liquid_prism';
+    else if (category === 'biotech_microscopic') layout = 'holographic_neural_synapse';
+    else if (category === 'cyberpunk_hacker_hud') layout = 'cyber_matrix_telemetry';
+    else if (category === 'glassmorphism_corporate_ui') layout = 'organic_liquid_prism';
+    else if (category === 'crypto_blockchain_nodes') layout = 'kinetic_bauhaus_grid';
+    else layout = 'cyber_matrix_telemetry';
+  }
+
+  const rawColors = props?.commercialColors || props?.sceneData?.commercialColors;
+  const palette: string[] = [
+    rawColors?.primaryTechGlow || dynamicEngine2D.colorPalette?.[0] || props?.colors?.[0] || '#00f0ff',
+    rawColors?.accentHighlight || dynamicEngine2D.colorPalette?.[1] || props?.colors?.[1] || '#ff007f',
+    dynamicEngine2D.colorPalette?.[2] || props?.colors?.[2] || '#7000ff',
+    dynamicEngine2D.colorPalette?.[3] || '#00ffaa',
+  ];
+
+  const c1 = palette[0];
+  const c2 = palette[1];
   const speed = typeof dynamicEngine2D.energySpeed === 'number' ? dynamicEngine2D.energySpeed : 1.0;
-  const layout = dynamicEngine2D.layoutStructure || 'cyber_matrix_telemetry';
 
   return (
     <AbsoluteFill

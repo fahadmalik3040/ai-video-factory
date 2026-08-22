@@ -40,9 +40,9 @@ class ThreeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 }
 
 // ----------------------------------------------------
-// VIRTUAL DP CAMERA RIG (Safe Cinematic Camera Paths)
+// VIRTUAL DP CAMERA RIG (Ultra Slow Cinematic Camera)
 // ----------------------------------------------------
-const VirtualDPCamera: React.FC<{ motionStyle?: string }> = ({ motionStyle = 'slow_macro_dolly' }) => {
+const VirtualDPCamera: React.FC<{ motionStyle?: string }> = ({ motionStyle = 'ultra_slow_continuous' }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const totalFrames = durationInFrames || 450;
@@ -51,15 +51,15 @@ const VirtualDPCamera: React.FC<{ motionStyle?: string }> = ({ motionStyle = 'sl
   const orbitCurve = useMemo(() => {
     return new THREE.CatmullRomCurve3(
       [
-        new THREE.Vector3(0, 4, 32),
-        new THREE.Vector3(20, 5, 22),
-        new THREE.Vector3(28, 2, 0),
-        new THREE.Vector3(20, -3, -22),
-        new THREE.Vector3(0, 2, -32),
-        new THREE.Vector3(-20, 4, -22),
-        new THREE.Vector3(-28, 2, 0),
-        new THREE.Vector3(-20, -2, 22),
-        new THREE.Vector3(0, 4, 32),
+        new THREE.Vector3(0, 3, 28),
+        new THREE.Vector3(18, 4, 20),
+        new THREE.Vector3(25, 2, 0),
+        new THREE.Vector3(18, -3, -20),
+        new THREE.Vector3(0, 2, -28),
+        new THREE.Vector3(-18, 4, -20),
+        new THREE.Vector3(-25, 2, 0),
+        new THREE.Vector3(-18, -2, 20),
+        new THREE.Vector3(0, 3, 28),
       ],
       true
     );
@@ -67,11 +67,11 @@ const VirtualDPCamera: React.FC<{ motionStyle?: string }> = ({ motionStyle = 'sl
 
   const dollyCurve = useMemo(() => {
     return new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 6, 38),
-      new THREE.Vector3(2.0, 4.0, 28),
-      new THREE.Vector3(-1.5, 2.5, 20),
-      new THREE.Vector3(0.5, 1.0, 15),
-      new THREE.Vector3(0, 0.5, 12),
+      new THREE.Vector3(0, 5, 34),
+      new THREE.Vector3(1.5, 3.5, 26),
+      new THREE.Vector3(-1.0, 2.0, 19),
+      new THREE.Vector3(0.5, 1.0, 14),
+      new THREE.Vector3(0, 0.5, 11),
     ]);
   }, []);
 
@@ -79,14 +79,14 @@ const VirtualDPCamera: React.FC<{ motionStyle?: string }> = ({ motionStyle = 'sl
     let targetPos = new THREE.Vector3();
     let lookTarget = new THREE.Vector3(0, 0, 0);
 
-    if (motionStyle === 'slow_macro_dolly' || motionStyle === 'smooth_dolly_in') {
-      const easedT = 0.5 - 0.5 * Math.cos(progress * Math.PI);
-      targetPos = dollyCurve.getPointAt(easedT);
-      lookTarget.set(0, Math.sin(progress * Math.PI) * 0.3, 0);
-    } else {
+    if (motionStyle === 'slow_orbit') {
       const orbitT = (progress * 0.75) % 1;
       targetPos = orbitCurve.getPointAt(orbitT);
-      lookTarget.set(0, Math.sin(progress * Math.PI * 2) * 0.4, 0);
+      lookTarget.set(0, Math.sin(progress * Math.PI * 2) * 0.3, 0);
+    } else {
+      const easedT = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+      targetPos = dollyCurve.getPointAt(easedT);
+      lookTarget.set(0, Math.sin(progress * Math.PI) * 0.25, 0);
     }
 
     camera.position.copy(targetPos);
@@ -97,221 +97,377 @@ const VirtualDPCamera: React.FC<{ motionStyle?: string }> = ({ motionStyle = 'sl
 };
 
 // ------------------------------------------------------------------
-// LAYER 1: BACKGROUND ENVIRONMENT (InfiniteGrid | DataWaves | BinaryTunnel)
+// SCENE 1: FIBER OPTIC DATA FLOW (High-Speed Glowing Spline Filaments)
 // ------------------------------------------------------------------
-const BackgroundEnvironment: React.FC<{ geometry?: string; materialStyle?: string; color: string; frame: number }> = ({
-  geometry = 'InfiniteGrid',
-  materialStyle = 'neon_wireframe',
-  color,
-  frame,
-}) => {
-  const meshRef = useRef<THREE.Mesh>(null);
+const FiberOpticScene: React.FC<{ colors: string[]; frame: number }> = ({ colors, frame }) => {
+  const [c1, c2, c3] = colors;
   const groupRef = useRef<THREE.Group>(null);
-  const t = (frame / 30) * 0.1;
+  const t = (frame / 30) * 0.15;
 
-  if (geometry === 'BinaryTunnel') {
-    return (
-      <group ref={groupRef} rotation={[0, 0, t * 0.2]}>
-        {Array.from({ length: 18 }).map((_, i) => {
-          const z = (i - 9) * 4;
-          return (
-            <mesh key={i} position={[0, 0, z]}>
-              <torusGeometry args={[14, 0.08, 16, 48]} />
-              <meshBasicMaterial color={color} opacity={0.35} transparent />
-            </mesh>
-          );
-        })}
-      </group>
-    );
-  }
+  const curves = useMemo(() => {
+    return Array.from({ length: 24 }, (_, i) => {
+      const angle = (i / 24) * Math.PI * 2;
+      const radius = 6 + (i % 4) * 2;
+      return new THREE.CatmullRomCurve3([
+        new THREE.Vector3(Math.cos(angle) * 16, Math.sin(angle) * 10, -20),
+        new THREE.Vector3(Math.cos(angle + 1) * radius, Math.sin(angle + 1) * radius * 0.6, -5),
+        new THREE.Vector3(Math.cos(angle + 2) * (radius * 0.7), Math.sin(angle + 2) * 4, 8),
+        new THREE.Vector3(Math.cos(angle + 3) * (radius * 1.2), Math.sin(angle + 3) * 8, 20),
+      ]);
+    });
+  }, []);
 
-  if (geometry === 'DataWaves') {
-    return (
-      <group position={[0, -5, 0]} rotation={[-Math.PI / 3, 0, t * 0.05]}>
-        <mesh>
-          <planeGeometry args={[40, 40, 40, 40]} />
-          <meshBasicMaterial color={color} wireframe opacity={0.25} transparent />
-        </mesh>
-      </group>
-    );
-  }
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.rotation.z = t * 0.3;
+      groupRef.current.rotation.y = Math.sin(t * 0.2) * 0.1;
+    }
+  });
 
-  // Default: InfiniteGrid
   return (
-    <group position={[0, -6, 0]}>
-      <gridHelper args={[60, 40, color, color]} position={[0, 0, 0]}>
-        <meshBasicMaterial color={color} opacity={0.3} transparent />
-      </gridHelper>
+    <group ref={groupRef}>
+      {curves.map((curve, idx) => {
+        const col = idx % 2 === 0 ? c1 : c2;
+        return (
+          <mesh key={idx}>
+            <tubeGeometry args={[curve, 64, 0.12, 8, false]} />
+            <meshStandardMaterial
+              color={col}
+              emissive={col}
+              emissiveIntensity={2.8}
+              roughness={0.1}
+              metalness={0.9}
+            />
+          </mesh>
+        );
+      })}
+
+      {/* Floating Data Pulses */}
+      {Array.from({ length: 30 }).map((_, pIdx) => {
+        const curve = curves[pIdx % curves.length];
+        const progress = ((t * 0.8 + (pIdx * 0.033)) % 1);
+        const pt = curve.getPointAt(progress);
+        const pCol = pIdx % 2 === 0 ? c3 || '#ffffff' : '#ffffff';
+
+        return (
+          <mesh key={`p-${pIdx}`} position={pt}>
+            <sphereGeometry args={[0.32, 16, 16]} />
+            <meshBasicMaterial color={pCol} />
+          </mesh>
+        );
+      })}
     </group>
   );
 };
 
 // ------------------------------------------------------------------
-// LAYER 2: HERO SUBJECT (TorusKnot | ParametricTubes | FractalIcosahedron)
+// SCENE 2: CRYPTO BLOCKCHAIN NODES (Interconnected Laser Network Matrix)
 // ------------------------------------------------------------------
-const HeroSubject: React.FC<{
-  geometry?: string;
-  materialStyle?: string;
-  color: string;
-  scale?: number;
-  frame: number;
-}> = ({ geometry = 'TorusKnot', materialStyle = 'liquid_metal', color, scale = 1.6, frame }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const coreRef = useRef<THREE.Mesh>(null);
+const BlockchainNodesScene: React.FC<{ colors: string[]; frame: number }> = ({ colors, frame }) => {
+  const [c1, c2, c3] = colors;
+  const groupRef = useRef<THREE.Group>(null);
+  const t = (frame / 30) * 0.12;
+  const nodeCount = 36;
+
+  const nodes = useMemo(() => {
+    return Array.from({ length: nodeCount }, (_, i) => {
+      const phi = Math.acos(-1 + (2 * i) / nodeCount);
+      const theta = Math.sqrt(nodeCount * Math.PI) * phi;
+      const radius = 9;
+      return new THREE.Vector3(
+        radius * Math.cos(theta) * Math.sin(phi),
+        radius * Math.sin(theta) * Math.sin(phi),
+        radius * Math.cos(phi)
+      );
+    });
+  }, [nodeCount]);
+
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = t * 0.2;
+      groupRef.current.rotation.x = Math.sin(t * 0.15) * 0.1;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {/* Node Spheres */}
+      {nodes.map((node, i) => {
+        const col = i % 3 === 0 ? c1 : i % 3 === 1 ? c2 : c3;
+        const pulse = 1 + Math.sin(t * 1.5 + i) * 0.15;
+        return (
+          <group key={i} position={node} scale={pulse}>
+            <mesh>
+              <icosahedronGeometry args={[0.7, 0]} />
+              <meshPhysicalMaterial
+                color={col}
+                metalness={0.9}
+                roughness={0.1}
+                clearcoat={1.0}
+                emissive={col}
+                emissiveIntensity={0.8}
+              />
+            </mesh>
+          </group>
+        );
+      })}
+
+      {/* Laser Connections */}
+      {nodes.map((n1, i) =>
+        nodes.slice(i + 1).map((n2, j) => {
+          const dist = n1.distanceTo(n2);
+          if (dist > 6.5) return null;
+          const points = [n1, n2];
+          const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
+
+          return (
+            <primitive key={`${i}-${j}`} object={new THREE.Line(lineGeom, new THREE.LineBasicMaterial({ color: c1, opacity: 0.35, transparent: true }))} />
+          );
+        })
+      )}
+    </group>
+  );
+};
+
+// ------------------------------------------------------------------
+// SCENE 3: BIOTECH MICROSCOPIC (Organic DNA Double Helix & Molecules)
+// ------------------------------------------------------------------
+const BiotechMicroscopicScene: React.FC<{ colors: string[]; frame: number }> = ({ colors, frame }) => {
+  const [c1, c2, c3] = colors;
+  const groupRef = useRef<THREE.Group>(null);
+  const t = (frame / 30) * 0.15;
+  const count = 48;
+
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = t * 0.25;
+      groupRef.current.rotation.z = Math.sin(t * 0.1) * 0.05;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {Array.from({ length: count }).map((_, i) => {
+        const angle = i * 0.3 + t * 0.5;
+        const y = (i - count / 2) * 0.5;
+        const r = 3.2;
+
+        const x1 = Math.cos(angle) * r;
+        const z1 = Math.sin(angle) * r;
+
+        const x2 = Math.cos(angle + Math.PI) * r;
+        const z2 = Math.sin(angle + Math.PI) * r;
+
+        return (
+          <group key={i}>
+            {/* Strand 1 Sphere */}
+            <mesh position={[x1, y, z1]}>
+              <sphereGeometry args={[0.55, 24, 24]} />
+              <meshPhysicalMaterial
+                color={c1}
+                metalness={0.2}
+                roughness={0.1}
+                transmission={0.8}
+                thickness={1.0}
+                clearcoat={1.0}
+              />
+            </mesh>
+
+            {/* Strand 2 Sphere */}
+            <mesh position={[x2, y, z2]}>
+              <sphereGeometry args={[0.55, 24, 24]} />
+              <meshPhysicalMaterial
+                color={c2}
+                metalness={0.2}
+                roughness={0.1}
+                transmission={0.8}
+                thickness={1.0}
+                clearcoat={1.0}
+              />
+            </mesh>
+
+            {/* Connecting Bridge Cylinder */}
+            <mesh position={[(x1 + x2) / 2, y, (z1 + z2) / 2]} rotation={[0, -angle, Math.PI / 2]}>
+              <cylinderGeometry args={[0.1, 0.1, r * 2, 16]} />
+              <meshStandardMaterial color={c3 || '#ffffff'} metalness={0.9} roughness={0.1} />
+            </mesh>
+          </group>
+        );
+      })}
+    </group>
+  );
+};
+
+// ------------------------------------------------------------------
+// SCENE 4: ABSTRACT CLEAN WAVES (Liquid Metal Sculptural Torus Waves)
+// ------------------------------------------------------------------
+const AbstractCleanWavesScene: React.FC<{ colors: string[]; frame: number }> = ({ colors, frame }) => {
+  const [c1, c2, c3] = colors;
+  const groupRef = useRef<THREE.Group>(null);
+  const knotRef = useRef<THREE.Mesh>(null);
+  const t = (frame / 30) * 0.12;
+
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = t * 0.15;
+    }
+    if (knotRef.current) {
+      knotRef.current.rotation.x = t * 0.5;
+      knotRef.current.rotation.y = t * 0.7;
+      knotRef.current.rotation.z = Math.sin(t * 0.3) * 0.2;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {/* Central Liquid Metal Torus Knot */}
+      <mesh ref={knotRef}>
+        <torusKnotGeometry args={[3.2, 0.9, 220, 64]} />
+        <meshPhysicalMaterial
+          color={c1}
+          metalness={1.0}
+          roughness={0.04}
+          clearcoat={1.0}
+          clearcoatRoughness={0.03}
+        />
+      </mesh>
+
+      {/* Orbiting Concentric Fluid Wave Rings */}
+      {Array.from({ length: 5 }).map((_, i) => {
+        const radius = 6.5 + i * 2.2;
+        return (
+          <mesh key={i} rotation={[Math.PI / 3 + i * 0.2, i * 0.4, t * 0.2 * (i % 2 === 0 ? 1 : -1)]}>
+            <torusGeometry args={[radius, 0.15, 16, 80]} />
+            <meshPhysicalMaterial
+              color={i % 2 === 0 ? c2 : c3}
+              metalness={0.95}
+              roughness={0.08}
+              clearcoat={1.0}
+            />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+};
+
+// ------------------------------------------------------------------
+// SCENE 5: CYBERPUNK HACKER HUD (3D Volumetric Telemetry Hologram)
+// ------------------------------------------------------------------
+const CyberpunkHackerHUDScene: React.FC<{ colors: string[]; frame: number }> = ({ colors, frame }) => {
+  const [c1, c2, c3] = colors;
+  const groupRef = useRef<THREE.Group>(null);
   const t = (frame / 30) * 0.15;
 
   useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = t * 0.6;
-      meshRef.current.rotation.y = t * 0.8;
-      meshRef.current.rotation.z = Math.sin(t * 0.4) * 0.3;
-    }
-    if (coreRef.current) {
-      coreRef.current.rotation.y = -t * 1.2;
+    if (groupRef.current) {
+      groupRef.current.rotation.y = t * 0.3;
+      groupRef.current.rotation.x = Math.sin(t * 0.2) * 0.08;
     }
   });
 
-  const materialElement = useMemo(() => {
-    if (materialStyle === 'frosted_glass') {
-      return (
-        <meshPhysicalMaterial
-          color={color}
-          metalness={0.1}
-          roughness={0.15}
-          transmission={0.9}
-          ior={1.5}
-          thickness={1.2}
-          clearcoat={1.0}
-        />
-      );
-    }
-    if (materialStyle === 'glowing_plasma') {
-      return (
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={2.5}
-          roughness={0.2}
-          metalness={0.4}
-        />
-      );
-    }
-    // Default: liquid_metal
-    return (
-      <meshPhysicalMaterial
-        color={color}
-        metalness={1.0}
-        roughness={0.06}
-        clearcoat={1.0}
-        clearcoatRoughness={0.05}
-      />
-    );
-  }, [materialStyle, color]);
-
-  if (geometry === 'FractalIcosahedron') {
-    return (
-      <group scale={scale}>
-        <mesh ref={meshRef}>
-          <icosahedronGeometry args={[2.5, 0]} />
-          {materialElement}
-        </mesh>
-        <mesh ref={coreRef}>
-          <octahedronGeometry args={[1.5, 0]} />
-          <meshBasicMaterial color="#ffffff" wireframe />
-        </mesh>
-      </group>
-    );
-  }
-
-  if (geometry === 'ParametricTubes') {
-    return (
-      <group ref={meshRef} scale={scale}>
-        <mesh>
-          <torusGeometry args={[2.8, 0.45, 24, 64]} />
-          {materialElement}
-        </mesh>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[2.0, 0.35, 24, 64]} />
-          {materialElement}
-        </mesh>
-      </group>
-    );
-  }
-
-  // Default: TorusKnot
   return (
-    <mesh ref={meshRef} scale={scale}>
-      <torusKnotGeometry args={[2.2, 0.65, 180, 48]} />
-      {materialElement}
-    </mesh>
+    <group ref={groupRef}>
+      {Array.from({ length: 8 }).map((_, i) => {
+        const r = 3 + i * 1.5;
+        const rotDir = i % 2 === 0 ? 1 : -1;
+        return (
+          <mesh key={i} rotation={[i * 0.35, t * 0.4 * rotDir, i * 0.2]}>
+            <torusGeometry args={[r, 0.08, 12, 64]} />
+            <meshStandardMaterial
+              color={i % 2 === 0 ? c1 : c2}
+              emissive={i % 2 === 0 ? c1 : c2}
+              emissiveIntensity={2.5}
+            />
+          </mesh>
+        );
+      })}
+
+      {/* Central Quantum Reactor Core */}
+      <mesh>
+        <octahedronGeometry args={[2.0, 0]} />
+        <meshPhysicalMaterial
+          color={c3 || '#ffffff'}
+          metalness={0.9}
+          roughness={0.1}
+          emissive={c1}
+          emissiveIntensity={1.5}
+        />
+      </mesh>
+    </group>
   );
 };
 
 // ------------------------------------------------------------------
-// LAYER 3: FLOATING ACCENTS (DataCubes | TechRings)
+// SCENE 6: GLASSMORPHISM CORPORATE UI (Refractive 3D Glass Cards)
 // ------------------------------------------------------------------
-const FloatingAccents: React.FC<{
-  geometry?: string;
-  color: string;
-  count?: number;
-  frame: number;
-}> = ({ geometry = 'DataCubes', color, count = 150, frame }) => {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+const GlassmorphismCorporateUIScene: React.FC<{ colors: string[]; frame: number }> = ({ colors, frame }) => {
+  const [c1, c2] = colors;
+  const groupRef = useRef<THREE.Group>(null);
   const t = (frame / 30) * 0.12;
 
-  const points = useMemo(() => {
-    return Array.from({ length: count }, (_, i) => {
-      const radius = 6 + Math.random() * 12;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = (Math.random() - 0.5) * Math.PI;
-      const x = radius * Math.cos(phi) * Math.cos(theta);
-      const y = radius * Math.sin(phi);
-      const z = radius * Math.cos(phi) * Math.sin(theta);
-      const scale = 0.15 + Math.random() * 0.35;
-      const rotSpeed = 0.5 + Math.random();
-      return { x, y, z, scale, rotSpeed, offset: Math.random() * 10 };
-    });
-  }, [count]);
-
   useFrame(() => {
-    if (meshRef.current) {
-      for (let i = 0; i < count; i++) {
-        const pt = points[i];
-        const curY = pt.y + Math.sin(t * pt.rotSpeed + pt.offset) * 0.8;
-        dummy.position.set(pt.x, curY, pt.z);
-        dummy.scale.set(pt.scale, pt.scale, pt.scale);
-        dummy.rotation.set(t * pt.rotSpeed, t * pt.rotSpeed * 0.5, 0);
-        dummy.updateMatrix();
-        meshRef.current.setMatrixAt(i, dummy.matrix);
-      }
-      meshRef.current.instanceMatrix.needsUpdate = true;
+    if (groupRef.current) {
+      groupRef.current.rotation.y = t * 0.18;
+      groupRef.current.rotation.x = Math.sin(t * 0.12) * 0.06;
     }
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-      {geometry === 'TechRings' ? (
-        <torusGeometry args={[1, 0.15, 12, 24]} />
-      ) : (
-        <boxGeometry args={[1, 1, 1]} />
-      )}
-      <meshBasicMaterial color={color} wireframe />
-    </instancedMesh>
+    <group ref={groupRef}>
+      {Array.from({ length: 5 }).map((_, i) => {
+        const offsetAngle = (i / 5) * Math.PI * 2;
+        const x = Math.cos(offsetAngle + t * 0.2) * 6;
+        const z = Math.sin(offsetAngle + t * 0.2) * 6;
+        const y = Math.sin(t * 0.8 + i) * 1.2;
+
+        return (
+          <group key={i} position={[x, y, z]} rotation={[0, -offsetAngle - t * 0.2 + Math.PI / 2, 0]}>
+            <mesh>
+              <boxGeometry args={[4.2, 2.8, 0.25]} />
+              <meshPhysicalMaterial
+                color={i % 2 === 0 ? c1 : c2}
+                metalness={0.1}
+                roughness={0.12}
+                transmission={0.88}
+                ior={1.5}
+                thickness={1.5}
+                clearcoat={1.0}
+              />
+            </mesh>
+          </group>
+        );
+      })}
+
+      {/* Central Rotating Prism Accent */}
+      <mesh>
+        <dodecahedronGeometry args={[2.2, 0]} />
+        <meshPhysicalMaterial
+          color={c1}
+          metalness={0.95}
+          roughness={0.05}
+          clearcoat={1.0}
+        />
+      </mesh>
+    </group>
   );
 };
 
 // ------------------------------------------------------------------
-// MASTER COMPOSITION ROUTER & POST-PROCESSING PIPELINE
+// MASTER SCENE: STRICT COMMERCIAL CATEGORY ROUTER
 // ------------------------------------------------------------------
 export interface MasterSceneProps {
   data: {
-    seoPackage?: any;
+    commercialMarketCategory?: string;
+    commercialColors?: {
+      primaryTechGlow?: string;
+      backgroundAmbiance?: string;
+      accentHighlight?: string;
+    };
     cinematicVFX?: {
       bloomIntensity?: number;
       chromaticAberrationOffset?: number;
       noiseOpacity?: number;
-      vignette?: boolean;
     };
     environment?: {
       bgColor?: string;
@@ -319,20 +475,10 @@ export interface MasterSceneProps {
       fogDensity?: number;
     };
     cameraDP?: {
-      fov?: number;
       motionStyle?: string;
-      motionPath?: string;
     };
-    compositionLayers?: Array<{
-      role: 'Background_Environment' | 'Hero_Subject' | 'Floating_Accents';
-      geometry?: string;
-      materialStyle?: string;
-      color: string;
-      scale?: number;
-      instancedCount?: number;
-    }>;
-    engine3D?: any;
     colors?: string[];
+    engine3D?: any;
     [key: string]: any;
   };
 }
@@ -340,67 +486,53 @@ export interface MasterSceneProps {
 export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
   const frame = useCurrentFrame();
 
+  const category = data?.commercialMarketCategory || data?.engine3D?.layoutMath || 'fiber_optic_data_flow';
+
+  const rawColors = data?.commercialColors;
+  const colors: string[] = [
+    rawColors?.primaryTechGlow || data?.colors?.[0] || data?.engine3D?.colors?.[0] || '#00f0ff',
+    rawColors?.accentHighlight || data?.colors?.[1] || data?.engine3D?.colors?.[1] || '#ff007f',
+    data?.colors?.[2] || data?.engine3D?.colors?.[2] || '#7000ff',
+  ];
+
   const vfx = data?.cinematicVFX || {};
   const bloomIntensity = typeof vfx.bloomIntensity === 'number' ? vfx.bloomIntensity : 2.5;
-  const caOffset = typeof vfx.chromaticAberrationOffset === 'number' ? vfx.chromaticAberrationOffset : 0.004;
-  const noiseOpacity = typeof vfx.noiseOpacity === 'number' ? vfx.noiseOpacity : 0.035;
+  const caOffset = typeof vfx.chromaticAberrationOffset === 'number' ? vfx.chromaticAberrationOffset : 0.005;
+  const noiseOpacity = typeof vfx.noiseOpacity === 'number' ? vfx.noiseOpacity : 0.04;
 
   const env = data?.environment || {};
-  const fogColor = env.fogColor || '#04050d';
-  const fogDensity = typeof env.fogDensity === 'number' ? env.fogDensity : 0.025;
+  const fogColor = env.fogColor || rawColors?.backgroundAmbiance || '#03040a';
+  const fogDensity = typeof env.fogDensity === 'number' ? env.fogDensity : 0.02;
 
-  const camConfig = data?.cameraDP || {};
-  const motionStyle = camConfig.motionStyle || camConfig.motionPath || 'slow_macro_dolly';
-
-  const layers = Array.isArray(data?.compositionLayers) && data.compositionLayers.length > 0
-    ? data.compositionLayers
-    : [
-        { role: 'Background_Environment', geometry: 'InfiniteGrid', materialStyle: 'neon_wireframe', color: '#00f0ff' },
-        { role: 'Hero_Subject', geometry: 'TorusKnot', materialStyle: 'liquid_metal', color: '#ff007f', scale: 1.6 },
-        { role: 'Floating_Accents', geometry: 'DataCubes', materialStyle: 'pure_emission', color: '#7000ff', instancedCount: 150 },
-      ];
-
-  const bgLayer = layers.find((l) => l.role === 'Background_Environment') || layers[0];
-  const heroLayer = layers.find((l) => l.role === 'Hero_Subject') || layers[1] || layers[0];
-  const accentLayer = layers.find((l) => l.role === 'Floating_Accents') || layers[2] || layers[0];
+  const camMotion = data?.cameraDP?.motionStyle || 'ultra_slow_continuous';
 
   return (
-    <ThreeErrorBoundary fallback={<mesh><boxGeometry /><meshBasicMaterial color="#00f0ff" /></mesh>}>
-      {/* Fog & Virtual DP Camera */}
+    <ThreeErrorBoundary fallback={<mesh><sphereGeometry args={[2, 32, 32]} /><meshBasicMaterial color="#00f0ff" /></mesh>}>
       <fogExp2 attach="fog" color={fogColor} density={fogDensity} />
-      <VirtualDPCamera motionStyle={motionStyle} />
+      <VirtualDPCamera motionStyle={camMotion} />
 
-      {/* Cinematic Lighting Rig */}
+      {/* Cinematic Studio Lighting */}
       <ambientLight intensity={1.2} />
       <directionalLight position={[10, 15, 8]} intensity={2.5} color="#ffffff" />
-      <pointLight position={[-12, -10, -8]} intensity={4.0} color={heroLayer.color} />
-      <pointLight position={[12, 12, 8]} intensity={4.0} color={bgLayer.color} />
+      <pointLight position={[-15, -12, -10]} intensity={4.5} color={colors[1]} />
+      <pointLight position={[15, 12, 10]} intensity={4.5} color={colors[0]} />
       <Environment preset="city" />
 
-      {/* 1. Background Environment Layer */}
-      <BackgroundEnvironment
-        geometry={bgLayer.geometry}
-        materialStyle={bgLayer.materialStyle}
-        color={bgLayer.color}
-        frame={frame}
-      />
-
-      {/* 2. Hero Subject Layer */}
-      <HeroSubject
-        geometry={heroLayer.geometry}
-        materialStyle={heroLayer.materialStyle}
-        color={heroLayer.color}
-        scale={heroLayer.scale || 1.6}
-        frame={frame}
-      />
-
-      {/* 3. Floating Accents Layer */}
-      <FloatingAccents
-        geometry={accentLayer.geometry}
-        color={accentLayer.color}
-        count={accentLayer.instancedCount || 150}
-        frame={frame}
-      />
+      {/* STRICT COMMERCIAL CATEGORY VISUAL ROUTER */}
+      {category === 'fiber_optic_data_flow' && <FiberOpticScene colors={colors} frame={frame} />}
+      {category === 'crypto_blockchain_nodes' && <BlockchainNodesScene colors={colors} frame={frame} />}
+      {category === 'biotech_microscopic' && <BiotechMicroscopicScene colors={colors} frame={frame} />}
+      {category === 'abstract_clean_waves' && <AbstractCleanWavesScene colors={colors} frame={frame} />}
+      {category === 'cyberpunk_hacker_hud' && <CyberpunkHackerHUDScene colors={colors} frame={frame} />}
+      {category === 'glassmorphism_corporate_ui' && <GlassmorphismCorporateUIScene colors={colors} frame={frame} />}
+      {category !== 'fiber_optic_data_flow' &&
+        category !== 'crypto_blockchain_nodes' &&
+        category !== 'biotech_microscopic' &&
+        category !== 'abstract_clean_waves' &&
+        category !== 'cyberpunk_hacker_hud' &&
+        category !== 'glassmorphism_corporate_ui' && (
+          <FiberOpticScene colors={colors} frame={frame} />
+        )}
 
       {/* Heavy Cinematic Post-Processing Pipeline */}
       <EffectComposer disableNormalPass>
