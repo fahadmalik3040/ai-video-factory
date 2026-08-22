@@ -81,6 +81,10 @@ const main = async (): Promise<void> => {
 
   fs.mkdirSync(outputDirectory, { recursive: true });
 
+  const chromiumOptions = {
+    enableGpu: true,
+  };
+
   // -----------------------------------------------------------
   // PASS 1: Dedicated 3D Procedural Video Rendering
   // -----------------------------------------------------------
@@ -89,6 +93,8 @@ const main = async (): Promise<void> => {
     serveUrl: bundleLocation,
     id: "Main3D",
     inputProps: dynamicProps3D,
+    timeoutInMilliseconds: 120000,
+    chromiumOptions,
   });
 
   const output3DLocation = path.resolve(outputDirectory, `output_${jobIndex}_3d.mp4`);
@@ -100,6 +106,8 @@ const main = async (): Promise<void> => {
     codec: "h264",
     outputLocation: output3DLocation,
     inputProps: dynamicProps3D,
+    timeoutInMilliseconds: 120000,
+    chromiumOptions,
   });
   console.log(`✅ [3D COMPLETE] Dedicated 3D Video Rendered: ${output3DLocation}`);
 
@@ -111,6 +119,8 @@ const main = async (): Promise<void> => {
     serveUrl: bundleLocation,
     id: "Main2D",
     inputProps: dynamicProps2D,
+    timeoutInMilliseconds: 120000,
+    chromiumOptions,
   });
 
   const output2DLocation = path.resolve(outputDirectory, `output_${jobIndex}_2d.mp4`);
@@ -122,6 +132,8 @@ const main = async (): Promise<void> => {
     codec: "h264",
     outputLocation: output2DLocation,
     inputProps: dynamicProps2D,
+    timeoutInMilliseconds: 120000,
+    chromiumOptions,
   });
   console.log(`✅ [2D COMPLETE] Dedicated 2D Video Rendered: ${output2DLocation}`);
 
