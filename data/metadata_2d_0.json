@@ -12,17 +12,43 @@
       "retro pixel dither glitch wave"
     ]
   },
+  "visualArchetype": {
+    "name": "cyber_matrix_telemetry",
+    "colorPalette": [
+      "#ff3366",
+      "#33ccff",
+      "#ffcc00",
+      "#9933ff"
+    ],
+    "particlePhysics": {
+      "count": 64,
+      "speed": 1.2,
+      "glowIntensity": 3,
+      "turbulence": 0.5
+    },
+    "hudTelemetry": {
+      "radarSegments": 8,
+      "gridDensity": 24,
+      "scanlineSpeed": 1.5,
+      "laserPulse": true
+    },
+    "glassmorphism": {
+      "blur": 40,
+      "refractionOpacity": 0.25,
+      "chromaticBorder": "#33ccff"
+    }
+  },
   "engine2D": {
     "layoutStructure": "cyber_matrix_telemetry",
     "colorPalette": [
-      "#00ffcc",
-      "#ff0066",
-      "#cc00ff",
-      "#ffffff"
+      "#ff3366",
+      "#33ccff",
+      "#ffcc00",
+      "#9933ff"
     ],
     "energySpeed": 1,
     "complexity": 1,
-    "glowIntensity": 2.5,
+    "glowIntensity": 2.8,
     "elements": [
       {
         "type": "data_ring",
@@ -31,7 +57,7 @@
       },
       {
         "type": "glass_blob",
-        "size": 380
+        "size": 400
       },
       {
         "type": "hud_grid",
@@ -40,7 +66,7 @@
       },
       {
         "type": "waveform_bars",
-        "scale": 1
+        "scale": 1.1
       }
     ]
   }

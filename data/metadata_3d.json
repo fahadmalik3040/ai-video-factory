@@ -1,35 +1,67 @@
 {
   "seoPackage": {
-    "title": "Cinematic 4K Solid 3D: AI Neural Network Data Flow",
-    "description": "Procedural 3D solid geometry simulation of AI Neural Network Data Flow",
+    "title": "Cinematic 4K Multi-Layer 3D VFX: Retro Pixel Dither Glitch Wave",
+    "description": "Multi-layer procedural 3D solid geometry simulation of Retro Pixel Dither Glitch Wave with cinematic post-processing",
     "seoTags": [
       "3d",
       "procedural",
       "4k",
       "stock video",
-      "pbr",
-      "ai neural network data flow"
+      "vfx",
+      "multi-layer",
+      "redshift",
+      "octane",
+      "retro pixel dither glitch wave"
     ]
   },
+  "cinematicVFX": {
+    "bloomIntensity": 2.5,
+    "chromaticAberrationOffset": 0.005,
+    "noiseOpacity": 0.04,
+    "vignette": true
+  },
+  "environment": {
+    "bgColor": "#04050d",
+    "fogColor": "#04050d",
+    "fogDensity": 0.025
+  },
+  "cameraDP": {
+    "fov": 30,
+    "motionStyle": "slow_macro_dolly",
+    "motionPath": "slow_macro_dolly"
+  },
+  "compositionLayers": [
+    {
+      "role": "Background_Environment",
+      "geometry": "InfiniteGrid",
+      "materialStyle": "neon_wireframe",
+      "color": "#ff3366"
+    },
+    {
+      "role": "Hero_Subject",
+      "geometry": "TorusKnot",
+      "materialStyle": "frosted_glass",
+      "color": "#33ccff",
+      "scale": 1.6
+    },
+    {
+      "role": "Floating_Accents",
+      "geometry": "DataCubes",
+      "materialStyle": "pure_emission",
+      "color": "#ffcc00",
+      "instancedCount": 150
+    }
+  ],
   "engine3D": {
-    "solidGeometry": "SphereGeometry",
-    "layoutMath": "concentric_rings",
-    "physicalMaterial": {
-      "metalness": 0.9,
-      "roughness": 0.1
-    },
-    "cinematographyDP": {
-      "cameraPath": "smooth_dolly_in",
-      "pacing": "extremely_slow_and_cinematic",
-      "focusDistance": 0
-    },
+    "solidGeometry": "TorusKnot",
+    "layoutMath": "multi_layer_composition",
     "colors": [
-      "#e0e7ff",
-      "#6366f1",
-      "#a855f7"
+      "#ff3366",
+      "#33ccff",
+      "#ffcc00"
     ],
     "cameraSpeed": 1,
-    "bloomIntensity": 2,
-    "complexity": 1
+    "bloomIntensity": 2.5,
+    "complexity": 1.2
   }
 }

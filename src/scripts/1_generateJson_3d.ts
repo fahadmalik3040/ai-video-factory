@@ -4,77 +4,82 @@ import { getJobTopic, sanitizeAndParseJson, queryLlm, getDynamicPalette } from '
 export async function generate3DMetadata(topic?: string, jobIdx?: number): Promise<any> {
   const { topic: promptContent, jobIndex } = topic && jobIdx !== undefined ? { topic, jobIndex: jobIdx } : getJobTopic();
   const seed = Math.random().toString(36).substring(7);
-  console.log(`🎥 [3D Technical Director] Constructing Advanced 3D Scene for: "${promptContent}" (Job ${jobIndex}, Seed: ${seed})...`);
+  console.log(`🎥 [Multi-Layer 3D VFX Director] Generating Layer-Based Scene for: "${promptContent}" (Job ${jobIndex}, Seed: ${seed})...`);
 
   const dynamicPalette = getDynamicPalette(promptContent, seed);
-  const geoms = ["TorusKnotGeometry", "IcosahedronGeometry", "TorusGeometry", "CylinderGeometry", "SphereGeometry", "BoxGeometry"];
-  const layouts = ["fibonacci_sphere", "concentric_rings", "dna_helix", "wave_plane", "grid"];
-  const cameraPaths = ["slow_orbit", "smooth_dolly_in", "macro_pan_up"];
+  const bgGeoms = ["InfiniteGrid", "DataWaves", "BinaryTunnel"];
+  const heroGeoms = ["TorusKnot", "ParametricTubes", "FractalIcosahedron"];
+  const heroMats = ["frosted_glass", "liquid_metal", "glowing_plasma"];
+  const accentGeoms = ["DataCubes", "TechRings"];
+  const camStyles = ["slow_macro_dolly", "slow_orbit", "smooth_dolly_in", "macro_pan_up"];
 
-  const chosenGeom = geoms[Math.abs(jobIndex) % geoms.length];
-  const chosenLayout = layouts[Math.abs(jobIndex) % layouts.length];
-  const chosenCam = cameraPaths[Math.abs(jobIndex) % cameraPaths.length];
+  const chosenBg = bgGeoms[Math.abs(jobIndex) % bgGeoms.length];
+  const chosenHero = heroGeoms[Math.abs(jobIndex) % heroGeoms.length];
+  const chosenHeroMat = heroMats[Math.abs(jobIndex) % heroMats.length];
+  const chosenAccent = accentGeoms[Math.abs(jobIndex) % accentGeoms.length];
+  const chosenCam = camStyles[Math.abs(jobIndex) % camStyles.length];
 
   let result3D: any = null;
 
   const userPrompt = `Topic: "${promptContent}".
 Random Seed: "${seed}".
-Chosen Core Geometry: "${chosenGeom}".
-Chosen Instancing Layout: "${chosenLayout}".
-Chosen Camera Path: "${chosenCam}".
+Chosen Background: "${chosenBg}".
+Chosen Hero Subject: "${chosenHero}" with "${chosenHeroMat}".
+Chosen Accents: "${chosenAccent}".
 
-You are an Elite 3D Technical Director for Adobe Stock. You construct cinematic, abstract mathematical visual structures.
-Generate an ultra-detailed, professional-grade 3D VFX configuration conforming to this STRICT JSON schema:
+You are an Elite 3D Technical Director for Adobe Stock. You construct layered cinematic abstract visual structures with heavy post-processing.
+Generate an ultra-detailed Multi-Layer Composition configuration conforming to this STRICT JSON schema:
 
 {
   "seoPackage": {
-    "title": "Cinematic 4K Solid 3D: ${promptContent}",
-    "description": "Procedural 3D solid geometry mathematical simulation of ${promptContent}",
-    "seoTags": ["3d", "procedural", "4k", "stock video", "pbr", "octane render", "redshift", "blender", "${promptContent.toLowerCase()}"]
+    "title": "Cinematic 4K Multi-Layer 3D VFX: ${promptContent}",
+    "description": "Multi-layer procedural 3D solid geometry simulation of ${promptContent} with cinematic post-processing",
+    "seoTags": ["3d", "procedural", "4k", "stock video", "vfx", "multi-layer", "redshift", "octane", "${promptContent.toLowerCase()}"]
   },
-  "coreGeometry": {
-    "type": "TorusKnotGeometry" | "IcosahedronGeometry" | "TorusGeometry" | "CylinderGeometry" | "SphereGeometry" | "BoxGeometry",
-    "args": [1, 0.3, 128, 64]
+  "cinematicVFX": {
+    "bloomIntensity": 2.5,
+    "chromaticAberrationOffset": 0.005,
+    "noiseOpacity": 0.04,
+    "vignette": true
   },
-  "instancingMath": {
-    "layout": "fibonacci_sphere" | "concentric_rings" | "dna_helix" | "wave_plane" | "grid",
-    "count": 240,
-    "spreadRadius": 14
+  "environment": {
+    "bgColor": "#04050d",
+    "fogColor": "#04050d",
+    "fogDensity": 0.025
   },
-  "cinematicLighting": {
-    "ambientHex": "${dynamicPalette[0]}",
-    "ambientIntensity": 0.8,
-    "directionalHex": "#ffffff",
-    "directionalIntensity": 2.5,
-    "directionalPosition": [10, 15, 8],
-    "pointLightHex": "${dynamicPalette[1]}",
-    "pointLightIntensity": 4.5
+  "cameraDP": {
+    "fov": 30,
+    "motionStyle": "slow_macro_dolly" | "slow_orbit" | "smooth_dolly_in" | "macro_pan_up",
+    "motionPath": "slow_macro_dolly" | "slow_orbit" | "smooth_dolly_in" | "macro_pan_up"
   },
-  "pbrMaterial": {
-    "color": "#111420",
-    "metalness": 0.95,
-    "roughness": 0.08,
-    "clearcoat": 1.0,
-    "transmission": 0.0
-  },
-  "virtualCamera": {
-    "lensFOV": 40,
-    "motionPath": "slow_orbit" | "smooth_dolly_in" | "macro_pan_up",
-    "depthOfFieldBlur": true,
-    "focusDistance": 0
-  },
-  "engine3D": {
-    "solidGeometry": "TorusKnotGeometry" | "IcosahedronGeometry" | "TorusGeometry" | "CylinderGeometry" | "SphereGeometry" | "BoxGeometry",
-    "layoutMath": "fibonacci_sphere" | "concentric_rings" | "dna_helix" | "wave_plane" | "grid",
-    "physicalMaterial": { "metalness": 0.95, "roughness": 0.08 },
-    "cinematographyDP": {
-      "cameraPath": "slow_orbit" | "smooth_dolly_in" | "macro_pan_up",
-      "pacing": "extremely_slow_and_cinematic",
-      "focusDistance": 0
+  "compositionLayers": [
+    {
+      "role": "Background_Environment",
+      "geometry": "InfiniteGrid" | "DataWaves" | "BinaryTunnel",
+      "materialStyle": "neon_wireframe" | "dark_matte",
+      "color": "${dynamicPalette[0]}"
     },
+    {
+      "role": "Hero_Subject",
+      "geometry": "TorusKnot" | "ParametricTubes" | "FractalIcosahedron",
+      "materialStyle": "frosted_glass" | "liquid_metal" | "glowing_plasma",
+      "color": "${dynamicPalette[1]}",
+      "scale": 1.6
+    },
+    {
+      "role": "Floating_Accents",
+      "geometry": "DataCubes" | "TechRings",
+      "materialStyle": "pure_emission",
+      "color": "${dynamicPalette[2]}",
+      "instancedCount": 150
+    }
+  ],
+  "engine3D": {
+    "solidGeometry": "TorusKnotGeometry",
+    "layoutMath": "multi_layer_composition",
     "colors": ["${dynamicPalette[0]}", "${dynamicPalette[1]}", "${dynamicPalette[2]}"],
     "cameraSpeed": 1.0,
-    "bloomIntensity": 2.2,
+    "bloomIntensity": 2.5,
     "complexity": 1.2
   }
 }`;
@@ -84,7 +89,7 @@ Generate an ultra-detailed, professional-grade 3D VFX configuration conforming t
       messages: [
         {
           role: "system",
-          content: `You are an Elite 3D Technical Director for Adobe Stock. You construct cinematic, abstract mathematical visual structures. Output STRICT JSON only.`
+          content: `You are an Elite 3D Technical Director for Adobe Stock. You construct multi-layer cinematic visual structures. Output STRICT JSON only.`
         },
         { role: "user", content: userPrompt }
       ]
@@ -92,81 +97,76 @@ Generate an ultra-detailed, professional-grade 3D VFX configuration conforming t
     const parsed = sanitizeAndParseJson(raw);
     if (parsed) {
       result3D = parsed;
-      console.log(`✅ [3D Director] Generated: ${parsed.coreGeometry?.type || parsed.engine3D?.solidGeometry}`);
+      console.log(`✅ [3D Director] Generated Multi-Layer Composition with ${parsed.compositionLayers?.length || 3} layers.`);
     }
   } catch (err: any) {
-    console.warn(`⚠️ [3D Director] Falling back to procedural advanced 3D config:`, err.message);
+    console.warn(`⚠️ [3D Director] Falling back to procedural multi-layer 3D config:`, err.message);
   }
 
   if (!result3D) {
     result3D = {
       seoPackage: {
-        title: `Cinematic 4K Solid 3D: ${promptContent}`,
-        description: `Procedural 3D solid geometry mathematical simulation of ${promptContent}`,
-        seoTags: ["3d", "procedural", "4k", "stock video", "pbr", "octane render", "cinema4d", promptContent.toLowerCase()]
+        title: `Cinematic 4K Multi-Layer 3D VFX: ${promptContent}`,
+        description: `Multi-layer procedural 3D solid geometry simulation of ${promptContent} with cinematic post-processing`,
+        seoTags: ["3d", "procedural", "4k", "stock video", "vfx", "multi-layer", "redshift", "octane", promptContent.toLowerCase()]
       },
-      coreGeometry: {
-        type: chosenGeom,
-        args: chosenGeom === 'TorusKnotGeometry' ? [1, 0.3, 128, 64] : [1, 32, 32]
+      cinematicVFX: {
+        bloomIntensity: 2.5,
+        chromaticAberrationOffset: 0.005,
+        noiseOpacity: 0.04,
+        vignette: true
       },
-      instancingMath: {
-        layout: chosenLayout,
-        count: 240,
-        spreadRadius: 14
+      environment: {
+        bgColor: "#04050d",
+        fogColor: "#04050d",
+        fogDensity: 0.025
       },
-      cinematicLighting: {
-        ambientHex: dynamicPalette[0],
-        ambientIntensity: 0.8,
-        directionalHex: "#ffffff",
-        directionalIntensity: 2.5,
-        directionalPosition: [10, 15, 8],
-        pointLightHex: dynamicPalette[1],
-        pointLightIntensity: 4.5
+      cameraDP: {
+        fov: 30,
+        motionStyle: chosenCam,
+        motionPath: chosenCam
       },
-      pbrMaterial: {
-        color: "#111420",
-        metalness: 0.95,
-        roughness: 0.08,
-        clearcoat: 1.0,
-        transmission: 0.0
-      },
-      virtualCamera: {
-        lensFOV: 40,
-        motionPath: chosenCam,
-        depthOfFieldBlur: true,
-        focusDistance: 0
-      },
-      engine3D: {
-        solidGeometry: chosenGeom,
-        layoutMath: chosenLayout,
-        physicalMaterial: { metalness: 0.95, roughness: 0.08 },
-        cinematographyDP: {
-          cameraPath: chosenCam,
-          pacing: "extremely_slow_and_cinematic",
-          focusDistance: 0
+      compositionLayers: [
+        {
+          role: "Background_Environment",
+          geometry: chosenBg,
+          materialStyle: "neon_wireframe",
+          color: dynamicPalette[0]
         },
+        {
+          role: "Hero_Subject",
+          geometry: chosenHero,
+          materialStyle: chosenHeroMat,
+          color: dynamicPalette[1],
+          scale: 1.6
+        },
+        {
+          role: "Floating_Accents",
+          geometry: chosenAccent,
+          materialStyle: "pure_emission",
+          color: dynamicPalette[2],
+          instancedCount: 150
+        }
+      ],
+      engine3D: {
+        solidGeometry: chosenHero,
+        layoutMath: "multi_layer_composition",
         colors: dynamicPalette.slice(0, 3),
         cameraSpeed: 1.0,
-        bloomIntensity: 2.2,
+        bloomIntensity: 2.5,
         complexity: 1.2
       }
     };
   }
 
-  // Ensure seamless property mirroring
+  // Ensure engine3D alias compatibility
   if (!result3D.engine3D) {
     result3D.engine3D = {
-      solidGeometry: result3D.coreGeometry?.type || chosenGeom,
-      layoutMath: result3D.instancingMath?.layout || chosenLayout,
-      physicalMaterial: result3D.pbrMaterial || { metalness: 0.95, roughness: 0.08 },
-      cinematographyDP: {
-        cameraPath: result3D.virtualCamera?.motionPath || chosenCam,
-        pacing: "extremely_slow_and_cinematic",
-        focusDistance: 0
-      },
+      solidGeometry: result3D.compositionLayers?.find((l: any) => l.role === "Hero_Subject")?.geometry || chosenHero,
+      layoutMath: "multi_layer_composition",
       colors: dynamicPalette.slice(0, 3),
       cameraSpeed: 1.0,
-      bloomIntensity: 2.2,
+      bloomIntensity: result3D.cinematicVFX?.bloomIntensity || 2.5,
       complexity: 1.2
     };
   }

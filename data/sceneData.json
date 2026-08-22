@@ -1,14 +1,17 @@
 {
   "seoPackage": {
-    "title": "Cinematic 4K Solid 3D: AI Neural Network Data Flow | 4K Stock Visuals",
-    "description": "Procedural 3D solid geometry simulation of AI Neural Network Data Flow & Ultra-clean abstract 2D procedural motion graphics of AI Neural Network Data Flow",
+    "title": "Cinematic 4K Multi-Layer 3D VFX: Retro Pixel Dither Glitch Wave | 4K Stock Visuals",
+    "description": "Multi-layer procedural 3D solid geometry simulation of Retro Pixel Dither Glitch Wave with cinematic post-processing & Ultra-clean abstract 2D procedural motion graphics of Retro Pixel Dither Glitch Wave",
     "seoTags": [
       "3d",
       "procedural",
       "4k",
       "stock video",
-      "pbr",
-      "ai neural network data flow",
+      "vfx",
+      "multi-layer",
+      "redshift",
+      "octane",
+      "retro pixel dither glitch wave",
       "2d mograph",
       "motion graphics",
       "abstract",
@@ -21,37 +24,28 @@
     "2D"
   ],
   "engine3D": {
-    "solidGeometry": "SphereGeometry",
-    "layoutMath": "concentric_rings",
-    "physicalMaterial": {
-      "metalness": 0.9,
-      "roughness": 0.1
-    },
-    "cinematographyDP": {
-      "cameraPath": "smooth_dolly_in",
-      "pacing": "extremely_slow_and_cinematic",
-      "focusDistance": 0
-    },
+    "solidGeometry": "TorusKnot",
+    "layoutMath": "multi_layer_composition",
     "colors": [
-      "#e0e7ff",
-      "#6366f1",
-      "#a855f7"
+      "#ff3366",
+      "#33ccff",
+      "#ffcc00"
     ],
     "cameraSpeed": 1,
-    "bloomIntensity": 2,
-    "complexity": 1
+    "bloomIntensity": 2.5,
+    "complexity": 1.2
   },
   "engine2D": {
-    "layoutStructure": "organic_liquid_prism",
+    "layoutStructure": "cyber_matrix_telemetry",
     "colorPalette": [
-      "#10b981",
-      "#3b82f6",
-      "#f59e0b",
-      "#ef4444"
+      "#ff3366",
+      "#33ccff",
+      "#ffcc00",
+      "#9933ff"
     ],
-    "energySpeed": 1.15,
-    "complexity": 1.2,
-    "glowIntensity": 2.5,
+    "energySpeed": 1,
+    "complexity": 1,
+    "glowIntensity": 2.8,
     "elements": [
       {
         "type": "data_ring",
@@ -60,7 +54,7 @@
       },
       {
         "type": "glass_blob",
-        "size": 380
+        "size": 400
       },
       {
         "type": "hud_grid",
@@ -69,14 +63,14 @@
       },
       {
         "type": "waveform_bars",
-        "scale": 1
+        "scale": 1.1
       }
     ]
   },
   "colors": [
-    "#e0e7ff",
-    "#6366f1",
-    "#a855f7"
+    "#ff3366",
+    "#33ccff",
+    "#ffcc00"
   ],
-  "title": "Dual-Render 4K: AI Neural Network Data Flow"
+  "title": "Dual-Render 4K: Retro Pixel Dither Glitch Wave"
 }

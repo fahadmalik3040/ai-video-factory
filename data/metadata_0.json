@@ -1,13 +1,16 @@
 {
   "seoPackage": {
-    "title": "Cinematic 4K Solid 3D: Retro Pixel Dither Glitch Wave | 4K Stock Visuals",
-    "description": "Procedural 3D solid geometry simulation of Retro Pixel Dither Glitch Wave & Ultra-clean abstract 2D procedural motion graphics of Retro Pixel Dither Glitch Wave",
+    "title": "Cinematic 4K Multi-Layer 3D VFX: Retro Pixel Dither Glitch Wave | 4K Stock Visuals",
+    "description": "Multi-layer procedural 3D solid geometry simulation of Retro Pixel Dither Glitch Wave with cinematic post-processing & Ultra-clean abstract 2D procedural motion graphics of Retro Pixel Dither Glitch Wave",
     "seoTags": [
       "3d",
       "procedural",
       "4k",
       "stock video",
-      "pbr",
+      "vfx",
+      "multi-layer",
+      "redshift",
+      "octane",
       "retro pixel dither glitch wave",
       "2d mograph",
       "motion graphics",
@@ -21,37 +24,28 @@
     "2D"
   ],
   "engine3D": {
-    "solidGeometry": "BoxGeometry",
-    "layoutMath": "grid",
-    "physicalMaterial": {
-      "metalness": 0.9,
-      "roughness": 0.1
-    },
-    "cinematographyDP": {
-      "cameraPath": "slow_orbit",
-      "pacing": "extremely_slow_and_cinematic",
-      "focusDistance": 0
-    },
+    "solidGeometry": "TorusKnot",
+    "layoutMath": "multi_layer_composition",
     "colors": [
-      "#4ade80",
-      "#22d3ee",
-      "#e879f9"
+      "#ff3366",
+      "#33ccff",
+      "#ffcc00"
     ],
     "cameraSpeed": 1,
-    "bloomIntensity": 2,
-    "complexity": 1
+    "bloomIntensity": 2.5,
+    "complexity": 1.2
   },
   "engine2D": {
     "layoutStructure": "cyber_matrix_telemetry",
     "colorPalette": [
-      "#00ffcc",
-      "#ff0066",
-      "#cc00ff",
-      "#ffffff"
+      "#ff3366",
+      "#33ccff",
+      "#ffcc00",
+      "#9933ff"
     ],
     "energySpeed": 1,
     "complexity": 1,
-    "glowIntensity": 2.5,
+    "glowIntensity": 2.8,
     "elements": [
       {
         "type": "data_ring",
@@ -60,7 +54,7 @@
       },
       {
         "type": "glass_blob",
-        "size": 380
+        "size": 400
       },
       {
         "type": "hud_grid",
@@ -69,14 +63,14 @@
       },
       {
         "type": "waveform_bars",
-        "scale": 1
+        "scale": 1.1
       }
     ]
   },
   "colors": [
-    "#4ade80",
-    "#22d3ee",
-    "#e879f9"
+    "#ff3366",
+    "#33ccff",
+    "#ffcc00"
   ],
   "title": "Dual-Render 4K: Retro Pixel Dither Glitch Wave"
 }
