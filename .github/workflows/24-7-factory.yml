@@ -6,7 +6,7 @@ on:
 
 jobs:
   mass-production:
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -33,6 +33,9 @@ jobs:
           npx --yes tsx src/scripts/0_trendCatcher.ts
           npx --yes tsx src/scripts/1_generateJson.ts
         
+      - name: Install WebGL dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-glx libegl1-mesa xvfb
+
       - name: Phase 3 & 4 - 4K Render Engine
         run: npm run render:cloud
         
@@ -49,4 +52,3 @@ jobs:
           GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
           GDRIVE_PARENT_ID: ${{ secrets.GDRIVE_PARENT_ID }}
         run: npx --yes tsx src/scripts/5_uploadDrive.ts
-
