@@ -36,8 +36,13 @@ jobs:
       - name: Install Chrome & WebGL Linux Dependencies
         run: sudo apt-get update && sudo apt-get install -y xvfb libgl1 libegl1 libnss3 libatk-bridge2.0-0 libcups2 libgbm1 libasound2t64 libpangocairo-1.0-0 libxss1 fonts-liberation
 
+      - name: Start Virtual Display (Xvfb)
+        run: Xvfb :99 -screen 0 1920x1080x24 &
+
       - name: Phase 3 & 4 - 4K Render Engine
-        run: xvfb-run -a npm run render:cloud
+        env:
+          DISPLAY: :99
+        run: npm run render:cloud
         
       - name: Upload Rendered Video & SEO Metadata
         uses: actions/upload-artifact@v4
