@@ -3,46 +3,48 @@ import { getCompositions, renderMedia } from "@remotion/renderer";
 import path from "node:path";
 import fs from "node:fs";
 
-async function autoGenerateVideo(): Promise<void> {
-  console.log("🚀 STARTING STABLE CLOUD-SAFE 4K RENDERING...");
-  
+async function optimizedRender(): Promise<void> {
+  console.log("🧹 PURGING ALL REMOTION & WEBPACK CACHES TO PREVENT STALE OUTPUT...");
   const projectRoot = process.cwd();
   const jobIndex = process.env.JOB_INDEX || "0";
-  const outDir = path.resolve(projectRoot, "out");
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, { recursive: true });
+
+  const cacheDirs = [
+    path.resolve(projectRoot, ".remotion"),
+    path.resolve(projectRoot, "node_modules/.cache/remotion"),
+    path.resolve(projectRoot, "node_modules/.cache/webpack"),
+  ];
+
+  for (const dir of cacheDirs) {
+    if (fs.existsSync(dir)) {
+      try {
+        fs.rmSync(dir, { recursive: true, force: true });
+        console.log(`   Deleted cache: ${dir}`);
+      } catch {
+        // Ignore warning
+      }
+    }
   }
 
-  // Locate dynamic job metadata for 3D and 2D
+  // Load fresh dynamic job metadata
   const meta3DPath = path.resolve(projectRoot, "data", `metadata_3d_${jobIndex}.json`);
   const meta2DPath = path.resolve(projectRoot, "data", `metadata_2d_${jobIndex}.json`);
   const fallbackPath = path.resolve(projectRoot, "data", `metadata_${jobIndex}.json`);
   const sceneDataPath = path.resolve(projectRoot, "data", "sceneData.json");
 
-  let raw3D = "{}";
+  let rawData = "{}";
   if (fs.existsSync(meta3DPath)) {
-    raw3D = fs.readFileSync(meta3DPath, "utf8");
+    rawData = fs.readFileSync(meta3DPath, "utf8");
   } else if (fs.existsSync(fallbackPath)) {
-    raw3D = fs.readFileSync(fallbackPath, "utf8");
+    rawData = fs.readFileSync(fallbackPath, "utf8");
   } else if (fs.existsSync(sceneDataPath)) {
-    raw3D = fs.readFileSync(sceneDataPath, "utf8");
+    rawData = fs.readFileSync(sceneDataPath, "utf8");
   }
-  const parsed3D = JSON.parse(raw3D);
+  const parsedData = JSON.parse(rawData);
+  const dynamicProps = { ...parsedData, sceneData: parsedData };
 
-  let raw2D = "{}";
-  if (fs.existsSync(meta2DPath)) {
-    raw2D = fs.readFileSync(meta2DPath, "utf8");
-  } else if (fs.existsSync(fallbackPath)) {
-    raw2D = fs.readFileSync(fallbackPath, "utf8");
-  } else if (fs.existsSync(sceneDataPath)) {
-    raw2D = fs.readFileSync(sceneDataPath, "utf8");
-  }
-  const parsed2D = JSON.parse(raw2D);
+  console.log(`🎯 TARGET CONCEPT FOR JOB ${jobIndex}: "${parsedData.commercialConcept || "Procedural GLSL Shader"}"`);
+  console.log("📦 Fresh Bundling Remotion project with latest JSON data...");
 
-  const dynamicProps3D = { ...parsed3D, sceneData: parsed3D };
-  const dynamicProps2D = { ...parsed2D, sceneData: parsed2D };
-
-  console.log("📦 Bundling Remotion project with dynamic Webpack settings...");
   const bundled = await bundle({
     entryPoint: path.resolve(projectRoot, "src/index.ts"),
     webpackOverride: (config) => ({
@@ -51,63 +53,52 @@ async function autoGenerateVideo(): Promise<void> {
     }),
   });
 
-  const comps = await getCompositions(bundled, { inputProps: dynamicProps3D });
-  const comp3D = comps.find((c) => c.id === "Main3D" || c.id === "MainVideo") || comps[0];
-  const comp2D = comps.find((c) => c.id === "Main2D") || comps[0];
+  const comps = await getCompositions(bundled, { inputProps: dynamicProps });
+  const videoComp = comps.find((c) => c.id === "MainVideo" || c.id === "Main3D" || c.id === "MyComp") || comps[0];
 
-  if (!comp3D) {
-    throw new Error("❌ Composition not found in Remotion bundle!");
+  if (!videoComp) {
+    throw new Error("❌ Composition not found!");
   }
 
-  // 1. Render Primary 3D Video
+  const outDir = path.resolve(projectRoot, "out");
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir, { recursive: true });
+  }
+
+  const timestamp = Date.now();
+  const outputLocation = path.join(outDir, `video_${timestamp}.mp4`);
   const output3DLocation = path.join(outDir, `output_${jobIndex}_3d.mp4`);
+  const output2DLocation = path.join(outDir, `output_${jobIndex}_2d.mp4`);
   const finalVideoLocation = path.join(outDir, "final_video.mp4");
   const universalOutput = path.join(outDir, "output.mp4");
 
-  console.log(`🎥 [PASS 1/2] Rendering 3D 4K Video safely to: ${output3DLocation}`);
+  console.log(`🎥 Rendering optimized 4K Video (Targeting small file size with CRF 16 & yuv420p)...`);
   await renderMedia({
-    composition: comp3D,
+    composition: videoComp,
     serveUrl: bundled,
     codec: "h264",
-    outputLocation: output3DLocation,
-    inputProps: dynamicProps3D,
+    outputLocation,
+    inputProps: dynamicProps,
     crf: 16,
     concurrency: 1,
-    pixelFormat: "yuv420p",
+    pixelFormat: "yuv420p", // Essential for standard player compatibility and size reduction
     timeoutInMilliseconds: 600000,
   });
 
   // Duplicate for universal compatibility and pipeline scripts
   try {
-    fs.copyFileSync(output3DLocation, finalVideoLocation);
-    fs.copyFileSync(output3DLocation, universalOutput);
+    fs.copyFileSync(outputLocation, output3DLocation);
+    fs.copyFileSync(outputLocation, output2DLocation);
+    fs.copyFileSync(outputLocation, finalVideoLocation);
+    fs.copyFileSync(outputLocation, universalOutput);
   } catch {
     // Ignore copy error
   }
 
-  // 2. Render Secondary 2D Video
-  const output2DLocation = path.join(outDir, `output_${jobIndex}_2d.mp4`);
-  console.log(`🎥 [PASS 2/2] Rendering 2D 4K Video safely to: ${output2DLocation}`);
-  try {
-    await renderMedia({
-      composition: comp2D,
-      serveUrl: bundled,
-      codec: "h264",
-      outputLocation: output2DLocation,
-      inputProps: dynamicProps2D,
-      crf: 16,
-      concurrency: 1,
-      pixelFormat: "yuv420p",
-      timeoutInMilliseconds: 600000,
-    });
-  } catch (err: any) {
-    console.warn("⚠️ 2D Pass skipped or encountered non-fatal warning:", err.message);
-  }
-
-  console.log("✅ BOOM! All 4K Videos successfully generated in:", outDir);
+  console.log("✅ SUCCESS! Fresh optimized video generated at:", outputLocation);
 }
 
-autoGenerateVideo().catch((err) => {
+optimizedRender().catch((err) => {
   console.error("❌ Fatal Render Error:", err);
   process.exit(1);
 });
