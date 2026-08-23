@@ -45,15 +45,12 @@ function normalizeCategories(data: any): any {
   return data;
 }
 
-async function fetchNvidiaWithRetry(payload: any, retries = 3, delay = 3000): Promise<VideoData> {
+async function fetchNvidiaWithRetry(payload: any, retries = 3, delay = 5000): Promise<VideoData> {
   const nvidiaKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join("");
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      console.log(`⚡ Querying Nvidia Master Art Director LLM (Attempt ${attempt}/${retries})...`);
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60-second generous timeout window
+      console.log(`⚡ Querying Nvidia Master Art Director LLM (Attempt ${attempt}/${retries})... WITHOUT ABORT TIMER`);
 
       const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
         method: "POST",
@@ -62,11 +59,9 @@ async function fetchNvidiaWithRetry(payload: any, retries = 3, delay = 3000): Pr
           "Authorization": `Bearer ${nvidiaKey}`,
           "Accept": "application/json"
         },
-        body: JSON.stringify(payload),
-        signal: controller.signal
+        body: JSON.stringify(payload)
+        // NO ABORT SIGNAL. Let it take as much time as it needs.
       });
-
-      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errText = await response.text().catch(() => "");
@@ -96,7 +91,7 @@ async function fetchNvidiaWithRetry(payload: any, retries = 3, delay = 3000): Pr
       }
       console.log(`⏳ Waiting ${delay / 1000}s before retrying Nvidia...`);
       await new Promise(resolve => setTimeout(resolve, delay));
-      delay *= 2; // Exponential backoff
+      delay *= 2;
     }
   }
 
@@ -166,7 +161,7 @@ Output STRICT JSON adhering to this schema:
       max_tokens: 800
     };
 
-    resultData = await fetchNvidiaWithRetry(payload, 3, 3000);
+    resultData = await fetchNvidiaWithRetry(payload, 3, 5000);
     console.log(`✅ [NVIDIA Dual Engine] 3D: ${resultData.job3D.clipCategory} | 2D: ${resultData.job2D.shaderCategory}`);
   } catch (error) {
     console.error("❌ FATAL: Nvidia LLM completely failed after retries. No fallbacks allowed. Exiting.", error);

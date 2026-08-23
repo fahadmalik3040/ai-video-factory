@@ -210,8 +210,6 @@ async function catchTrends() {
   let finalCsvLines: string[] = [header];
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
     const response = await fetch(nvidiaUrl, {
       method: "POST",
       headers: { 
@@ -219,10 +217,8 @@ async function catchTrends() {
         "Authorization": `Bearer ${nvidiaKey}`,
         "Accept": "application/json"
       },
-      body: JSON.stringify(payload),
-      signal: controller.signal
+      body: JSON.stringify(payload)
     });
-    clearTimeout(timeout);
     
     const data = await response.json();
     if (data.choices && data.choices[0]?.message?.content) {
