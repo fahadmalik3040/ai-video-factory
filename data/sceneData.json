@@ -2,12 +2,12 @@
   "job3D": {
     "trendTopic": "Biotech DNA Double Helix Evolution 3D Cinematic Universe",
     "clipCategory": "abstract_matrix",
-    "colorTheme": "#6495ed",
+    "colorTheme": "#8e44ad",
     "particleCount": 18000
   },
   "job2D": {
     "trendTopic": "Biotech DNA Double Helix Evolution Premium VFX Motion",
     "shaderCategory": "fluid_caustics",
-    "colorTheme": "#66d9ef"
+    "colorTheme": "#4cd137"
   }
 }
