@@ -89,10 +89,11 @@ const main = async (): Promise<void> => {
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-gpu",
-      "--disable-vulkan",
-      "--use-gl=swiftshader",
-      "--ignore-gpu-blocklist",
+      "--disable-dev-shm-usage",
       "--disable-software-rasterizer",
+      "--use-gl=swiftshader",
+      "--hide-scrollbars",
+      "--mute-audio",
     ],
   };
 
