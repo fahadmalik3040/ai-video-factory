@@ -9,6 +9,12 @@ You must generate TWO completely independent video concepts based on the provide
 1. job3D: Focus on high-end 3D world-building (Particles, Wireframes, Geometry).
 2. job2D: Focus on premium 2D Post-Production VFX (HUDs, Glitches, Light Leaks, Fluid Shaders). You MUST write a functional GLSL fragment shader in 'customShader' for this 2D effect.
 
+CRITICAL JSON FORMATTING RULES:
+1. The 'customShader' MUST be a valid JSON string.
+2. You MUST escape all newlines as \\n and quotes as \\" inside the shader code.
+3. NEVER use raw multi-line strings or actual line breaks inside the JSON values.
+4. Output the final JSON as a single, minified, flat string to prevent parsing errors.
+
 Output STRICT JSON matching the schema containing both job3D and job2D. DO NOT USE ANY HTML TEXT.`;
 
 export async function generateDualOrchestratorJson(targetTopic?: string, jobIdx?: number): Promise<VideoData> {
@@ -42,7 +48,7 @@ export async function generateDualOrchestratorJson(targetTopic?: string, jobIdx?
 Trend 3D: "${trendTopic3D}"
 Trend 2D: "${trendTopic2D}"
 
-Output STRICT JSON adhering to this schema:
+Output STRICT single-line minified JSON adhering to this schema:
 {
   "job3D": {
     "trendTopic": "${trendTopic3D}",
@@ -55,7 +61,7 @@ Output STRICT JSON adhering to this schema:
     "trendTopic": "${trendTopic2D}",
     "clipCategory": "${chosenCat2D}",
     "colorTheme": "${themeColor2D}",
-    "customShader": "A valid GLSL fragment shader using uniform float time; uniform vec3 colorTheme; uniform vec2 resolution; uniform float bloomIntensity; varying vec2 vUv;",
+    "customShader": "uniform float time; uniform vec3 colorTheme; uniform vec2 resolution; uniform float bloomIntensity; varying vec2 vUv; void main() { vec2 uv = gl_FragCoord.xy / resolution.xy; gl_FragColor = vec4(colorTheme * bloomIntensity, 1.0); }",
     "bloomIntensity": 1.5
   }
 }`;

@@ -50,46 +50,26 @@ export function getJobTopic(): { topic: string; jobIndex: number } {
   return { topic: selectedTopic, jobIndex };
 }
 
-export function sanitizeAndParseJson(raw: string): any {
-  if (!raw || typeof raw !== 'string') {
-    throw new Error("Empty or non-string LLM response received");
-  }
-
-  let clean = raw.trim();
-  clean = clean.replace(/```json/gi, '');
-  clean = clean.replace(/```javascript/gi, '');
-  clean = clean.replace(/```/g, '');
-  clean = clean.trim();
-
-  const firstBrace = clean.indexOf('{');
-  const lastBrace = clean.lastIndexOf('}');
-
-  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
-    throw new Error("No valid JSON object bounds found in LLM output");
-  }
-
-  clean = clean.slice(firstBrace, lastBrace + 1);
-
+export function sanitizeAndParseJson(raw: string) {
   try {
-    return JSON.parse(clean);
-  } catch {
-    try {
-      // Fix unescaped control characters inside JSON strings
-      const fixed = clean
-        .replace(/"((?:\\.|[^"\\])*)"/gs, (match) => {
-          return match.replace(/\r?\n/g, '\\n').replace(/\t/g, '\\t');
-        })
-        .replace(/,\s*([\]}])/g, '$1');
-      return JSON.parse(fixed);
-    } catch {
-      let escaped = clean.replace(/[\u0000-\u001F]+/g, (match) => {
-        if (match.includes('\n') || match.includes('\r')) return '\\n';
-        if (match.includes('\t')) return '\\t';
-        return ' ';
-      });
-      escaped = escaped.replace(/,\s*([\]}])/g, '$1');
-      return JSON.parse(escaped);
+    // 1. Remove markdown formatting if the LLM wrapped it in ```json ... ```
+    let clean = raw.replace(/^[\s\S]*?```json/i, '').replace(/```[\s\S]*?$/i, '').trim();
+    if (!clean.startsWith('{') && clean.includes('{')) {
+       clean = clean.substring(clean.indexOf('{'));
     }
+    if (!clean.endsWith('}') && clean.includes('}')) {
+       clean = clean.substring(0, clean.lastIndexOf('}') + 1);
+    }
+    
+    // 2. Aggressively strip raw control characters (like unescaped newlines/tabs inside strings)
+    // By removing actual line breaks, we force the JSON into a parseable state even if the LLM messed up.
+    clean = clean.replace(/[\u0000-\u001F]+/g, ""); 
+
+    return JSON.parse(clean);
+  } catch (error) {
+    console.error("❌ JSON Parsing failed! Raw AI Output was:");
+    console.error(raw);
+    throw error;
   }
 }
 
