@@ -86,11 +86,12 @@ const main = async (): Promise<void> => {
     disableWebSecurity: true,
     ignoreCertificateErrors: true,
     args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
       "--use-gl=angle",
       "--use-angle=swiftshader",
       "--enable-webgl",
       "--ignore-gpu-blocklist",
-      "--no-sandbox",
       "--disable-dev-shm-usage",
     ],
   };
