@@ -109,7 +109,7 @@ const main = async (): Promise<void> => {
   });
 
   const output3DLocation = path.resolve(outputDirectory, `output_${jobIndex}_3d.mp4`);
-  console.log(`🎥 Rendering 3D H.264 MP4 (CRF 21, yuv420p) to: ${output3DLocation}`);
+  console.log(`🎥 Rendering 3D H.264 MP4 (CRF 16, yuv420p) to: ${output3DLocation}`);
 
   await renderMedia({
     composition: comp3D,
@@ -117,7 +117,8 @@ const main = async (): Promise<void> => {
     codec: "h264",
     outputLocation: output3DLocation,
     inputProps: dynamicProps3D,
-    crf: 21,
+    crf: 16,
+    concurrency: 1,
     pixelFormat: "yuv420p",
     proResProfile: undefined,
     timeoutInMilliseconds: 120000,
@@ -138,7 +139,7 @@ const main = async (): Promise<void> => {
   });
 
   const output2DLocation = path.resolve(outputDirectory, `output_${jobIndex}_2d.mp4`);
-  console.log(`🎥 Rendering 2D H.264 MP4 (CRF 21, yuv420p) to: ${output2DLocation}`);
+  console.log(`🎥 Rendering 2D H.264 MP4 (CRF 16, yuv420p) to: ${output2DLocation}`);
 
   await renderMedia({
     composition: comp2D,
@@ -146,7 +147,8 @@ const main = async (): Promise<void> => {
     codec: "h264",
     outputLocation: output2DLocation,
     inputProps: dynamicProps2D,
-    crf: 21,
+    crf: 16,
+    concurrency: 1,
     pixelFormat: "yuv420p",
     proResProfile: undefined,
     timeoutInMilliseconds: 120000,
