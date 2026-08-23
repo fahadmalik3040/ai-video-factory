@@ -1,13 +1,7 @@
 {
-  "prompt": "Biotech DNA Double Helix Evolution",
-  "clipCategory": "fluid_caustics",
-  "shaderType": "fluid_caustics",
-  "colorTheme": "#ff3366",
-  "complexity": "ultra_high",
-  "motionStyle": "cinematic_fluid",
-  "sceneText": "",
-  "bloomIntensity": 1.5,
-  "aberration": 0.005,
-  "speed": 1,
-  "seed": 31307
+  "trendTopic": "Biotech DNA Double Helix Evolution 3D Procedural Matrix",
+  "clipCategory": "cinematic_particles",
+  "colorTheme": "#00ffcc",
+  "particleCount": 5000,
+  "cameraMotion": "orbit_slow"
 }

@@ -1,92 +1,97 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useCurrentFrame } from 'remotion';
 import * as THREE from 'three';
 
-const SHADER_LIBRARY: Record<string, string> = {
-  fluid_caustics: `
-    uniform float time; uniform vec3 colorTheme; varying vec2 vUv;
-    void main() {
-      vec2 p = vUv * 3.0 - 1.5;
-      for(int i=1; i<5; i++) {
-        vec2 newp = p;
-        newp.x += 0.6/float(i)*sin(float(i)*p.y+time/2.0+0.3);
-        newp.y += 0.6/float(i)*cos(float(i)*p.x+time/2.0+0.3);
-        p = newp;
-      }
-      float f = 0.5 / length(sin(p));
-      gl_FragColor = vec4(colorTheme * f, 1.0);
-    }
-  `,
-  cosmic_energy: `
-    uniform float time; uniform vec3 colorTheme; varying vec2 vUv;
-    void main() {
-      vec2 p = vUv * 2.0 - 1.0;
-      float t = time * 0.5;
-      float d = length(p);
-      float angle = atan(p.y, p.x) + t;
-      float radius = length(p);
-      float wave = sin(10.0 * radius - 4.0 * t + 5.0 * angle);
-      float glow = 0.05 / (abs(wave) + 0.01) * exp(-2.0 * radius);
-      gl_FragColor = vec4(colorTheme * glow * 2.0, 1.0);
-    }
-  `,
-  neon_lightning: `
-    uniform float time; uniform vec3 colorTheme; varying vec2 vUv;
-    void main() {
-      vec2 p = vUv * 2.0 - 1.0;
-      float wave = p.y + sin(p.x * 5.0 + time * 3.0) * 0.2 + cos(p.x * 10.0 + time * 5.0) * 0.1;
-      float glow = 0.01 / abs(wave);
-      gl_FragColor = vec4(colorTheme * glow * 1.5, 1.0);
-    }
-  `,
-  raymarched_core: `
-    uniform float time; uniform vec3 colorTheme; varying vec2 vUv;
-    void main() {
-      vec2 p = vUv * 2.0 - 1.0;
-      float len = length(p);
-      float ring = abs(len - 0.5) - 0.02;
-      float core = 0.02 / (length(p) + 0.01);
-      float ringGlow = 0.01 / (abs(ring) + 0.005);
-      vec3 finalColor = colorTheme * (core + ringGlow + sin(time)*0.1);
-      gl_FragColor = vec4(finalColor, 1.0);
-    }
-  `
-};
+const DEFAULT_2D_SHADER = `
+  uniform float time;
+  uniform vec3 colorTheme;
+  uniform vec2 resolution;
+  uniform float bloomIntensity;
+  varying vec2 vUv;
 
-export const EliteVFX2D = ({ themeColor, shaderType = "cosmic_energy", bloomIntensity, speed = 1.0 }: any) => {
+  void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
+    float d = length(p);
+    for(int i = 1; i < 5; i++) {
+      float fi = float(i);
+      p.x += 0.4 / fi * sin(fi * 3.0 * p.y + time * 0.8);
+      p.y += 0.4 / fi * cos(fi * 3.0 * p.x + time * 0.8);
+    }
+    float glow = (0.25 * bloomIntensity) / (length(p) + 0.15);
+    vec3 col = colorTheme * glow;
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
+export interface EliteVFX2DProps {
+  customShader?: string;
+  themeColor?: string;
+  bloomIntensity?: number;
+  [key: string]: any;
+}
+
+export const EliteVFX2D: React.FC<EliteVFX2DProps> = ({
+  customShader,
+  themeColor = "#ff0055",
+  bloomIntensity = 1.5,
+}) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
-  const vertexShader = `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
-  
-  const selectedShader = SHADER_LIBRARY[shaderType] || SHADER_LIBRARY["cosmic_energy"];
+  const frame = useCurrentFrame();
 
-  const uniforms = useMemo(() => {
-    let safeColor = new THREE.Color("#00ffcc");
-    try { if (typeof themeColor === 'string' && themeColor.startsWith('#')) safeColor = new THREE.Color(themeColor); } catch (e) {}
-    return {
-      time: { value: 0 },
-      colorTheme: { value: safeColor },
-      speed: { value: typeof speed === 'number' ? speed : 1.0 }
-    };
-  }, [themeColor, speed]);
+  const vertexShader = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position.xy, 0.0, 1.0);
+    }
+  `;
+
+  const finalFragmentShader = (typeof customShader === 'string' && customShader.includes('void main'))
+    ? customShader
+    : DEFAULT_2D_SHADER;
+
+  const color = useMemo(() => {
+    let safeColor = new THREE.Color("#ff0055");
+    try {
+      if (typeof themeColor === 'string' && themeColor.startsWith('#')) {
+        safeColor = new THREE.Color(themeColor);
+      }
+    } catch {
+      safeColor = new THREE.Color("#ff0055");
+    }
+    return safeColor;
+  }, [themeColor]);
+
+  const uniforms = useMemo(() => ({
+    time: { value: 0 },
+    colorTheme: { value: color },
+    resolution: { value: new THREE.Vector2(3840, 2160) },
+    bloomIntensity: { value: typeof bloomIntensity === 'number' ? bloomIntensity : 1.5 },
+  }), [color, bloomIntensity]);
 
   useFrame((state) => {
-    if (materialRef.current) {
-      const spd = typeof speed === 'number' ? speed : 1.0;
-      materialRef.current.uniforms.time.value = state.clock.elapsedTime * spd;
+    if (materialRef.current && materialRef.current.uniforms) {
+      const safeTime = typeof frame === 'number' && !isNaN(frame)
+        ? frame / 30.0
+        : state.clock.elapsedTime;
+      materialRef.current.uniforms.time.value = safeTime;
+      materialRef.current.uniforms.colorTheme.value = color;
+      materialRef.current.uniforms.resolution.value.set(3840, 2160);
+      materialRef.current.uniforms.bloomIntensity.value = typeof bloomIntensity === 'number' ? bloomIntensity : 1.5;
     }
   });
 
   return (
     <mesh>
-      <planeGeometry args={[16, 9]} />
-      <shaderMaterial 
+      <planeGeometry args={[2, 2]} />
+      <shaderMaterial
         ref={materialRef}
         vertexShader={vertexShader}
-        fragmentShader={selectedShader}
+        fragmentShader={finalFragmentShader}
         uniforms={uniforms}
-        transparent={true}
-        blending={THREE.AdditiveBlending}
         depthWrite={false}
+        depthTest={false}
       />
     </mesh>
   );

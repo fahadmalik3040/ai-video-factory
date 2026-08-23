@@ -3,58 +3,70 @@ import { getCompositions, renderMedia } from "@remotion/renderer";
 import path from "node:path";
 import fs from "node:fs";
 
-async function optimizedRender(): Promise<void> {
-  console.log("🧹 PURGING ALL REMOTION & WEBPACK CACHES TO PREVENT STALE OUTPUT...");
+async function dualOptimizedRender(): Promise<void> {
+  console.log("=======================================================================");
+  console.log("🧹 PURGING ALL REMOTION & WEBPACK CACHES (DUAL INDEPENDENT PIPELINE)...");
+  console.log("=======================================================================");
+
   const projectRoot = process.cwd();
   const jobIndex = process.env.JOB_INDEX || "0";
 
-  // Purge Remotion Cache
-  const cacheDir = path.resolve("./node_modules/.cache/remotion");
-  if (fs.existsSync(cacheDir)) {
-    try {
-      fs.rmSync(cacheDir, { recursive: true, force: true });
-      console.log(`   Deleted cache: ${cacheDir}`);
-    } catch {
-      // Ignore error
-    }
-  }
-
-  const additionalCaches = [
+  const cacheDirs = [
     path.resolve(projectRoot, ".remotion"),
+    path.resolve(projectRoot, "node_modules/.cache/remotion"),
     path.resolve(projectRoot, "node_modules/.cache/webpack"),
   ];
 
-  for (const dir of additionalCaches) {
+  for (const dir of cacheDirs) {
     if (fs.existsSync(dir)) {
       try {
         fs.rmSync(dir, { recursive: true, force: true });
         console.log(`   Deleted cache: ${dir}`);
       } catch {
-        // Ignore warning
+        // Ignore error
       }
     }
   }
 
-  // Load fresh dynamic job metadata
+  // Load fresh dual metadata
   const sceneDataPath = path.resolve(projectRoot, "data", "sceneData.json");
-  const metaJobPath = path.resolve(projectRoot, "data", `metadata_${jobIndex}.json`);
-  const meta3DPath = path.resolve(projectRoot, "data", `metadata_3d_${jobIndex}.json`);
+  const fallbackPath = path.resolve(projectRoot, "data", `metadata_${jobIndex}.json`);
 
-  let rawData = "{}";
+  let jsonData: any = {
+    job3D: {
+      trendTopic: "AI Neural Network Quantum Core",
+      clipCategory: "cinematic_particles",
+      colorTheme: "#00f0ff",
+      particleCount: 5000,
+      cameraMotion: "orbit_slow"
+    },
+    job2D: {
+      trendTopic: "Cyberpunk Holographic HUD Interface",
+      clipCategory: "cyberpunk_hud",
+      colorTheme: "#ff0055",
+      customShader: "",
+      bloomIntensity: 1.5
+    }
+  };
+
   if (fs.existsSync(sceneDataPath)) {
-    rawData = fs.readFileSync(sceneDataPath, "utf8");
-  } else if (fs.existsSync(metaJobPath)) {
-    rawData = fs.readFileSync(metaJobPath, "utf8");
-  } else if (fs.existsSync(meta3DPath)) {
-    rawData = fs.readFileSync(meta3DPath, "utf8");
+    try {
+      jsonData = JSON.parse(fs.readFileSync(sceneDataPath, "utf8"));
+    } catch {
+      // Ignore
+    }
+  } else if (fs.existsSync(fallbackPath)) {
+    try {
+      jsonData = JSON.parse(fs.readFileSync(fallbackPath, "utf8"));
+    } catch {
+      // Ignore
+    }
   }
 
-  const parsedData = JSON.parse(rawData);
-  const dynamicProps = { ...parsedData, sceneData: parsedData };
+  const job3D = jsonData.job3D || jsonData;
+  const job2D = jsonData.job2D || jsonData;
 
-  console.log(`🎯 TARGET CONCEPT FOR JOB ${jobIndex}: "${parsedData.clipCategory || parsedData.prompt || "Universal Stock Visual"}"`);
-  console.log("📦 Fresh Bundling Remotion project with latest JSON data...");
-
+  console.log("📦 Bundling Remotion project for Dual Render Engine...");
   const bundled = await bundle({
     entryPoint: path.resolve(projectRoot, "src/index.ts"),
     webpackOverride: (config) => ({
@@ -63,11 +75,12 @@ async function optimizedRender(): Promise<void> {
     }),
   });
 
-  const comps = await getCompositions(bundled, { inputProps: dynamicProps });
-  const videoComp = comps.find((c) => c.id === "MainVideo" || c.id === "Main3D" || c.id === "MyComp") || comps[0];
+  const comps = await getCompositions(bundled, { inputProps: { job3D, job2D } });
+  const comp3D = comps.find((c) => c.id === "Main3D" || c.id === "MainVideo") || comps[0];
+  const comp2D = comps.find((c) => c.id === "Main2D") || comps[1] || comps[0];
 
-  if (!videoComp) {
-    throw new Error("❌ Composition not found!");
+  if (!comp3D || !comp2D) {
+    throw new Error("❌ Remotion compositions (Main3D/Main2D) not found!");
   }
 
   const outDir = path.resolve(projectRoot, "out");
@@ -75,20 +88,21 @@ async function optimizedRender(): Promise<void> {
     fs.mkdirSync(outDir, { recursive: true });
   }
 
-  const timestamp = Date.now();
-  const outputLocation = path.join(outDir, `video_${timestamp}.mp4`);
-  const output3DLocation = path.join(outDir, `output_${jobIndex}_3d.mp4`);
-  const output2DLocation = path.join(outDir, `output_${jobIndex}_2d.mp4`);
-  const finalVideoLocation = path.join(outDir, "final_video.mp4");
+  const out3D = path.join(outDir, "output_3d_premium.mp4");
+  const out2D = path.join(outDir, "output_2d_premium.mp4");
+  const legacy3D = path.join(outDir, `output_${jobIndex}_3d.mp4`);
+  const legacy2D = path.join(outDir, `output_${jobIndex}_2d.mp4`);
+  const finalVideo = path.join(outDir, "final_video.mp4");
   const universalOutput = path.join(outDir, "output.mp4");
 
-  console.log(`🎥 Rendering 4K Stock Video with 40M Bitrate Cap & SwiftShader (Safe CI, Small File Size)...`);
+  // 1. RENDER 3D PIPELINE
+  console.log(`\n🎯 RENDERING JOB 3D: ${job3D.trendTopic} [${job3D.clipCategory}]...`);
   await renderMedia({
-    composition: videoComp,
+    composition: comp3D,
     serveUrl: bundled,
     codec: "h264",
-    outputLocation,
-    inputProps: dynamicProps,
+    outputLocation: out3D,
+    inputProps: { data: job3D, job3D },
     videoBitrate: "40M",
     pixelFormat: "yuv420p",
     concurrency: 1,
@@ -98,21 +112,43 @@ async function optimizedRender(): Promise<void> {
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
     }
   });
+  console.log(`✅ 3D Render Complete: ${out3D}`);
 
-  // Duplicate for universal compatibility and pipeline scripts
+  // 2. RENDER 2D PIPELINE
+  console.log(`\n🎯 RENDERING JOB 2D: ${job2D.trendTopic} [${job2D.clipCategory}]...`);
+  await renderMedia({
+    composition: comp2D,
+    serveUrl: bundled,
+    codec: "h264",
+    outputLocation: out2D,
+    inputProps: { data: job2D, job2D },
+    videoBitrate: "40M",
+    pixelFormat: "yuv420p",
+    concurrency: 1,
+    timeoutInMilliseconds: 600000,
+    chromiumOptions: {
+      disableWebSecurity: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+    }
+  });
+  console.log(`✅ 2D Render Complete: ${out2D}`);
+
+  // Copy outputs for compatibility
   try {
-    fs.copyFileSync(outputLocation, output3DLocation);
-    fs.copyFileSync(outputLocation, output2DLocation);
-    fs.copyFileSync(outputLocation, finalVideoLocation);
-    fs.copyFileSync(outputLocation, universalOutput);
+    fs.copyFileSync(out3D, legacy3D);
+    fs.copyFileSync(out2D, legacy2D);
+    fs.copyFileSync(out3D, finalVideo);
+    fs.copyFileSync(out3D, universalOutput);
   } catch {
     // Ignore copy error
   }
 
-  console.log("✅ SUCCESS! Fresh optimized video generated at:", outputLocation);
+  console.log("\n🎉 DUAL INDEPENDENT RENDERING COMPLETED SUCCESSFULLY!");
+  console.log(`   3D MP4: ${out3D}`);
+  console.log(`   2D MP4: ${out2D}`);
 }
 
-optimizedRender().catch((err) => {
-  console.error("❌ Fatal Render Error:", err);
+dualOptimizedRender().catch((err) => {
+  console.error("❌ Fatal Dual Render Error:", err);
   process.exit(1);
 });
