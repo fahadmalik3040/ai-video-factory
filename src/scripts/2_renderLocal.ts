@@ -89,14 +89,13 @@ async function optimizedRender(): Promise<void> {
     codec: "h264",
     outputLocation,
     inputProps: dynamicProps,
-    videoBitrate: "40M", // STRICT 40 Mbps limit. CRF IS REMOVED.
+    videoBitrate: "40M",
     pixelFormat: "yuv420p",
     concurrency: 1,
     timeoutInMilliseconds: 600000,
     chromiumOptions: {
-      gl: "swiftshader",
       disableWebSecurity: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--disable-software-rasterizer", "--use-gl=swiftshader"]
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
     }
   });
 

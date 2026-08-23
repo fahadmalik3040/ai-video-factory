@@ -1,42 +1,21 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useCurrentFrame } from 'remotion';
 import * as THREE from 'three';
 
 const fallbackShader = `
   uniform float time;
   uniform vec3 colorTheme;
-  uniform vec2 resolution;
-  uniform float bloomIntensity;
-  uniform float aberration;
   varying vec2 vUv;
-
   void main() {
-    vec2 uv = gl_FragCoord.xy / resolution.xy;
-    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
-    float d = length(p);
-    float glow = (0.3 * bloomIntensity) / (d + 0.1);
-    vec3 col = colorTheme * glow;
-    gl_FragColor = vec4(col, 1.0);
+    vec2 p = vUv * 2.0 - 1.0;
+    float glow = 0.05 / (length(p) + 0.01);
+    gl_FragColor = vec4(colorTheme * glow, 1.0);
   }
 `;
 
-export interface EliteVFX2DProps {
-  themeColor?: string;
-  customShader?: string;
-  bloomIntensity?: number;
-  aberration?: number;
-}
-
-export const EliteVFX2D: React.FC<EliteVFX2DProps> = ({
-  themeColor = "#ff0055",
-  customShader = fallbackShader,
-  bloomIntensity = 1.5,
-  aberration = 0.005
-}) => {
+export const EliteVFX2D = ({ themeColor, customShader, bloomIntensity, aberration }: any) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
-  const frame = useCurrentFrame();
-
+  
   const vertexShader = `
     varying vec2 vUv;
     void main() {
@@ -45,36 +24,34 @@ export const EliteVFX2D: React.FC<EliteVFX2DProps> = ({
     }
   `;
 
-  const finalFragmentShader = (customShader && customShader.includes('void main')) 
+  // Safely fallback if AI writes invalid GLSL
+  const finalFragmentShader = (typeof customShader === 'string' && customShader.includes('void main')) 
     ? customShader 
     : fallbackShader;
 
-  const color = useMemo(() => {
+  const uniforms = useMemo(() => {
+    // CRITICAL FIX: Safe color parsing to prevent Three.js fatal crash
+    let safeColor = new THREE.Color("#00ffcc"); 
     try {
-      return new THREE.Color(themeColor || "#ff0055");
-    } catch {
-      return new THREE.Color("#ff0055");
+      if (typeof themeColor === 'string' && themeColor.startsWith('#')) {
+        safeColor = new THREE.Color(themeColor);
+      }
+    } catch (e) {
+      console.warn("Invalid AI color, using fallback.");
     }
-  }, [themeColor]);
 
-  const uniforms = useMemo(() => ({
-    time: { value: 0 },
-    colorTheme: { value: color },
-    resolution: { value: new THREE.Vector2(3840, 2160) },
-    bloomIntensity: { value: bloomIntensity },
-    aberration: { value: aberration }
-  }), [color, bloomIntensity, aberration]);
+    return {
+      time: { value: 0 },
+      colorTheme: { value: safeColor },
+      resolution: { value: new THREE.Vector2(3840, 2160) },
+      bloomIntensity: { value: typeof bloomIntensity === 'number' ? bloomIntensity : 1.5 },
+      aberration: { value: typeof aberration === 'number' ? aberration : 0.005 }
+    };
+  }, [themeColor, bloomIntensity, aberration]);
 
   useFrame((state) => {
-    if (materialRef.current && materialRef.current.uniforms) {
-      const safeTime = typeof frame === 'number' && !isNaN(frame)
-        ? frame / 30.0
-        : state.clock.elapsedTime;
-      materialRef.current.uniforms.time.value = safeTime;
-      materialRef.current.uniforms.colorTheme.value = color;
-      materialRef.current.uniforms.resolution.value.set(3840, 2160);
-      materialRef.current.uniforms.bloomIntensity.value = bloomIntensity;
-      materialRef.current.uniforms.aberration.value = aberration;
+    if (materialRef.current) {
+      materialRef.current.uniforms.time.value = state.clock.elapsedTime;
     }
   });
 
