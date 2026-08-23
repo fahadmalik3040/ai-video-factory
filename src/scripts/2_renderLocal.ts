@@ -82,10 +82,17 @@ const main = async (): Promise<void> => {
   fs.mkdirSync(outputDirectory, { recursive: true });
 
   const chromiumOptions = {
-    enableGpu: true,
     gl: "angle" as const,
     disableWebSecurity: true,
     ignoreCertificateErrors: true,
+    args: [
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-webgl",
+      "--ignore-gpu-blocklist",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+    ],
   };
 
   // -----------------------------------------------------------
