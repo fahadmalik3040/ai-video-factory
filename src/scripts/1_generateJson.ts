@@ -4,11 +4,104 @@ import { videoSchema, type VideoData } from '../config/ZodSchema';
 import { getJobTopic, sanitizeAndParseJson, getDynamicPalette } from './llmHelper';
 
 const SYSTEM_PROMPT = `You are a DUAL INDEPENDENT RENDER ORCHESTRATOR for a Premium Stock Footage Empire.
-Generate TWO independent video concepts.
-1. job3D: Focus on premium 3D worlds. Pick a category, provide a HEX colorTheme, and set particleCount.
-2. job2D: Focus on premium 2D Post-Production VFX. Pick a 'shaderCategory' from the enum and provide a HEX colorTheme. 
+Generate TWO independent video concepts strictly matching the schema.
+
+1. job3D: 
+   - clipCategory MUST BE EXACTLY ONE OF: "cinematic_galaxy", "quantum_core", "abstract_matrix"
+   - colorTheme: A valid HEX code (e.g., "#ff0055")
+   - particleCount: integer between 5000 and 20000
+
+2. job2D:
+   - shaderCategory MUST BE EXACTLY ONE OF: "fluid_caustics", "cosmic_energy", "neon_lightning", "raymarched_core"
+   - colorTheme: A valid HEX code (e.g., "#00f0ff")
 
 CRITICAL: Output STRICT JSON. Do NOT write any GLSL code.`;
+
+function normalizeCategories(data: any): any {
+  if (!data || typeof data !== 'object') return data;
+  
+  const valid3D = ["cinematic_galaxy", "quantum_core", "abstract_matrix"] as const;
+  const valid2D = ["fluid_caustics", "cosmic_energy", "neon_lightning", "raymarched_core"] as const;
+
+  if (data.job3D) {
+    const raw3D = String(data.job3D.clipCategory || "").toLowerCase();
+    const matched3D = valid3D.find(c => raw3D.includes(c) || c.includes(raw3D)) || "cinematic_galaxy";
+    data.job3D.clipCategory = matched3D;
+    data.job3D.particleCount = Math.min(Math.max(Number(data.job3D.particleCount) || 15000, 5000), 20000);
+    if (!data.job3D.colorTheme || !String(data.job3D.colorTheme).startsWith("#")) {
+      data.job3D.colorTheme = "#ff0055";
+    }
+  }
+
+  if (data.job2D) {
+    const raw2D = String(data.job2D.shaderCategory || data.job2D.clipCategory || "").toLowerCase();
+    const matched2D = valid2D.find(c => raw2D.includes(c) || c.includes(raw2D)) || "cosmic_energy";
+    data.job2D.shaderCategory = matched2D;
+    if (!data.job2D.colorTheme || !String(data.job2D.colorTheme).startsWith("#")) {
+      data.job2D.colorTheme = "#00f0ff";
+    }
+  }
+
+  return data;
+}
+
+async function fetchNvidiaWithRetry(payload: any, retries = 3, delay = 3000): Promise<VideoData> {
+  const nvidiaKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join("");
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`⚡ Querying Nvidia Master Art Director LLM (Attempt ${attempt}/${retries})...`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60-second generous timeout window
+
+      const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${nvidiaKey}`,
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        throw new Error(`Nvidia API error: ${response.status} - ${errText}`);
+      }
+
+      const data = await response.json();
+      if (!data.choices || !data.choices[0]?.message?.content) {
+        throw new Error("Invalid response format from Nvidia API: Missing choices or content");
+      }
+
+      const rawParsed = sanitizeAndParseJson(data.choices[0].message.content);
+      const normalized = normalizeCategories(rawParsed);
+      const validated = videoSchema.safeParse(normalized);
+
+      if (!validated.success) {
+        throw new Error(`Schema validation failed: ${JSON.stringify(validated.error.format())}`);
+      }
+
+      return validated.data; // Success!
+
+    } catch (error: any) {
+      console.warn(`⚠️ Attempt ${attempt} failed: ${error.message}`);
+      if (attempt === retries) {
+        console.error("❌ FATAL: All Nvidia retry attempts exhausted.");
+        throw error;
+      }
+      console.log(`⏳ Waiting ${delay / 1000}s before retrying Nvidia...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2; // Exponential backoff
+    }
+  }
+
+  throw new Error("Failed to fetch from Nvidia after retries");
+}
 
 export async function generateDualOrchestratorJson(targetTopic?: string, jobIdx?: number): Promise<VideoData> {
   console.log("=======================================================================");
@@ -41,6 +134,9 @@ export async function generateDualOrchestratorJson(targetTopic?: string, jobIdx?
 Trend 3D: "${trendTopic3D}"
 Trend 2D: "${trendTopic2D}"
 
+Allowed 3D clipCategory: "cinematic_galaxy" | "quantum_core" | "abstract_matrix"
+Allowed 2D shaderCategory: "fluid_caustics" | "cosmic_energy" | "neon_lightning" | "raymarched_core"
+
 Output STRICT JSON adhering to this schema:
 {
   "job3D": {
@@ -56,51 +152,24 @@ Output STRICT JSON adhering to this schema:
   }
 }`;
 
-  const nvidiaKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join("");
   let resultData: VideoData;
 
-  console.log("⚡ Querying Nvidia Master Art Director LLM...");
   try {
-    const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${nvidiaKey}`,
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({
-        model: "meta/llama-3.3-70b-instruct",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt }
-        ],
-        temperature: 0.8,
-        top_p: 0.95,
-        max_tokens: 800
-      })
-    });
+    const payload = {
+      model: "meta/llama-3.3-70b-instruct",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt }
+      ],
+      temperature: 0.8,
+      top_p: 0.95,
+      max_tokens: 800
+    };
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => "");
-      throw new Error(`Nvidia API failed with status ${response.status}: ${errorText}`);
-    }
-
-    const data = await response.json();
-    if (!data.choices || !data.choices[0]?.message?.content) {
-      throw new Error("Invalid response format from Nvidia API: Missing choices or content");
-    }
-
-    const parsed = sanitizeAndParseJson(data.choices[0].message.content);
-    const validated = videoSchema.safeParse(parsed);
-    
-    if (!validated.success) {
-      throw new Error(`Schema validation failed on Nvidia output: ${JSON.stringify(validated.error.format())}`);
-    }
-
-    resultData = validated.data;
+    resultData = await fetchNvidiaWithRetry(payload, 3, 3000);
     console.log(`✅ [NVIDIA Dual Engine] 3D: ${resultData.job3D.clipCategory} | 2D: ${resultData.job2D.shaderCategory}`);
   } catch (error) {
-    console.error("❌ FATAL: Nvidia LLM completely failed. No fallbacks allowed. Exiting.", error);
+    console.error("❌ FATAL: Nvidia LLM completely failed after retries. No fallbacks allowed. Exiting.", error);
     process.exit(1);
   }
 
