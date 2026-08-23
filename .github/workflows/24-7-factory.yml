@@ -1,70 +1,35 @@
-name: 24/7 AI Video Factory (Mass Production)
+name: 24/7 AI Video Factory
 on:
   schedule:
-    - cron: '0 */3 * * *' # Runs every 3 hours (8 times a day)
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
   mass-production:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        job_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] # 10 parallel servers x 8 times/day = 80+ videos (Expandable to 25 workers)
-    env:
-      NODE_OPTIONS: "--max_old_space_size=6144"
-      JOB_INDEX: ${{ matrix.job_index }}
-    
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-      
+          node-version: 24
+
       - name: Install Dependencies
         run: npm install
-        
-      - name: Phase 1 & 2 - Fetch RSS Trends & Generate GLSL JSON
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-        run: |
-          npx --yes tsx src/scripts/0_trendCatcher.ts
-          npx --yes tsx src/scripts/1_generateJson.ts
-        
-      - name: Install Chrome & WebGL Linux Dependencies
-        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1 libegl1 libnss3 libatk-bridge2.0-0 libcups2 libgbm1 libasound2t64 libpangocairo-1.0-0 libxss1 fonts-liberation
 
-      - name: Start Virtual Display (Xvfb)
-        run: Xvfb :99 -screen 0 1920x1080x24 &
+      - name: Ensure Remotion Browser
+        run: npx --yes remotion browser ensure
 
-      - name: Phase 3 & 4 - 4K Render Engine
-        env:
-          DISPLAY: :99
-        run: npm run render:cloud
-        
-      - name: Upload Rendered Video & SEO Metadata
+      - name: Generate JSON (Middleware)
+        run: npx --yes tsx src/scripts/1_generateJson.ts
+
+      - name: Render Video (Headless WebGL CPU Mode)
+        run: xvfb-run -a npm run render:cloud
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ai-factory-output-${{ matrix.job_index }}
-          path: |
-            out/*.mp4
-            out/*.txt
-            out/*.csv
-        
-      - name: Phase 5 - Drive Upload & SEO
-        env:
-          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
-          GDRIVE_PARENT_ID: ${{ secrets.GDRIVE_PARENT_ID }}
-        run: npx --yes tsx src/scripts/5_uploadDrive.ts
-
-      - name: Phase 6 - Omni-Platform FTP Stock Distribution
-        env:
-          ADOBE_FTP_USER: ${{ secrets.ADOBE_FTP_USER }}
-          ADOBE_FTP_PASSWORD: ${{ secrets.ADOBE_FTP_PASSWORD }}
-          SHUTTERSTOCK_FTP_USER: ${{ secrets.SHUTTERSTOCK_FTP_USER }}
-          SHUTTERSTOCK_FTP_PASSWORD: ${{ secrets.SHUTTERSTOCK_FTP_PASSWORD }}
-          POND5_FTP_USER: ${{ secrets.POND5_FTP_USER }}
-          POND5_FTP_PASSWORD: ${{ secrets.POND5_FTP_PASSWORD }}
-        run: npx --yes tsx src/scripts/upload_omni.ts
+          name: rendered-video
+          path: out/
