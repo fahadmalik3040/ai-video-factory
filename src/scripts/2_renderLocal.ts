@@ -99,62 +99,70 @@ const main = async (): Promise<void> => {
   // -----------------------------------------------------------
   // PASS 1: Dedicated 3D Procedural Video Rendering
   // -----------------------------------------------------------
-  console.log(`\n🚀 [PASS 1/2] Resolving and Rendering Dedicated 3D Scene (Main3D)...`);
-  const comp3D = await selectComposition({
-    serveUrl: bundleLocation,
-    id: "Main3D",
-    inputProps: dynamicProps3D,
-    timeoutInMilliseconds: 120000,
-    chromiumOptions,
-  });
-
   const output3DLocation = path.resolve(outputDirectory, `output_${jobIndex}_3d.mp4`);
-  console.log(`🎥 Rendering 3D H.264 MP4 (CRF 16, yuv420p) to: ${output3DLocation}`);
+  try {
+    console.log(`\n🚀 [PASS 1/2] Resolving and Rendering Dedicated 3D Scene (Main3D)...`);
+    const comp3D = await selectComposition({
+      serveUrl: bundleLocation,
+      id: "Main3D",
+      inputProps: dynamicProps3D,
+      timeoutInMilliseconds: 120000,
+      chromiumOptions,
+    });
 
-  await renderMedia({
-    composition: comp3D,
-    serveUrl: bundleLocation,
-    codec: "h264",
-    outputLocation: output3DLocation,
-    inputProps: dynamicProps3D,
-    crf: 16,
-    concurrency: 1,
-    pixelFormat: "yuv420p",
-    proResProfile: undefined,
-    timeoutInMilliseconds: 120000,
-    chromiumOptions,
-  });
-  console.log(`✅ [3D COMPLETE] Dedicated 3D Video Rendered: ${output3DLocation}`);
+    console.log(`🎥 Attempting 4K Render with WebGL SwiftShader (3D Scene): ${output3DLocation}`);
+    await renderMedia({
+      composition: comp3D,
+      serveUrl: bundleLocation,
+      codec: "h264",
+      outputLocation: output3DLocation,
+      inputProps: dynamicProps3D,
+      crf: 16,
+      concurrency: 1,
+      pixelFormat: "yuv420p",
+      proResProfile: undefined,
+      timeoutInMilliseconds: 120000,
+      chromiumOptions,
+    });
+    console.log(`✅ [3D COMPLETE] Dedicated 3D Video Rendered: ${output3DLocation}`);
+  } catch (err) {
+    console.error("❌ 3D Render failed with error:", err);
+    throw err;
+  }
 
   // -----------------------------------------------------------
   // PASS 2: Dedicated 2D Motion Graphics Video Rendering
   // -----------------------------------------------------------
-  console.log(`\n🚀 [PASS 2/2] Resolving and Rendering Dedicated 2D Motion Graphics (Main2D)...`);
-  const comp2D = await selectComposition({
-    serveUrl: bundleLocation,
-    id: "Main2D",
-    inputProps: dynamicProps2D,
-    timeoutInMilliseconds: 120000,
-    chromiumOptions,
-  });
-
   const output2DLocation = path.resolve(outputDirectory, `output_${jobIndex}_2d.mp4`);
-  console.log(`🎥 Rendering 2D H.264 MP4 (CRF 16, yuv420p) to: ${output2DLocation}`);
+  try {
+    console.log(`\n🚀 [PASS 2/2] Resolving and Rendering Dedicated 2D Motion Graphics (Main2D)...`);
+    const comp2D = await selectComposition({
+      serveUrl: bundleLocation,
+      id: "Main2D",
+      inputProps: dynamicProps2D,
+      timeoutInMilliseconds: 120000,
+      chromiumOptions,
+    });
 
-  await renderMedia({
-    composition: comp2D,
-    serveUrl: bundleLocation,
-    codec: "h264",
-    outputLocation: output2DLocation,
-    inputProps: dynamicProps2D,
-    crf: 16,
-    concurrency: 1,
-    pixelFormat: "yuv420p",
-    proResProfile: undefined,
-    timeoutInMilliseconds: 120000,
-    chromiumOptions,
-  });
-  console.log(`✅ [2D COMPLETE] Dedicated 2D Video Rendered: ${output2DLocation}`);
+    console.log(`🎥 Attempting 4K Render with WebGL SwiftShader (2D Scene): ${output2DLocation}`);
+    await renderMedia({
+      composition: comp2D,
+      serveUrl: bundleLocation,
+      codec: "h264",
+      outputLocation: output2DLocation,
+      inputProps: dynamicProps2D,
+      crf: 16,
+      concurrency: 1,
+      pixelFormat: "yuv420p",
+      proResProfile: undefined,
+      timeoutInMilliseconds: 120000,
+      chromiumOptions,
+    });
+    console.log(`✅ [2D COMPLETE] Dedicated 2D Video Rendered: ${output2DLocation}`);
+  } catch (err) {
+    console.error("❌ 2D Render failed with error:", err);
+    throw err;
+  }
 
   // Also create universal output.mp4 copy for CI artifacts
   const universalOutput = path.resolve(outputDirectory, "output.mp4");
