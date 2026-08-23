@@ -73,85 +73,24 @@ export function sanitizeAndParseJson(raw: string): any {
   try {
     return JSON.parse(clean);
   } catch {
-    clean = clean.replace(/,\s*([\]}])/g, '$1');
-    return JSON.parse(clean);
-  }
-}
-
-export async function queryLlm(payload: any): Promise<any> {
-  const groqKey = process.env.GROQ_API_KEY || ["gsk_O8X46VIgiLLrIyvvq51nWGdyb3FYiaTUep", "agdYmEr8gsW0cHFnYQ"].join("");
-  const nvidiaKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
-
-  const groqModels = ["llama-3.1-8b-instant", "llama3-70b-8192"];
-
-  for (const model of groqModels) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
-
     try {
-      const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json", 
-          "Authorization": `Bearer ${groqKey}`
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: payload.messages,
-          temperature: 0.95,
-          top_p: 0.95,
-          max_tokens: 3000,
-          response_format: { type: "json_object" }
-        }),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-      const groqData = await groqRes.json();
-      if (groqData.choices && groqData.choices[0]?.message?.content) {
-        console.log(`⚡ [LLM Engine] Generated via Groq (${model})`);
-        return groqData.choices[0].message.content;
-      }
+      // Fix unescaped control characters inside JSON strings
+      const fixed = clean
+        .replace(/"((?:\\.|[^"\\])*)"/gs, (match) => {
+          return match.replace(/\r?\n/g, '\\n').replace(/\t/g, '\\t');
+        })
+        .replace(/,\s*([\]}])/g, '$1');
+      return JSON.parse(fixed);
     } catch {
-      clearTimeout(timeoutId);
+      let escaped = clean.replace(/[\u0000-\u001F]+/g, (match) => {
+        if (match.includes('\n') || match.includes('\r')) return '\\n';
+        if (match.includes('\t')) return '\\t';
+        return ' ';
+      });
+      escaped = escaped.replace(/,\s*([\]}])/g, '$1');
+      return JSON.parse(escaped);
     }
   }
-
-  const nvidiaModels = ["meta/llama-3.3-70b-instruct"];
-  for (const model of nvidiaModels) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
-
-    try {
-      const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json", 
-          "Authorization": `Bearer ${nvidiaKey}`,
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: payload.messages,
-          temperature: 0.95,
-          top_p: 0.95,
-          max_tokens: 3000
-        }),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-      const data = await response.json();
-      if (data.choices && data.choices[0]?.message?.content) {
-        console.log(`⚡ [LLM Engine] Generated via Nvidia (${model})`);
-        return data.choices[0].message.content;
-      }
-    } catch {
-      clearTimeout(timeoutId);
-    }
-  }
-
-  throw new Error("All active LLM providers timed out or failed to return valid content");
 }
 
 export function getDynamicPalette(topic: string, seed: string): string[] {
