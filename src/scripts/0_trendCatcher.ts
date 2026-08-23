@@ -149,8 +149,8 @@ async function catchTrends() {
     const parser = new Parser();
     const feed = await parser.parseURL('https://techcrunch.com/feed/');
     if (feed.items && feed.items.length > 0) {
-      const shuffledItems = feed.items.slice(0, 15).sort(() => 0.5 - Math.random());
-      headlines = shuffledItems.slice(0, 3).map(i => i.title?.trim() || "").filter(Boolean).join(" | ");
+      const shuffledItems = feed.items.slice(0, 20).sort(() => 0.5 - Math.random());
+      const headlines = shuffledItems.slice(0, 3).map(i => i.title).join(" | ");
       rawHeadlines = shuffledItems.map(i => i.title?.trim() || "").filter(Boolean);
     }
   } catch (err) {
@@ -210,6 +210,8 @@ async function catchTrends() {
   let finalCsvLines: string[] = [header];
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const response = await fetch(nvidiaUrl, {
       method: "POST",
       headers: { 
@@ -217,8 +219,10 @@ async function catchTrends() {
         "Authorization": `Bearer ${nvidiaKey}`,
         "Accept": "application/json"
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     
     const data = await response.json();
     if (data.choices && data.choices[0]?.message?.content) {

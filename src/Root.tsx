@@ -4,45 +4,31 @@ import { Main3D, type Main3DProps } from "./scenes/Main3D";
 import { Main2D, type Main2DProps } from "./scenes/Main2D";
 
 const fallbackSceneProps: Main3DProps = {
-  seoPackage: {
-    title: "Futuristic Solid 3D Procedural Scene",
-    description: "Cinematic 4K Motion Graphics Stock Visual",
-    seoTags: ["futuristic", "3d", "procedural", "solid geometry", "motion graphics", "pbr", "4k"],
-  },
-  renderModes: ["3D", "2D"],
-  engine3D: {
-    solidGeometry: "BoxGeometry",
-    layoutMath: "wave_plane",
-    physicalMaterial: { metalness: 0.9, roughness: 0.1 },
-    cameraMotion: "orbit_slow",
-    cinematographyDP: {
-      cameraPath: "slow_orbit",
-      pacing: "extremely_slow_and_cinematic",
-      focusDistance: 0,
-    },
-    colors: ["#00f0ff", "#ff007f", "#7000ff"],
-    cameraSpeed: 1.0,
-    bloomIntensity: 2.0,
-    complexity: 1.0,
-  },
-  engine2D: {
-    layoutStructure: "hud_circles",
-    colorPalette: ["#00f0ff", "#ff007f", "#7000ff", "#00ffaa"],
-    elements: [
-      { type: "data_ring", scale: 1.0, thickness: 3 },
-      { type: "glass_blob", size: 380 },
-      { type: "hud_grid", rows: 5, cols: 8 },
-      { type: "waveform_bars", scale: 1.0 },
-    ],
-  },
-  colors: ["#00f0ff", "#ff007f", "#7000ff"],
-  cameraSpeed: 1.0,
-  bloomIntensity: 2.0,
-  complexity: 1.0,
+  prompt: "Cinematic Universal 4K Stock Visual",
+  clipCategory: "raymarched_fractal",
+  colorTheme: "#00f0ff",
+  complexity: "ultra_high",
+  motionStyle: "cinematic_fluid",
+  customShader: `
+    uniform float time;
+    uniform vec3 colorTheme;
+    uniform vec2 resolution;
+    varying vec2 vUv;
+    void main() {
+      vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
+      float d = length(p);
+      float c = sin(d * 10.0 - time * 3.0);
+      vec3 col = colorTheme * (0.5 + 0.5 * c) / (d + 0.2);
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `,
+  sceneText: "",
+  bloomIntensity: 1.5,
+  aberration: 0.005,
+  seed: 42,
 };
 
 export const RemotionRoot: React.FC = () => {
-  // Extract dynamic props injected by Remotion CLI or Node renderMedia API
   const dynamicProps = getInputProps();
   
   const safeProps =
@@ -52,7 +38,7 @@ export const RemotionRoot: React.FC = () => {
 
   return (
     <>
-      {/* Primary Mandatory 3D Procedural Stock Video Composition (15 seconds @ 30fps) */}
+      {/* Primary 3D / GLSL Procedural Stock Video Composition (15 seconds @ 30fps) */}
       <Composition
         id="Main3D"
         component={Main3D}
@@ -63,7 +49,7 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={safeProps as Main3DProps}
       />
 
-      {/* Secondary Mandatory 2D Motion Graphics Composition (15 seconds @ 30fps) */}
+      {/* Secondary 2D Motion Graphics Composition (15 seconds @ 30fps) */}
       <Composition
         id="Main2D"
         component={Main2D}

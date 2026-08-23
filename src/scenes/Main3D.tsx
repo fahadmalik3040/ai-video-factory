@@ -7,17 +7,19 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 
 export interface Main3DProps {
   sceneData?: any;
-  engine3D?: any;
-  seoPackage?: any;
-  renderModes?: string[];
-  colors?: string[];
-  theme?: string;
+  customShader?: string;
+  colorTheme?: string;
+  sceneText?: string;
+  bloomIntensity?: number;
+  aberration?: number;
+  prompt?: string;
+  clipCategory?: string;
   [key: string]: any;
 }
 
 export const Main3D: React.FC<Main3DProps> = (props) => {
   const dynamicData = props.sceneData || props;
-  const theme = dynamicData?.theme || props?.theme || "default";
+  const theme = dynamicData?.colorTheme || dynamicData?.theme || "default";
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#020308', overflow: 'hidden' }}>

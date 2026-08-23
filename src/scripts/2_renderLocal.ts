@@ -8,13 +8,23 @@ async function optimizedRender(): Promise<void> {
   const projectRoot = process.cwd();
   const jobIndex = process.env.JOB_INDEX || "0";
 
-  const cacheDirs = [
+  // Purge Remotion Cache
+  const cacheDir = path.resolve("./node_modules/.cache/remotion");
+  if (fs.existsSync(cacheDir)) {
+    try {
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+      console.log(`   Deleted cache: ${cacheDir}`);
+    } catch {
+      // Ignore error
+    }
+  }
+
+  const additionalCaches = [
     path.resolve(projectRoot, ".remotion"),
-    path.resolve(projectRoot, "node_modules/.cache/remotion"),
     path.resolve(projectRoot, "node_modules/.cache/webpack"),
   ];
 
-  for (const dir of cacheDirs) {
+  for (const dir of additionalCaches) {
     if (fs.existsSync(dir)) {
       try {
         fs.rmSync(dir, { recursive: true, force: true });
@@ -26,23 +36,23 @@ async function optimizedRender(): Promise<void> {
   }
 
   // Load fresh dynamic job metadata
-  const meta3DPath = path.resolve(projectRoot, "data", `metadata_3d_${jobIndex}.json`);
-  const meta2DPath = path.resolve(projectRoot, "data", `metadata_2d_${jobIndex}.json`);
-  const fallbackPath = path.resolve(projectRoot, "data", `metadata_${jobIndex}.json`);
   const sceneDataPath = path.resolve(projectRoot, "data", "sceneData.json");
+  const metaJobPath = path.resolve(projectRoot, "data", `metadata_${jobIndex}.json`);
+  const meta3DPath = path.resolve(projectRoot, "data", `metadata_3d_${jobIndex}.json`);
 
   let rawData = "{}";
-  if (fs.existsSync(meta3DPath)) {
-    rawData = fs.readFileSync(meta3DPath, "utf8");
-  } else if (fs.existsSync(fallbackPath)) {
-    rawData = fs.readFileSync(fallbackPath, "utf8");
-  } else if (fs.existsSync(sceneDataPath)) {
+  if (fs.existsSync(sceneDataPath)) {
     rawData = fs.readFileSync(sceneDataPath, "utf8");
+  } else if (fs.existsSync(metaJobPath)) {
+    rawData = fs.readFileSync(metaJobPath, "utf8");
+  } else if (fs.existsSync(meta3DPath)) {
+    rawData = fs.readFileSync(meta3DPath, "utf8");
   }
+
   const parsedData = JSON.parse(rawData);
   const dynamicProps = { ...parsedData, sceneData: parsedData };
 
-  console.log(`🎯 TARGET CONCEPT FOR JOB ${jobIndex}: "${parsedData.commercialConcept || "Procedural GLSL Shader"}"`);
+  console.log(`🎯 TARGET CONCEPT FOR JOB ${jobIndex}: "${parsedData.clipCategory || parsedData.prompt || "Universal Stock Visual"}"`);
   console.log("📦 Fresh Bundling Remotion project with latest JSON data...");
 
   const bundled = await bundle({
@@ -72,17 +82,23 @@ async function optimizedRender(): Promise<void> {
   const finalVideoLocation = path.join(outDir, "final_video.mp4");
   const universalOutput = path.join(outDir, "output.mp4");
 
-  console.log(`🎥 Rendering optimized 4K Video (Targeting small file size with CRF 16 & yuv420p)...`);
+  console.log(`🎥 Rendering 4K Stock Video with 40M Bitrate Cap & SwiftShader (Safe CI, Small File Size)...`);
   await renderMedia({
     composition: videoComp,
     serveUrl: bundled,
     codec: "h264",
     outputLocation,
     inputProps: dynamicProps,
-    crf: 16,
+    crf: 18,
+    videoBitrate: "40M", // STRICT 40 Mbps limit to fix 800MB bug (Targets 50-150MB)
+    pixelFormat: "yuv420p",
     concurrency: 1,
-    pixelFormat: "yuv420p", // Essential for standard player compatibility and size reduction
     timeoutInMilliseconds: 600000,
+    chromiumOptions: {
+      gl: "swiftshader",
+      disableWebSecurity: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--disable-software-rasterizer", "--use-gl=swiftshader"]
+    }
   });
 
   // Duplicate for universal compatibility and pipeline scripts

@@ -1,30 +1,12 @@
 {
-  "commercialConcept": "Procedural mathematical GPU fluid and raymarched field visualizing Retro Pixel Dither Glitch Wave",
-  "glslFragmentShader": "\n    uniform float u_time;\n    uniform vec2 u_resolution;\n    uniform vec3 u_colorPrimary;\n    uniform vec3 u_colorSecondary;\n    uniform float u_speed;\n    varying vec2 vUv;\n\n    // Simplex Noise 3D Implementation\n    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }\n    vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }\n    vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }\n    vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }\n\n    float snoise(vec3 v) {\n      const vec2 C = vec2(1.0/6.0, 1.0/3.0);\n      const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);\n      vec3 i  = floor(v + dot(v, C.yyy));\n      vec3 x0 = v - i + dot(i, C.xxx);\n      vec3 g = step(x0.yzx, x0.xyz);\n      vec3 l = 1.0 - g;\n      vec3 i1 = min(g.xyz, l.zxy);\n      vec3 i2 = max(g.xyz, l.zxy);\n      vec3 x1 = x0 - i1 + C.xxx;\n      vec3 x2 = x0 - i2 + C.yyy;\n      vec3 x3 = x0 - D.yyy;\n      i = mod289(i);\n      vec4 p = permute(permute(permute(\n                i.z + vec4(0.0, i1.z, i2.z, 1.0))\n              + i.y + vec4(0.0, i1.y, i2.y, 1.0))\n              + i.x + vec4(0.0, i1.x, i2.x, 1.0));\n      float n_ = 0.142857142857;\n      vec3  ns = n_ * D.wyz - D.xzx;\n      vec4 j = p - 49.0 * floor(p * ns.z * ns.z);\n      vec4 x_ = floor(j * ns.z);\n      vec4 y_ = floor(j - 7.0 * x_);\n      vec4 x = x_ *ns.x + ns.yyyy;\n      vec4 y = y_ *ns.x + ns.yyyy;\n      vec4 h = 1.0 - abs(x) - abs(y);\n      vec4 b0 = vec4(x.xy, y.xy);\n      vec4 b1 = vec4(x.zw, y.zw);\n      vec4 s0 = floor(b0)*2.0 + 1.0;\n      vec4 s1 = floor(b1)*2.0 + 1.0;\n      vec4 sh = -step(h, vec4(0.0));\n      vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;\n      vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;\n      vec3 p0 = vec3(a0.xy, h.x);\n      vec3 p1 = vec3(a0.zw, h.y);\n      vec3 p2 = vec3(a1.xy, h.z);\n      vec3 p3 = vec3(a1.zw, h.w);\n      vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n      p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;\n      vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n      m = m * m;\n      return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));\n    }\n\n    float fbm(vec3 p) {\n      float f = 0.0;\n      f += 0.5000 * snoise(p); p *= 2.02;\n      f += 0.2500 * snoise(p); p *= 2.03;\n      f += 0.1250 * snoise(p); p *= 2.01;\n      f += 0.0625 * snoise(p);\n      return f;\n    }\n\n    void main() {\n      vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);\n      float t = u_time * 0.35 * u_speed;\n\n      vec3 p = vec3(uv * (9.10 + sin(t * 0.2) * 0.3), t * 0.4);\n      float q = fbm(p + vec3(0.0, t * 0.2, 0.0));\n      vec3 r = vec3(fbm(p + q * 5.07 + vec3(1.7, 9.2, 0.15 * t)), fbm(p + q * 13.13 + vec3(8.3, 2.8, 0.12 * t)), 0.0);\n      float f = fbm(p + r * 2.5);\n\n      vec3 col = mix(u_colorPrimary, u_colorSecondary, clamp(f * f * 3.5, 0.0, 1.0));\n      col += vec3(0.8, 0.9, 1.0) * pow(clamp(f, 0.0, 1.0), 4.0);\n      col *= (f * f * 1.5 + f * 0.8 + 0.2);\n\n      // Vignette falloff\n      col *= (1.0 - length(uv) * 0.45);\n      gl_FragColor = vec4(col, 1.0);\n    }\n  ",
-  "uniforms": {
-    "u_colorPrimary": "#00f0ff",
-    "u_colorSecondary": "#ff007f",
-    "u_speed": 1.4
-  },
-  "engine2DOverlay": {
-    "overlayType": "cinematic_light_leak",
-    "blendMode": "screen",
-    "opacity": 0.85
-  },
-  "seoPackage": {
-    "title": "4K Stock VFX: Retro Pixel Dither Glitch Wave | Procedural GLSL Shader",
-    "description": "Bespoke GPU shader mathematical simulation of Retro Pixel Dither Glitch Wave for commercial video editors.",
-    "seoTags": [
-      "glsl",
-      "shader",
-      "4k stock",
-      "procedural",
-      "vfx",
-      "retro pixel dither glitch wave"
-    ]
-  },
-  "colors": [
-    "#00f0ff",
-    "#ff007f"
-  ]
+  "prompt": "Biotech DNA Double Helix Evolution",
+  "clipCategory": "kinetic_text",
+  "colorTheme": "#ff3366",
+  "complexity": "ultra_high",
+  "motionStyle": "cinematic_fluid",
+  "customShader": "\n      uniform float time;\n      uniform vec3 colorTheme;\n      uniform vec2 resolution;\n      varying vec2 vUv;\n      void main() {\n        vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);\n        float grid = step(0.98, fract(p.x * 10.0 + time * 0.5)) + step(0.98, fract(p.y * 10.0));\n        vec3 col = mix(vec3(0.02, 0.02, 0.05), colorTheme * 1.5, grid * 0.4);\n        float scanline = sin(gl_FragCoord.y * 0.8 + time * 5.0) * 0.05;\n        gl_FragColor = vec4(col + scanline, 1.0);\n      }\n    ",
+  "sceneText": "BIOTECH DNA DOUBLE",
+  "bloomIntensity": 1.5,
+  "aberration": 0.005,
+  "seed": 32379
 }
