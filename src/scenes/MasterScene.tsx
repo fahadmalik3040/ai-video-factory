@@ -2,13 +2,13 @@ import React from 'react';
 import { EliteVFX2D } from '../engine/2d/EliteVFX2D';
 
 export const MasterScene = ({ data }: any) => {
-  const { customShader, colorTheme, bloomIntensity = 1.5, aberration = 0.005 } = data || {};
+  const { shaderType, colorTheme, bloomIntensity = 1.5, speed = 1.0 } = data || {};
   return (
     <EliteVFX2D 
-      customShader={customShader} 
+      shaderType={shaderType} 
       themeColor={colorTheme} 
       bloomIntensity={bloomIntensity}
-      aberration={aberration}
+      speed={speed}
     />
   );
 };

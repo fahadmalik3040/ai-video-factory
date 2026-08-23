@@ -1,12 +1,13 @@
 {
   "prompt": "Biotech DNA Double Helix Evolution",
-  "clipCategory": "kinetic_text",
+  "clipCategory": "fluid_caustics",
+  "shaderType": "fluid_caustics",
   "colorTheme": "#ff3366",
   "complexity": "ultra_high",
   "motionStyle": "cinematic_fluid",
-  "customShader": "\n      uniform float time;\n      uniform vec3 colorTheme;\n      uniform vec2 resolution;\n      varying vec2 vUv;\n      void main() {\n        vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);\n        float grid = step(0.98, fract(p.x * 10.0 + time * 0.5)) + step(0.98, fract(p.y * 10.0));\n        vec3 col = mix(vec3(0.02, 0.02, 0.05), colorTheme * 1.5, grid * 0.4);\n        float scanline = sin(gl_FragCoord.y * 0.8 + time * 5.0) * 0.05;\n        gl_FragColor = vec4(col + scanline, 1.0);\n      }\n    ",
-  "sceneText": "BIOTECH DNA DOUBLE",
+  "sceneText": "",
   "bloomIntensity": 1.5,
   "aberration": 0.005,
-  "seed": 32379
+  "speed": 1,
+  "seed": 31307
 }

@@ -5,28 +5,15 @@ import { Main2D, type Main2DProps } from "./scenes/Main2D";
 
 const fallbackSceneProps: Main3DProps = {
   prompt: "Cinematic Universal 4K Stock Visual",
-  clipCategory: "raymarched_fractal",
-  colorTheme: "#00f0ff",
+  clipCategory: "cosmic_energy",
+  shaderType: "cosmic_energy",
+  colorTheme: "#ff0055",
   complexity: "ultra_high",
   motionStyle: "cinematic_fluid",
-  customShader: `
-    uniform float time;
-    uniform vec3 colorTheme;
-    uniform vec2 resolution;
-    uniform float bloomIntensity;
-    uniform float aberration;
-    varying vec2 vUv;
-    void main() {
-      vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
-      float d = length(p);
-      float c = sin(d * 10.0 - time * 3.0);
-      vec3 col = colorTheme * (0.5 + 0.5 * c) / (d + 0.2) * bloomIntensity;
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `,
   sceneText: "",
   bloomIntensity: 1.5,
   aberration: 0.005,
+  speed: 1.0,
   seed: 42,
 };
 
