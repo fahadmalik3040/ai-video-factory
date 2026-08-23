@@ -15,6 +15,7 @@
     "@remotion/three": "4.0.508",
     "@types/three": "^0.185.4",
     "@types/uuid": "^10.0.0",
+    "basic-ftp": "^6.2.0",
     "csv-parser": "^3.2.1",
     "dotenv": "^17.4.2",
     "googleapis": "^174.0.1",
@@ -44,7 +45,9 @@
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
-    "render:cloud": "tsx src/scripts/2_renderLocal.ts"
+    "render:cloud": "tsx src/scripts/2_renderLocal.ts",
+    "daemon": "tsx src/scripts/daemon.ts",
+    "distribute:omni": "tsx src/scripts/upload_omni.ts"
   },
   "sideEffects": [
     "*.css"

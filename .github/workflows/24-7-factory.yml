@@ -46,9 +46,20 @@ jobs:
           path: |
             out/*.mp4
             out/*.txt
+            out/*.csv
         
       - name: Phase 5 - Drive Upload & SEO
         env:
           GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
           GDRIVE_PARENT_ID: ${{ secrets.GDRIVE_PARENT_ID }}
         run: npx --yes tsx src/scripts/5_uploadDrive.ts
+
+      - name: Phase 6 - Omni-Platform FTP Stock Distribution
+        env:
+          ADOBE_FTP_USER: ${{ secrets.ADOBE_FTP_USER }}
+          ADOBE_FTP_PASSWORD: ${{ secrets.ADOBE_FTP_PASSWORD }}
+          SHUTTERSTOCK_FTP_USER: ${{ secrets.SHUTTERSTOCK_FTP_USER }}
+          SHUTTERSTOCK_FTP_PASSWORD: ${{ secrets.SHUTTERSTOCK_FTP_PASSWORD }}
+          POND5_FTP_USER: ${{ secrets.POND5_FTP_USER }}
+          POND5_FTP_PASSWORD: ${{ secrets.POND5_FTP_PASSWORD }}
+        run: npx --yes tsx src/scripts/upload_omni.ts

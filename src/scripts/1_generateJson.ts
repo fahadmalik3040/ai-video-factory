@@ -3,21 +3,30 @@ import { getJobTopic } from './llmHelper';
 import { run3DAISwarm } from './generate_3d_swarm';
 import { run2DAISwarm } from './generate_2d_swarm';
 
-async function orchestrateInfiniteGLSLFactory() {
+export async function orchestrateInfiniteGLSLFactory(targetTopic?: string, jobIdx?: number) {
   console.log("=======================================================================");
-  console.log("🌌 INFINITE GLSL SHADER FACTORY: ZERO ENUMS, PURE PROCEDURAL GPU MATH");
+  console.log("🌌 SEQUENTIAL GLSL SHADER FACTORY: STRICT QUEUE + 15S REASONING DELAYS");
   console.log("=======================================================================");
 
-  const { topic: promptContent, jobIndex } = getJobTopic();
+  const { topic: promptContent, jobIndex } = targetTopic && jobIdx !== undefined 
+    ? { topic: targetTopic, jobIndex: jobIdx } 
+    : getJobTopic();
+
   console.log(`🎯 TARGET TRENDING TOPIC FOR JOB ${jobIndex}: "${promptContent}"`);
 
-  // 1. Synthesize Bespoke 3D GPU GLSL Shader
+  // Step 1: Synthesize 3D Shader with full reasoning focus
+  console.log(`⏳ [Queue 1/2] Initiating 3D Infinite GLSL Swarm...`);
   const metadata3D = await run3DAISwarm(promptContent, jobIndex);
 
-  // 2. Synthesize Bespoke 2D GPU GLSL Shader + Overlay
+  // 15-second breathing buffer for LLM contextual depth and zero rate-limiting
+  console.log(`⏸️ [Rate-Limit Buffer] Pausing 15,000ms for deep contextual reasoning...`);
+  await new Promise((resolve) => setTimeout(resolve, 15000));
+
+  // Step 2: Synthesize 2D Shader & Overlay with full reasoning focus
+  console.log(`⏳ [Queue 2/2] Initiating 2D Infinite GLSL Swarm...`);
   const metadata2D = await run2DAISwarm(promptContent, jobIndex);
 
-  // 3. Assemble Unified Scene Data for Compatibility
+  // Assemble Unified Scene Data for Compatibility
   const unifiedData = {
     commercialConcept: metadata3D.commercialConcept || metadata2D.commercialConcept,
     glslFragmentShader: metadata3D.glslFragmentShader,
@@ -48,7 +57,10 @@ async function orchestrateInfiniteGLSLFactory() {
   fs.writeFileSync('out/metadata.txt', metadataContent);
   fs.writeFileSync(`out/metadata_${jobIndex}.txt`, metadataContent);
 
-  console.log(`\n🎉 [INFINITE GLSL COMPLETE] BESPOKE SHADERS COMPILED AND SAVED FOR JOB ${jobIndex}!`);
+  console.log(`\n🎉 [SEQUENTIAL COMPLETE] BESPOKE SHADERS COMPILED AND SAVED FOR JOB ${jobIndex}!`);
+  return unifiedData;
 }
 
-orchestrateInfiniteGLSLFactory();
+if (require.main === module) {
+  orchestrateInfiniteGLSLFactory();
+}
