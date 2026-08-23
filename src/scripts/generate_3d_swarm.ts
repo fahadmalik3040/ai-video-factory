@@ -7,6 +7,7 @@ export { generateProceduralGLSL };
 export interface InfiniteGLSLPayload {
   commercialConcept: string;
   glslFragmentShader: string;
+  seed: number;
   uniforms: {
     u_colorPrimary: string;
     u_colorSecondary: string;
@@ -27,13 +28,14 @@ export interface InfiniteGLSLPayload {
 
 export async function run3DAISwarm(topic?: string, jobIdx?: number): Promise<InfiniteGLSLPayload> {
   const { topic: promptTopic, jobIndex } = topic && jobIdx !== undefined ? { topic, jobIndex: jobIdx } : getJobTopic();
-  const seed = Math.random().toString(36).substring(7);
-  console.log(`🌌 [Infinite GLSL Engine] Synthesizing Bespoke GPU Shader for: "${promptTopic}" (Job ${jobIndex}, Seed: ${seed})...`);
+  const seedString = Math.random().toString(36).substring(7);
+  const mathSeed = Math.floor(Math.random() * 10000) + 1;
+  console.log(`🌌 [Infinite GLSL Engine] Synthesizing Bespoke GPU Shader for: "${promptTopic}" (Job ${jobIndex}, Seed: ${mathSeed})...`);
 
-  const dynamicPalette = getDynamicPalette(promptTopic, seed);
+  const dynamicPalette = getDynamicPalette(promptTopic, seedString);
   let payload: InfiniteGLSLPayload | null = null;
 
-  const systemPrompt = `You are a World-Class Shadertoy GLSL Shader Engineer and Creative Director.
+  const systemPrompt = `You are an autonomous JSON script generator and World-Class Shadertoy GLSL Shader Engineer. Output STRICT JSON only.
 You write pure mathematical GLSL fragment shaders (raymarching, fractional brownian motion, domain warping, or cellular noise) that visualize any concept on a fullscreen GPU canvas.
 
 STRICT MANDATES:
@@ -44,10 +46,10 @@ STRICT MANDATES:
    - uniform vec3 u_colorPrimary;
    - uniform vec3 u_colorSecondary;
    - uniform float u_speed;
-3. Output STRICT JSON conforming to the requested schema.`;
+3. Output STRICT JSON conforming to the requested schema. MAKE SURE to generate a random 'seed' number between 1 and 10000.`;
 
-  const userPrompt = `Topic: "${promptTopic}".
-Seed: "${seed}".
+  const userPrompt = `UNIQUE HASH: ${Date.now()}-${mathSeed}.
+Topic: "${promptTopic}".
 Primary Color: "${dynamicPalette[0]}".
 Secondary Color: "${dynamicPalette[1]}".
 
@@ -56,6 +58,7 @@ Generate a completely custom, bespoke GLSL fragment shader and overlay configura
 JSON SCHEMA:
 {
   "commercialConcept": "How this specific shader visualizes ${promptTopic} for commercial video editors",
+  "seed": ${mathSeed},
   "glslFragmentShader": "string containing complete GLSL code...",
   "uniforms": {
     "u_colorPrimary": "${dynamicPalette[0]}",
@@ -83,7 +86,10 @@ JSON SCHEMA:
     });
     const parsed = sanitizeAndParseJson(raw);
     if (parsed && parsed.glslFragmentShader && parsed.uniforms) {
-      payload = parsed;
+      payload = {
+        ...parsed,
+        seed: parsed.seed || mathSeed
+      };
       console.log(`✅ [Infinite GLSL Engine] LLM Generated Bespoke Shader (${parsed.commercialConcept?.slice(0, 60)}...)`);
     }
   } catch (err: any) {
@@ -91,7 +97,7 @@ JSON SCHEMA:
   }
 
   if (!payload) {
-    const proceduralShader = generateProceduralGLSL(promptTopic, seed);
+    const proceduralShader = generateProceduralGLSL(promptTopic, seedString);
     const overlayTypes: InfiniteGLSLPayload['engine2DOverlay']['overlayType'][] = [
       'cinematic_light_leak',
       'glitch_artifacts',
@@ -101,6 +107,7 @@ JSON SCHEMA:
 
     payload = {
       commercialConcept: `Procedural mathematical GPU fluid and raymarched field visualizing ${promptTopic}`,
+      seed: mathSeed,
       glslFragmentShader: proceduralShader,
       uniforms: {
         u_colorPrimary: dynamicPalette[0],

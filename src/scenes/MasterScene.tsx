@@ -54,7 +54,8 @@ const GLSLFullscreenQuad: React.FC<{
   colorPrimary: string;
   colorSecondary: string;
   speed: number;
-}> = ({ fragmentShaderCode, colorPrimary, colorSecondary, speed }) => {
+  seed: number;
+}> = ({ fragmentShaderCode, colorPrimary, colorSecondary, speed, seed }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const frame = useCurrentFrame();
@@ -77,10 +78,14 @@ const GLSLFullscreenQuad: React.FC<{
 
   useFrame(() => {
     if (materialRef.current && materialRef.current.uniforms) {
-      materialRef.current.uniforms.u_time.value = safeFrame / 30.0;
+      // Add the seed to the math so the starting position and movement flow is always unique
+      materialRef.current.uniforms.u_time.value = (safeFrame / 30.0) + (seed * 0.005);
       materialRef.current.uniforms.u_colorPrimary.value = c1;
       materialRef.current.uniforms.u_colorSecondary.value = c2;
       materialRef.current.uniforms.u_speed.value = typeof speed === 'number' ? speed : 1.4;
+    }
+    if (meshRef.current) {
+      meshRef.current.rotation.z = Math.sin((safeFrame * 0.01) + seed) * 0.05;
     }
   });
 
@@ -106,6 +111,7 @@ export interface MasterSceneProps {
   data: {
     commercialConcept?: string;
     glslFragmentShader?: string;
+    seed?: number;
     uniforms?: {
       u_colorPrimary?: string;
       u_colorSecondary?: string;
@@ -121,8 +127,9 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
   const colorPrimary = u.u_colorPrimary || data?.colors?.[0] || '#ff4500';
   const colorSecondary = u.u_colorSecondary || data?.colors?.[1] || '#00d4ff';
   const speed = typeof u.u_speed === 'number' ? u.u_speed : 1.4;
+  const seed = typeof data?.seed === 'number' ? data.seed : Math.random() * 1000;
 
-  const fallbackShader = useMemo(() => generateProceduralGLSL('Default Quantum Field', '42'), []);
+  const fallbackShader = useMemo(() => generateProceduralGLSL('Default Quantum Field', `${seed}`), [seed]);
   const fragShader = data?.glslFragmentShader || fallbackShader;
 
   return (
@@ -133,6 +140,7 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
           colorPrimary="#ff3300"
           colorSecondary="#00ffff"
           speed={1.2}
+          seed={seed}
         />
       }
     >
@@ -141,6 +149,7 @@ export const MasterScene: React.FC<MasterSceneProps> = ({ data }) => {
         colorPrimary={colorPrimary}
         colorSecondary={colorSecondary}
         speed={speed}
+        seed={seed}
       />
     </ShaderErrorBoundary>
   );

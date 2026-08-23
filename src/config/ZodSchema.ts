@@ -81,7 +81,8 @@ export const SceneSchema = z.object({
   colors: z.array(z.string()).optional(),
   cameraSpeed: z.number().optional(),
   bloomIntensity: z.number().optional(),
-  complexity: z.number().optional()
+  complexity: z.number().optional(),
+  seed: z.number().default(() => Math.floor(Math.random() * 10000))
 });
 
 export type SceneData = z.infer<typeof SceneSchema>;

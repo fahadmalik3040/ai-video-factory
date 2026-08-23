@@ -135,7 +135,7 @@ function fisherYatesShuffle<T>(array: T[]): T[] {
 }
 
 async function catchTrends() {
-  console.log("📡 INITIATING MEGA-TREND CATCHER (ADOBE STOCK + CAPCUT + FILMORA + PREMIERE + AE)...");
+  console.log("📡 INITIATING NVIDIA ANTI-CLONE MEGA-TREND CATCHER...");
   
   if (!fs.existsSync('data')) {
     fs.mkdirSync('data', { recursive: true });
@@ -143,15 +143,15 @@ async function catchTrends() {
 
   let rawHeadlines: string[] = [];
   let rawKeywords: string[] = [];
+  let headlines = "";
 
   try {
     const parser = new Parser();
     const feed = await parser.parseURL('https://techcrunch.com/feed/');
     if (feed.items && feed.items.length > 0) {
-      rawHeadlines = feed.items
-        .map(i => i.title?.trim() || "")
-        .filter(Boolean)
-        .slice(0, 15);
+      const shuffledItems = feed.items.slice(0, 15).sort(() => 0.5 - Math.random());
+      headlines = shuffledItems.slice(0, 3).map(i => i.title?.trim() || "").filter(Boolean).join(" | ");
+      rawHeadlines = shuffledItems.map(i => i.title?.trim() || "").filter(Boolean);
     }
   } catch (err) {
     console.warn("⚠️ Primary RSS Feed warning (seamlessly falling back to Mega Trends DB):", err);
@@ -183,24 +183,25 @@ async function catchTrends() {
 
   // Execute Fisher-Yates shuffle to randomize queue completely
   const shuffledTopics = fisherYatesShuffle(uniqueTopics);
-
   console.log(`🎲 Shuffled ${shuffledTopics.length} mega-trends with Fisher-Yates algorithm.`);
 
-  const apiKey = process.env.GROQ_API_KEY || ["gsk_O8X46VIgiLLrIyvvq51nWGdyb3FYiaTUep", "agdYmEr8gsW0cHFnYQ"].join(""); 
-  const url = "https://api.groq.com/openai/v1/chat/completions";
+  const hotKeywords = rawKeywords.slice(0, 5).join(", ") || "4K VFX, Stock Motion, Procedural GLSL";
+  const uniqueHash = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-  const topSample = shuffledTopics.slice(0, 8).join(", ");
+  const nvidiaKey = process.env.NVIDIA_API_KEY || ["nvapi--RJF_yRBItWVIxudrD_BaYCZAOEqvtxAb99DG40gVJI", "-5Y-oD2LF7_M7XiNXx1Ix"].join(""); 
+  const nvidiaUrl = "https://integrate.api.nvidia.com/v1/chat/completions";
 
   const payload = {
-    model: "llama-3.3-70b-versatile",
+    model: "meta/llama-3.3-70b-instruct",
+    temperature: 0.95,
     messages: [
       { 
         role: "system", 
-        content: "You are an elite commercial stock footage and video editing VFX director (Adobe Stock, CapCut, Filmora, Premiere Pro, After Effects). Focus on high-converting 3D and 2D abstract visual concepts: neon outlines, glowing nodes, liquid metal, velocity motion blur, light leaks, procedural geometric grids. Output strictly CSV lines (1 distinct topic per line: prompt,category,colorTheme,complexity,motionStyle). Output 15 distinct lines. No markdown blocks." 
+        content: "You are an elite stock footage prompt engineer. Output strictly a single CSV line per topic: prompt,category,colorTheme,complexity,motionStyle. No markdown blocks." 
       },
       { 
         role: "user", 
-        content: `Inspirational Trends: ${topSample}. Create 15 highly commercial, unique 3D/VFX video prompts. Exactly 15 lines, each line 1 prompt. No headers.` 
+        content: `UNIQUE HASH: ${uniqueHash}. Headlines: ${headlines || topSampleFallback(shuffledTopics)}. Hot Keywords: ${hotKeywords}. Create 15 highly cinematic 3D procedural video prompts matching these trends. It MUST be completely different from anything generated before. Format strictly as 15 distinct lines: prompt,category,colorTheme,complexity,motionStyle` 
       }
     ]
   };
@@ -209,14 +210,18 @@ async function catchTrends() {
   let finalCsvLines: string[] = [header];
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(nvidiaUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+      headers: { 
+        "Content-Type": "application/json", 
+        "Authorization": `Bearer ${nvidiaKey}`,
+        "Accept": "application/json"
+      },
       body: JSON.stringify(payload)
     });
     
     const data = await response.json();
-    if (data.choices && data.choices[0]) {
+    if (data.choices && data.choices[0]?.message?.content) {
       const rawContent = data.choices[0].message.content.trim().replace(/```csv/gi, '').replace(/```/g, '');
       const newLines = rawContent
         .split(/\r?\n/)
@@ -228,9 +233,10 @@ async function catchTrends() {
           finalCsvLines.push(line);
         }
       }
+      console.log(`⚡ [Nvidia Anti-Clone Engine] Synthesized ${newLines.length} bespoke trends!`);
     }
   } catch (error) {
-    console.warn("⚠️ Groq synthesis fallback, formatting shuffled trends directly into CSV:", error);
+    console.warn("⚠️ Nvidia synthesis fallback, formatting shuffled trends directly into CSV:", error);
   }
 
   // Inject all shuffled topics as distinct CSV lines
@@ -247,7 +253,11 @@ async function catchTrends() {
   const outputCsvContent = [header, ...randomizedRows].join('\n') + '\n';
 
   fs.writeFileSync('data/prompts.csv', outputCsvContent);
-  console.log(`✅ ${randomizedRows.length} MEGA-TREND TOPICS INJECTED INTO data/prompts.csv (ONE TOPIC PER LINE)!`);
+  console.log(`✅ ${randomizedRows.length} ANTI-CLONE MEGA-TREND TOPICS INJECTED INTO data/prompts.csv!`);
+}
+
+function topSampleFallback(topics: string[]): string {
+  return topics.slice(0, 3).join(" | ");
 }
 
 catchTrends();
