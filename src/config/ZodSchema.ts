@@ -3,17 +3,14 @@ import { z } from "zod";
 export const videoSchema = z.object({
   job3D: z.object({
     trendTopic: z.string(),
-    clipCategory: z.enum(["cinematic_particles", "procedural_geometry", "raymarched_core", "abstract_wireframe"]),
+    clipCategory: z.enum(["cinematic_galaxy", "quantum_core", "abstract_matrix"]),
     colorTheme: z.string(),
-    particleCount: z.number(),
-    cameraMotion: z.string(),
+    particleCount: z.number().min(5000).max(20000)
   }),
   job2D: z.object({
     trendTopic: z.string(),
-    clipCategory: z.enum(["cyberpunk_hud", "cinematic_light_leak", "vhs_glitch", "fluid_overlay"]),
-    colorTheme: z.string(),
-    customShader: z.string().describe("Raw GLSL fragment shader for this exact 2D effect."),
-    bloomIntensity: z.number(),
+    shaderCategory: z.enum(["fluid_caustics", "cosmic_energy", "neon_lightning", "raymarched_core"]),
+    colorTheme: z.string()
   })
 });
 

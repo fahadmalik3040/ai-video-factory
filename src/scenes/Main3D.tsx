@@ -10,17 +10,17 @@ export interface Main3DProps {
   sceneData?: any;
   job3D?: any;
   trendTopic?: string;
-  clipCategory?: "cinematic_particles" | "procedural_geometry" | "raymarched_core" | "abstract_wireframe";
+  clipCategory?: "cinematic_galaxy" | "quantum_core" | "abstract_matrix";
   colorTheme?: string;
   particleCount?: number;
-  cameraMotion?: string;
   [key: string]: any;
 }
 
 export const Main3D: React.FC<Main3DProps> = (props) => {
   const dynamicData = props.data || props.job3D || props.sceneData?.job3D || props.sceneData || props;
-  const theme = dynamicData?.colorTheme || "#00f0ff";
-  const category = dynamicData?.clipCategory || "cinematic_particles";
+  const theme = dynamicData?.colorTheme || "#ff0055";
+  const category = dynamicData?.clipCategory || "cinematic_galaxy";
+  const particleCount = dynamicData?.particleCount || 15000;
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#020308', overflow: 'hidden' }}>
@@ -43,11 +43,8 @@ export const Main3D: React.FC<Main3DProps> = (props) => {
             }}
           >
             <PremiumParticles3D
-              trendTopic={dynamicData?.trendTopic}
-              clipCategory={category}
-              colorTheme={theme}
-              particleCount={dynamicData?.particleCount || 5000}
-              cameraMotion={dynamicData?.cameraMotion || "orbit_slow"}
+              themeColor={theme}
+              particleCount={particleCount}
             />
           </ThreeCanvas>
         </ErrorBoundary>

@@ -34,18 +34,15 @@ async function dualOptimizedRender(): Promise<void> {
 
   let jsonData: any = {
     job3D: {
-      trendTopic: "AI Neural Network Quantum Core",
-      clipCategory: "cinematic_particles",
-      colorTheme: "#00f0ff",
-      particleCount: 5000,
-      cameraMotion: "orbit_slow"
+      trendTopic: "Cinematic Galaxy Universe",
+      clipCategory: "cinematic_galaxy",
+      colorTheme: "#ff0055",
+      particleCount: 15000
     },
     job2D: {
-      trendTopic: "Cyberpunk Holographic HUD Interface",
-      clipCategory: "cyberpunk_hud",
-      colorTheme: "#ff0055",
-      customShader: "",
-      bloomIntensity: 1.5
+      trendTopic: "Cosmic Energy Motion",
+      shaderCategory: "cosmic_energy",
+      colorTheme: "#00f0ff"
     }
   };
 
@@ -115,7 +112,7 @@ async function dualOptimizedRender(): Promise<void> {
   console.log(`✅ 3D Render Complete: ${out3D}`);
 
   // 2. RENDER 2D PIPELINE
-  console.log(`\n🎯 RENDERING JOB 2D: ${job2D.trendTopic} [${job2D.clipCategory}]...`);
+  console.log(`\n🎯 RENDERING JOB 2D: ${job2D.trendTopic} [${job2D.shaderCategory || job2D.clipCategory}]...`);
   await renderMedia({
     composition: comp2D,
     serveUrl: bundled,
