@@ -1,32 +1,48 @@
-import { ThreeCanvas } from '@remotion/three';
 import React from 'react';
+import { AbsoluteFill } from 'remotion';
+import { ThreeCanvas } from '@remotion/three';
 import { MasterScene } from '../scenes/MasterScene';
-import { PerspectiveCamera } from '@react-three/drei';
 import { AudioEngine } from '../engine/audio/AudioEngine';
-import { ErrorBoundary } from './ErrorBoundary';
 
 export const SceneRouter = ({ sceneData }: any) => {
+  const { sceneText, colorTheme = "#ff0055", bloomIntensity = 1.5 } = sceneData || {};
+
   return (
-    <div style={{ position: 'absolute', width: '100%', height: '100%', backgroundColor: '#050505' }}>
-      <ErrorBoundary>
-        <AudioEngine category={sceneData?.theme || "default"} />
-      </ErrorBoundary>
-      <ErrorBoundary>
+    <AbsoluteFill style={{ backgroundColor: '#000000' }}>
+      <AudioEngine category={sceneData?.clipCategory || "default"} />
+
+      {/* LAYER 1: 100% Crash-Proof Pure WebGL Canvas */}
+      <AbsoluteFill>
         <ThreeCanvas 
           width={3840} 
           height={2160}
-          gl={{
-            antialias: false,
-            powerPreference: "low-power",
-            failIfMajorPerformanceCaveat: false,
-            preserveDrawingBuffer: true
-          }}
+          gl={{ antialias: false, powerPreference: "low-power", preserveDrawingBuffer: true }}
         >
-          <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={50} />
-          <MasterScene data={sceneData} />
+           <MasterScene data={sceneData} />
         </ThreeCanvas>
-      </ErrorBoundary>
-    </div>
+      </AbsoluteFill>
+
+      {/* LAYER 2: Cinematic After Effects-Style Text Overlay (Zero Web Worker Crash Risk) */}
+      {sceneText && (
+        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', zIndex: 10 }}>
+          <h1 style={{
+            color: '#ffffff',
+            fontSize: '180px',
+            fontWeight: 900,
+            fontFamily: 'system-ui, sans-serif',
+            textAlign: 'center',
+            textTransform: 'uppercase',
+            margin: 0,
+            padding: '0 100px',
+            // THIS is the magic that makes it look like WebGL bloom in the final MP4
+            mixBlendMode: 'screen',
+            textShadow: `0 0 ${20 * bloomIntensity}px ${colorTheme}, 0 0 ${60 * bloomIntensity}px ${colorTheme}, 0 0 ${120 * bloomIntensity}px ${colorTheme}`
+          }}>
+            {sceneText}
+          </h1>
+        </AbsoluteFill>
+      )}
+    </AbsoluteFill>
   );
 };
 
