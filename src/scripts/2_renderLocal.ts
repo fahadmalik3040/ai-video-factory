@@ -106,7 +106,7 @@ const main = async (): Promise<void> => {
       serveUrl: bundleLocation,
       id: "Main3D",
       inputProps: dynamicProps3D,
-      timeoutInMilliseconds: 120000,
+      timeoutInMilliseconds: 300000,
       chromiumOptions,
     });
 
@@ -121,7 +121,7 @@ const main = async (): Promise<void> => {
       concurrency: 1,
       pixelFormat: "yuv420p",
       proResProfile: undefined,
-      timeoutInMilliseconds: 120000,
+      timeoutInMilliseconds: 300000,
       chromiumOptions,
     });
     console.log(`✅ [3D COMPLETE] Dedicated 3D Video Rendered: ${output3DLocation}`);
@@ -140,7 +140,7 @@ const main = async (): Promise<void> => {
       serveUrl: bundleLocation,
       id: "Main2D",
       inputProps: dynamicProps2D,
-      timeoutInMilliseconds: 120000,
+      timeoutInMilliseconds: 300000,
       chromiumOptions,
     });
 
@@ -155,7 +155,7 @@ const main = async (): Promise<void> => {
       concurrency: 1,
       pixelFormat: "yuv420p",
       proResProfile: undefined,
-      timeoutInMilliseconds: 120000,
+      timeoutInMilliseconds: 300000,
       chromiumOptions,
     });
     console.log(`✅ [2D COMPLETE] Dedicated 2D Video Rendered: ${output2DLocation}`);
