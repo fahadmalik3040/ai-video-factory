@@ -31,7 +31,12 @@ export const Main3D: React.FC<Main3DProps> = (props) => {
           height={2160} 
           style={{ width: 3840, height: 2160, position: 'absolute' }}
           camera={{ position: [0, 0, 1], fov: 45, near: 0.1, far: 100 }}
-          gl={{ preserveDrawingBuffer: true, antialias: true, alpha: false, powerPreference: "high-performance" }}
+          gl={{
+            antialias: false,
+            powerPreference: "low-power",
+            failIfMajorPerformanceCaveat: false,
+            preserveDrawingBuffer: true,
+          }}
         >
           <MasterScene data={dynamicData} />
         </ThreeCanvas>

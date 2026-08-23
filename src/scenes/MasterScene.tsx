@@ -59,6 +59,8 @@ const GLSLFullscreenQuad: React.FC<{
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const frame = useCurrentFrame();
 
+  const safeFrame = typeof frame === 'number' && !isNaN(frame) ? frame : 0;
+
   const c1 = useMemo(() => new THREE.Color(colorPrimary || '#ff3300'), [colorPrimary]);
   const c2 = useMemo(() => new THREE.Color(colorSecondary || '#00ccff'), [colorSecondary]);
 
@@ -68,17 +70,17 @@ const GLSLFullscreenQuad: React.FC<{
       u_resolution: { value: new THREE.Vector2(3840, 2160) },
       u_colorPrimary: { value: c1 },
       u_colorSecondary: { value: c2 },
-      u_speed: { value: speed },
+      u_speed: { value: typeof speed === 'number' ? speed : 1.4 },
     }),
     []
   );
 
   useFrame(() => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.u_time.value = frame / 30.0;
+    if (materialRef.current && materialRef.current.uniforms) {
+      materialRef.current.uniforms.u_time.value = safeFrame / 30.0;
       materialRef.current.uniforms.u_colorPrimary.value = c1;
       materialRef.current.uniforms.u_colorSecondary.value = c2;
-      materialRef.current.uniforms.u_speed.value = speed;
+      materialRef.current.uniforms.u_speed.value = typeof speed === 'number' ? speed : 1.4;
     }
   });
 
