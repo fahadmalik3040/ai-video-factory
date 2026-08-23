@@ -14,7 +14,16 @@ For every request, choose a COMPLETELY DIFFERENT asset category from this arsena
 
 INSTRUCTIONS:
 1. Define the chosen style strictly in 'clipCategory'.
-2. Write a highly optimized, mind-blowing WebGL fragment shader in 'customShader' that mathematically generates this EXACT effect. Use time, colorTheme, resolution, and vUv.
+2. Write a highly optimized, mind-blowing WebGL fragment shader in 'customShader' that mathematically generates this EXACT effect.
+Structure your shader strictly with:
+uniform float time;
+uniform vec3 colorTheme;
+uniform vec2 resolution;
+uniform float bloomIntensity;
+uniform float aberration;
+varying vec2 vUv;
+
+You MUST implement the glow (bloom) and chromatic aberration mathematically inside the shader using these uniforms.
 3. Output STRICT JSON matching the schema. BE UNPREDICTABLE. NO HTML OVERLAYS.`;
 
 function generateProceduralShaderFallback(category: string, themeColor: string): string {
@@ -23,12 +32,14 @@ function generateProceduralShaderFallback(category: string, themeColor: string):
       uniform float time;
       uniform vec3 colorTheme;
       uniform vec2 resolution;
+      uniform float bloomIntensity;
+      uniform float aberration;
       varying vec2 vUv;
       void main() {
         vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
         float grid = step(0.98, fract(p.x * 10.0 + time * 0.5)) + step(0.98, fract(p.y * 10.0));
-        vec3 col = mix(vec3(0.02, 0.02, 0.05), colorTheme * 1.5, grid * 0.4);
-        float scanline = sin(gl_FragCoord.y * 0.8 + time * 5.0) * 0.05;
+        vec3 col = mix(vec3(0.02, 0.02, 0.05), colorTheme * bloomIntensity, grid * 0.4);
+        float scanline = sin(gl_FragCoord.y * 0.8 + time * 5.0) * (0.05 + aberration * 2.0);
         gl_FragColor = vec4(col + scanline, 1.0);
       }
     `,
@@ -36,6 +47,8 @@ function generateProceduralShaderFallback(category: string, themeColor: string):
       uniform float time;
       uniform vec3 colorTheme;
       uniform vec2 resolution;
+      uniform float bloomIntensity;
+      uniform float aberration;
       varying vec2 vUv;
       void main() {
         vec2 uv = (gl_FragCoord.xy - 0.5 * resolution.xy) / min(resolution.x, resolution.y);
@@ -47,7 +60,7 @@ function generateProceduralShaderFallback(category: string, themeColor: string):
         float radar = max(0.0, sin(angle + time * 3.0));
         radar *= smoothstep(0.45, 0.0, d);
         float cross = (abs(uv.x) < 0.001 || abs(uv.y) < 0.001) && d < 0.42 ? 0.6 : 0.0;
-        vec3 col = colorTheme * (ring1 * 0.4 + ring2 * 1.2 + ring3 + radar * 0.8 + cross);
+        vec3 col = colorTheme * (ring1 * 0.4 + ring2 * 1.2 + ring3 + radar * 0.8 + cross) * bloomIntensity;
         gl_FragColor = vec4(col, 1.0);
       }
     `,
@@ -55,14 +68,16 @@ function generateProceduralShaderFallback(category: string, themeColor: string):
       uniform float time;
       uniform vec3 colorTheme;
       uniform vec2 resolution;
+      uniform float bloomIntensity;
+      uniform float aberration;
       varying vec2 vUv;
       void main() {
         vec2 uv = gl_FragCoord.xy / resolution.xy;
         vec2 p = uv - vec2(0.5 + 0.3 * sin(time * 0.7), 0.5 + 0.3 * cos(time * 0.5));
         float d = length(p);
-        float glow = 0.15 / (d * d + 0.08);
+        float glow = (0.15 * bloomIntensity) / (d * d + 0.08);
         vec2 p2 = uv - vec2(0.3 * cos(time * 0.9), 0.8 * sin(time * 0.6));
-        float glow2 = 0.1 / (length(p2) * length(p2) + 0.12);
+        float glow2 = (0.1 * bloomIntensity) / (length(p2) * length(p2) + 0.12);
         vec3 col = colorTheme * glow + vec3(1.0, 0.4, 0.1) * glow2;
         gl_FragColor = vec4(col, 1.0);
       }
@@ -71,6 +86,8 @@ function generateProceduralShaderFallback(category: string, themeColor: string):
       uniform float time;
       uniform vec3 colorTheme;
       uniform vec2 resolution;
+      uniform float bloomIntensity;
+      uniform float aberration;
       varying vec2 vUv;
       void main() {
         vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
@@ -80,7 +97,7 @@ function generateProceduralShaderFallback(category: string, themeColor: string):
           p.y += 0.3 / fi * cos(fi * 3.0 * p.x + time * 0.8);
         }
         float val = sin(p.x * 2.0 + p.y * 2.0 + time);
-        vec3 col = mix(colorTheme * 0.3, colorTheme * 1.8, val * 0.5 + 0.5);
+        vec3 col = mix(colorTheme * 0.3, colorTheme * bloomIntensity, val * 0.5 + 0.5);
         gl_FragColor = vec4(col, 1.0);
       }
     `,
@@ -88,6 +105,8 @@ function generateProceduralShaderFallback(category: string, themeColor: string):
       uniform float time;
       uniform vec3 colorTheme;
       uniform vec2 resolution;
+      uniform float bloomIntensity;
+      uniform float aberration;
       varying vec2 vUv;
       void main() {
         vec2 uv = (gl_FragCoord.xy - 0.5 * resolution.xy) / resolution.y;
@@ -103,7 +122,7 @@ function generateProceduralShaderFallback(category: string, themeColor: string):
           t += d * 0.5;
         }
         float glow = 1.0 / (1.0 + t * t * 0.2);
-        vec3 col = colorTheme * glow * 2.0;
+        vec3 col = colorTheme * glow * bloomIntensity * 1.5;
         gl_FragColor = vec4(col, 1.0);
       }
     `
@@ -147,7 +166,7 @@ Output STRICT JSON conforming to this schema:
   "colorTheme": "${themeColor}",
   "complexity": "ultra_high",
   "motionStyle": "cinematic_fluid",
-  "customShader": "A fully functional GLSL fragment shader using uniform float time; uniform vec3 colorTheme; uniform vec2 resolution; varying vec2 vUv;",
+  "customShader": "A fully functional GLSL fragment shader using uniform float time; uniform vec3 colorTheme; uniform vec2 resolution; uniform float bloomIntensity; uniform float aberration; varying vec2 vUv;",
   "sceneText": "1-4 words 3D typography or HUD data (or empty string)",
   "bloomIntensity": 1.5,
   "aberration": 0.005,
