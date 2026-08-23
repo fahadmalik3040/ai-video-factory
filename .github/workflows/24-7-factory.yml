@@ -34,7 +34,7 @@ jobs:
           npx --yes tsx src/scripts/1_generateJson.ts
         
       - name: Install Chrome & WebGL Linux Dependencies
-        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1 libegl1 libnss3 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 fonts-liberation
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1 libegl1 libnss3 libatk-bridge2.0-0 libcups2 libgbm1 libasound2t64 libpangocairo-1.0-0 libxss1 fonts-liberation
 
       - name: Phase 3 & 4 - 4K Render Engine
         run: xvfb-run -a npm run render:cloud
