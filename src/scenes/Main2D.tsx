@@ -2,6 +2,7 @@ import React from 'react';
 import { ThreeCanvas } from '@remotion/three';
 import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
 import { MasterScene } from './MasterScene';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 export interface Main2DProps {
   commercialConcept?: string;
@@ -152,24 +153,28 @@ export const Main2D: React.FC<Main2DProps> = (props: any) => {
   return (
     <AbsoluteFill style={{ backgroundColor: '#020308', overflow: 'hidden' }}>
       {/* 1. Underlying Bespoke GPU Shader Canvas */}
-      <ThreeCanvas
-        width={3840}
-        height={2160}
-        style={{ width: 3840, height: 2160, position: 'absolute' }}
-        camera={{ position: [0, 0, 1], fov: 45, near: 0.1, far: 100 }}
-        gl={{ preserveDrawingBuffer: true, antialias: true, alpha: false, powerPreference: "high-performance" }}
-      >
-        <MasterScene data={dynamicData} />
-      </ThreeCanvas>
+      <ErrorBoundary>
+        <ThreeCanvas
+          width={3840}
+          height={2160}
+          style={{ width: 3840, height: 2160, position: 'absolute' }}
+          camera={{ position: [0, 0, 1], fov: 45, near: 0.1, far: 100 }}
+          gl={{ preserveDrawingBuffer: true, antialias: true, alpha: false, powerPreference: "high-performance" }}
+        >
+          <MasterScene data={dynamicData} />
+        </ThreeCanvas>
+      </ErrorBoundary>
 
       {/* 2. Top-Layer Blend Mode Overlay */}
-      <div style={{ position: 'absolute', width: '100%', height: '100%', mixBlendMode: blendMode as any }}>
-        {overlayType === 'glitch_artifacts' && <GlitchArtifactsOverlay colors={colors} opacity={opacity} frame={frame} />}
-        {overlayType === 'cyberpunk_hud_svg' && <CyberpunkHudSvgOverlay colors={colors} opacity={opacity} frame={frame} />}
-        {overlayType !== 'glitch_artifacts' && overlayType !== 'cyberpunk_hud_svg' && (
-          <CinematicLightLeakOverlay colors={colors} opacity={opacity} frame={frame} />
-        )}
-      </div>
+      <ErrorBoundary>
+        <div style={{ position: 'absolute', width: '100%', height: '100%', mixBlendMode: blendMode as any }}>
+          {overlayType === 'glitch_artifacts' && <GlitchArtifactsOverlay colors={colors} opacity={opacity} frame={frame} />}
+          {overlayType === 'cyberpunk_hud_svg' && <CyberpunkHudSvgOverlay colors={colors} opacity={opacity} frame={frame} />}
+          {overlayType !== 'glitch_artifacts' && overlayType !== 'cyberpunk_hud_svg' && (
+            <CinematicLightLeakOverlay colors={colors} opacity={opacity} frame={frame} />
+          )}
+        </div>
+      </ErrorBoundary>
     </AbsoluteFill>
   );
 };
