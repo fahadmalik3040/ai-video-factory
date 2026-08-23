@@ -89,8 +89,7 @@ async function optimizedRender(): Promise<void> {
     codec: "h264",
     outputLocation,
     inputProps: dynamicProps,
-    crf: 18,
-    videoBitrate: "40M", // STRICT 40 Mbps limit to fix 800MB bug (Targets 50-150MB)
+    videoBitrate: "40M", // STRICT 40 Mbps limit. CRF IS REMOVED.
     pixelFormat: "yuv420p",
     concurrency: 1,
     timeoutInMilliseconds: 600000,
