@@ -7,6 +7,7 @@ const SHADER_HELPERS = `
   uniform vec3 colorTheme;
   varying vec2 vUv;
 
+  // 1. Simplex Noise
   vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
   float snoise(vec2 v){
     const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
@@ -29,6 +30,8 @@ const SHADER_HELPERS = `
     g.yz = a0.yz * x12.xz + h.yz * x12.yw;
     return 130.0 * dot(m, g);
   }
+
+  // 2. Fractal Brownian Motion
   float fbm(vec2 x) {
     float v = 0.0;
     float a = 0.5;
@@ -40,6 +43,16 @@ const SHADER_HELPERS = `
       a *= 0.5;
     }
     return v;
+  }
+
+  // 3. Hollywood ACES Filmic Tonemapping
+  vec3 acesFilm(vec3 x) {
+    float a = 2.51;
+    float b = 0.03;
+    float c = 2.43;
+    float d = 0.59;
+    float e = 0.14;
+    return clamp((x*(a*x+b))/(x*(c*x+d)+e), 0.0, 1.0);
   }
 `;
 
@@ -74,7 +87,8 @@ export const EliteVFX2D = ({ themeColor, aiGLSLCode, customShader, aiSDFMath }: 
         float wave = sin(p.x * 3.0 + n * 2.5 + time) * 0.5 + 0.5;
         vec3 col = mix(colorTheme, vec3(0.05, 0.0, 0.15), wave);
         float glow = 0.03 / (abs(p.y - sin(p.x * 2.5 + time) * 0.3) + 0.03);
-        gl_FragColor = vec4(col + colorTheme * glow, 1.0);
+        vec3 finalColor = acesFilm(col + colorTheme * glow * 1.5);
+        gl_FragColor = vec4(finalColor, 1.0);
       }
     `;
   }

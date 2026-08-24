@@ -11,6 +11,9 @@ export const PremiumParticles3D = ({ themeColor, aiSDFMath }: any) => {
       .replace(/```glsl/gi, '')
       .replace(/```c/gi, '')
       .replace(/```/g, '')
+      .replace(/uniform float time;/g, '')
+      .replace(/uniform vec3 colorTheme;/g, '')
+      .replace(/varying vec2 vUv;/g, '')
       .trim();
   }
 
@@ -23,12 +26,25 @@ export const PremiumParticles3D = ({ themeColor, aiSDFMath }: any) => {
     uniform vec3 colorTheme;
     varying vec2 vUv;
 
+    // ACES Filmic Tonemapping
+    vec3 acesFilm(vec3 x) {
+      float a = 2.51;
+      float b = 0.03;
+      float c = 2.43;
+      float d = 0.59;
+      float e = 0.14;
+      return clamp((x*(a*x+b))/(x*(c*x+d)+e), 0.0, 1.0);
+    }
+
     // AI's INJECTED 3D SDF MATH:
     ${validSDF}
 
+    // Bulletproof Normal Calculation with zero NaN risk
     vec3 calcNormal(vec3 p) {
-      vec2 e = vec2(1.0, -1.0) * 0.5773 * 0.0005;
-      return normalize(e.xyy * map(p + e.xyy) + e.yyx * map(p + e.yyx) + e.yxy * map(p + e.yxy) + e.xxx * map(p + e.xxx));
+      vec2 e = vec2(1.0, -1.0) * 0.5773 * 0.001;
+      vec3 n = e.xyy * map(p + e.xyy) + e.yyx * map(p + e.yyx) + e.yxy * map(p + e.yxy) + e.xxx * map(p + e.xxx);
+      float len = length(n);
+      return len > 0.00001 ? n / len : vec3(0.0, 0.0, 1.0);
     }
 
     void main() {
@@ -37,33 +53,45 @@ export const PremiumParticles3D = ({ themeColor, aiSDFMath }: any) => {
       vec3 rd = normalize(vec3(uv, -1.5));
       
       float t = 0.0;
-      for(int i = 0; i < 120; i++) {
+      float minD = 100.0;
+      for(int i = 0; i < 100; i++) {
         vec3 p = ro + rd * t;
         float d = map(p);
-        if(d < 0.001 || t > 20.0) break;
-        t += d * 0.8;
+        if(d < minD) minD = d;
+        if(d < 0.001 || t > 18.0) break;
+        t += max(d * 0.75, 0.008);
       }
 
-      vec3 col = vec3(0.01, 0.01, 0.03);
+      // Atmospheric Deep Base
+      vec3 col = vec3(0.015, 0.015, 0.035) * (1.0 - length(uv) * 0.4);
       
-      if(t < 20.0) {
+      if(t < 18.0) {
         vec3 p = ro + rd * t;
         vec3 n = calcNormal(p);
         vec3 light1 = normalize(vec3(1.0, 2.0, 1.5));
-        vec3 light2 = normalize(vec3(-1.0, -1.0, -1.0));
+        vec3 light2 = normalize(vec3(-1.2, -1.0, -0.8));
         
         float diff1 = max(dot(n, light1), 0.0);
-        float diff2 = max(dot(n, light2), 0.0) * 0.4;
-        float amb = 0.3 + 0.3 * dot(n, vec3(0.0, 1.0, 0.0));
+        float diff2 = max(dot(n, light2), 0.0) * 0.35;
+        float amb = 0.25 + 0.25 * dot(n, vec3(0.0, 1.0, 0.0));
         
+        // Specular highlight with Fresnel
         vec3 viewDir = -rd;
         vec3 halfDir = normalize(light1 + viewDir);
         float spec = pow(max(dot(n, halfDir), 0.0), 32.0);
+        float fresnel = pow(clamp(1.0 - max(dot(n, viewDir), 0.0), 0.0, 1.0), 3.0);
         
-        float glow = exp(-t * 0.15);
-        
-        col = colorTheme * (diff1 * 0.7 + diff2 + amb * 0.3) + vec3(spec * 0.8) + (colorTheme * glow * 0.8);
+        // Volumetric Glow & Shading
+        float glow = exp(-t * 0.12);
+        vec3 surface = colorTheme * (diff1 * 0.8 + diff2 + amb * 0.25) + vec3(spec * 0.7) + fresnel * colorTheme * 0.6;
+        col = mix(surface, col, clamp(t / 18.0, 0.0, 1.0)) + (colorTheme * glow * 0.6);
+      } else {
+        // Subtle proximity glow even on miss
+        col += colorTheme * exp(-minD * 4.0) * 0.2;
       }
+
+      // Apply ACES Tonemapping for punchy, Hollywood grade render
+      col = acesFilm(col);
 
       gl_FragColor = vec4(col, 1.0);
     }

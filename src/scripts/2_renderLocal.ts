@@ -5,11 +5,18 @@ import fs from "node:fs";
 
 async function dualOptimizedRender(): Promise<void> {
   console.log("=======================================================================");
-  console.log("🧹 PURGING ALL REMOTION & WEBPACK CACHES (CINEMATIC 4K FACTORY)...");
+  console.log("🧹 PURGING OUTPUT DIRECTORY & CACHES (STRICT DUAL PIPELINE)...");
   console.log("=======================================================================");
 
   const projectRoot = process.cwd();
   const jobIndex = process.env.JOB_INDEX || "0";
+
+  // 1. COMPLETELY PURGE OUTPUT FOLDER (Prevents duplicate video accumulation)
+  const outDir = path.resolve(projectRoot, "out");
+  if (fs.existsSync(outDir)) {
+    fs.rmSync(outDir, { recursive: true, force: true });
+  }
+  fs.mkdirSync(outDir, { recursive: true });
 
   const cacheDirs = [
     path.resolve(projectRoot, ".remotion"),
@@ -81,20 +88,11 @@ async function dualOptimizedRender(): Promise<void> {
     throw new Error("❌ Remotion compositions (Main3D/Main2D) not found!");
   }
 
-  const outDir = path.resolve(projectRoot, "out");
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, { recursive: true });
-  }
+  const out3D = path.join(outDir, "final_3d_premium.mp4");
+  const out2D = path.join(outDir, "final_2d_premium.mp4");
 
-  const out3D = path.join(outDir, "output_3d_premium.mp4");
-  const out2D = path.join(outDir, "output_2d_premium.mp4");
-  const legacy3D = path.join(outDir, `output_${jobIndex}_3d.mp4`);
-  const legacy2D = path.join(outDir, `output_${jobIndex}_2d.mp4`);
-  const finalVideo = path.join(outDir, "final_video.mp4");
-  const universalOutput = path.join(outDir, "output.mp4");
-
-  // 1. RENDER 3D PIPELINE
-  console.log(`\n🎯 RENDERING JOB 3D: ${job3D.trendTopic} [${job3D.clipCategory}]...`);
+  // 1. RENDER STRICTLY ONE 3D VIDEO
+  console.log(`\n🎯 RENDERING EXACTLY ONE 3D VIDEO: ${job3D.trendTopic} [${job3D.clipCategory}]...`);
   await renderMedia({
     composition: comp3D,
     serveUrl: bundled,
@@ -112,8 +110,8 @@ async function dualOptimizedRender(): Promise<void> {
   });
   console.log(`✅ 3D Render Complete: ${out3D}`);
 
-  // 2. RENDER 2D PIPELINE
-  console.log(`\n🎯 RENDERING JOB 2D: ${job2D.trendTopic} [${job2D.clipCategory}]...`);
+  // 2. RENDER STRICTLY ONE 2D VIDEO
+  console.log(`\n🎯 RENDERING EXACTLY ONE 2D VIDEO: ${job2D.trendTopic} [${job2D.clipCategory}]...`);
   await renderMedia({
     composition: comp2D,
     serveUrl: bundled,
@@ -131,19 +129,11 @@ async function dualOptimizedRender(): Promise<void> {
   });
   console.log(`✅ 2D Render Complete: ${out2D}`);
 
-  // Copy outputs for compatibility
-  try {
-    fs.copyFileSync(out3D, legacy3D);
-    fs.copyFileSync(out2D, legacy2D);
-    fs.copyFileSync(out3D, finalVideo);
-    fs.copyFileSync(out3D, universalOutput);
-  } catch {
-    // Ignore copy error
-  }
-
-  console.log("\n🎉 CINEMATIC STOCK FACTORY RENDERING COMPLETED SUCCESSFULLY!");
-  console.log(`   3D MP4: ${out3D}`);
-  console.log(`   2D MP4: ${out2D}`);
+  console.log("\n=======================================================================");
+  console.log("🎉 RENDER PIPELINE FINISHED. EXACTLY 2 VIDEOS GENERATED:");
+  console.log(`   1. ${out3D}`);
+  console.log(`   2. ${out2D}`);
+  console.log("=======================================================================");
 }
 
 dualOptimizedRender().catch((err) => {
