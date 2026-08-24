@@ -5,7 +5,7 @@ import fs from "node:fs";
 
 async function dualOptimizedRender(): Promise<void> {
   console.log("=======================================================================");
-  console.log("🧹 PURGING ALL REMOTION & WEBPACK CACHES (DUAL INDEPENDENT PIPELINE)...");
+  console.log("🧹 PURGING ALL REMOTION & WEBPACK CACHES (STOCK FOOTAGE PIPELINE)...");
   console.log("=======================================================================");
 
   const projectRoot = process.cwd();
@@ -40,10 +40,10 @@ async function dualOptimizedRender(): Promise<void> {
       particleCount: 18000
     },
     job2D: {
-      trendTopic: "Raymarched Quantum Morph",
-      clipCategory: "quantum_morph",
+      trendTopic: "Liquid Gradient Waves 4K",
+      clipCategory: "liquid_gradient_waves",
       colorTheme: "#00ffcc",
-      aiSDFMath: "float map(vec3 p) { float sphere = length(p) - 1.0; vec3 d = abs(p) - vec3(0.8); float box = length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0); return mix(sphere, box, sin(time)*0.5+0.5); }"
+      aiGLSLCode: "void main() { vec2 p = vUv * 2.0 - 1.0; float n = fbm(p * 2.0 + vec2(time * 0.2, time * 0.15)); float wave = sin(p.x * 4.0 + n * 3.0 + time) * 0.5 + 0.5; gl_FragColor = vec4(mix(colorTheme, vec3(0.1, 0.0, 0.2), wave) + (0.05 / (abs(p.y - sin(p.x * 3.0 + time)*0.3) + 0.05)), 1.0); }"
     }
   };
 
@@ -141,12 +141,12 @@ async function dualOptimizedRender(): Promise<void> {
     // Ignore copy error
   }
 
-  console.log("\n🎉 DUAL INDEPENDENT RENDERING COMPLETED SUCCESSFULLY!");
+  console.log("\n🎉 STOCK FACTORY RENDERING COMPLETED SUCCESSFULLY!");
   console.log(`   3D MP4: ${out3D}`);
   console.log(`   2D MP4: ${out2D}`);
 }
 
 dualOptimizedRender().catch((err) => {
-  console.error("❌ Fatal Dual Render Error:", err);
+  console.error("❌ Fatal Stock Factory Render Error:", err);
   process.exit(1);
 });

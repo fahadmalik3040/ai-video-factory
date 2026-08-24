@@ -11,10 +11,10 @@ const fallback3DProps: Main3DProps = {
 };
 
 const fallback2DProps: Main2DProps = {
-  trendTopic: "Raymarched Quantum Morph",
-  clipCategory: "quantum_morph",
+  trendTopic: "Liquid Gradient Waves 4K",
+  clipCategory: "liquid_gradient_waves",
   colorTheme: "#00ffcc",
-  aiSDFMath: "float map(vec3 p) { float sphere = length(p) - 1.0; vec3 d = abs(p) - vec3(0.8); float box = length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0); return mix(sphere, box, sin(time)*0.5+0.5); }",
+  aiGLSLCode: "void main() { vec2 p = vUv * 2.0 - 1.0; float n = fbm(p * 2.0 + vec2(time * 0.2, time * 0.15)); float wave = sin(p.x * 4.0 + n * 3.0 + time) * 0.5 + 0.5; gl_FragColor = vec4(mix(colorTheme, vec3(0.1, 0.0, 0.2), wave) + (0.05 / (abs(p.y - sin(p.x * 3.0 + time)*0.3) + 0.05)), 1.0); }",
 };
 
 export const RemotionRoot: React.FC = () => {
@@ -36,7 +36,7 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={props3D}
       />
 
-      {/* Secondary 2D Raymarching SDF Composition (15s @ 30fps) */}
+      {/* Secondary 2D Stock GLSL Composition (15s @ 30fps) */}
       <Composition
         id="Main2D"
         component={Main2D}

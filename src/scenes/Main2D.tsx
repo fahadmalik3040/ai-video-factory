@@ -12,6 +12,7 @@ export interface Main2DProps {
   trendTopic?: string;
   clipCategory?: string;
   colorTheme?: string;
+  aiGLSLCode?: string;
   aiSDFMath?: string;
   customShader?: string;
   [key: string]: any;
@@ -20,7 +21,7 @@ export interface Main2DProps {
 export const Main2D: React.FC<Main2DProps> = (props) => {
   const dynamicData = props.data || props.job2D || props.sceneData?.job2D || props.sceneData || props;
   const theme = dynamicData?.colorTheme || "#00ffcc";
-  const category = dynamicData?.clipCategory || "raymarched_singularity";
+  const category = dynamicData?.clipCategory || "liquid_gradient_waves";
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000000', overflow: 'hidden' }}>
@@ -28,7 +29,7 @@ export const Main2D: React.FC<Main2DProps> = (props) => {
         <AudioEngine category={category} />
       </ErrorBoundary>
       
-      {/* PURE 2D FULLSCREEN RAYMARCHING SDF SHADER */}
+      {/* PURE 2D FULLSCREEN GLSL SHADER */}
       <AbsoluteFill>
         <ErrorBoundary>
           <ThreeCanvas 
@@ -43,7 +44,7 @@ export const Main2D: React.FC<Main2DProps> = (props) => {
             }}
           >
             <EliteVFX2D
-              aiSDFMath={dynamicData?.aiSDFMath || dynamicData?.customShader}
+              aiGLSLCode={dynamicData?.aiGLSLCode || dynamicData?.customShader || dynamicData?.aiSDFMath}
               themeColor={theme}
             />
           </ThreeCanvas>
