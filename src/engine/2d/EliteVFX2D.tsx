@@ -16,8 +16,21 @@ export const EliteVFX2D = ({ themeColor, customShader }: any) => {
   }, [themeColor]);
 
   // Fallback shader if AI hallucinated
-  const fallback = `uniform float time; uniform vec3 colorTheme; varying vec2 vUv; void main() { vec2 p = vUv * 2.0 - 1.0; float glow = 0.05 / (length(p) + 0.01); gl_FragColor = vec4(colorTheme * glow, 1.0); }`;
-  const shaderToUse = (customShader && typeof customShader === 'string' && customShader.includes('void main')) ? customShader : fallback;
+  const fallback = `void main() { vec2 p = vUv * 2.0 - 1.0; float glow = 0.05 / (length(p) + 0.01); gl_FragColor = vec4(colorTheme * glow, 1.0); }`;
+  let rawShader = (customShader && typeof customShader === 'string' && customShader.includes('void main')) ? customShader : fallback;
+
+  // Prevent duplicate declarations by stripping them if AI included them
+  rawShader = rawShader.replace(/uniform float time;/g, '')
+                       .replace(/uniform vec3 colorTheme;/g, '')
+                       .replace(/varying vec2 vUv;/g, '');
+
+  // Force-inject guaranteed headers
+  const finalFragmentShader = `
+    uniform float time;
+    uniform vec3 colorTheme;
+    varying vec2 vUv;
+    \n${rawShader}
+  `;
 
   useFrame((state) => {
     if (materialRef.current) materialRef.current.uniforms.time.value = state.clock.elapsedTime;
@@ -29,7 +42,7 @@ export const EliteVFX2D = ({ themeColor, customShader }: any) => {
       <shaderMaterial 
         ref={materialRef}
         vertexShader="varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }"
-        fragmentShader={shaderToUse}
+        fragmentShader={finalFragmentShader}
         uniforms={uniforms}
         transparent={true}
         blending={THREE.AdditiveBlending}
