@@ -11,10 +11,10 @@ const fallback3DProps: Main3DProps = {
 };
 
 const fallback2DProps: Main2DProps = {
-  trendTopic: "Fluid Energy Caustics",
-  clipCategory: "fluid_caustics",
-  colorTheme: "#00f0ff",
-  customShader: "uniform float time; uniform vec3 colorTheme; varying vec2 vUv; void main() { vec2 p = vUv * 3.0 - 1.5; for(int i=1; i<5; i++) { vec2 newp = p; newp.x += 0.6/float(i)*sin(float(i)*p.y+time/2.0+0.3); newp.y += 0.6/float(i)*cos(float(i)*p.x+time/2.0+0.3); p = newp; } gl_FragColor = vec4(colorTheme * (0.5 / length(sin(p))), 1.0); }",
+  trendTopic: "Raymarched Quantum Morph",
+  clipCategory: "quantum_morph",
+  colorTheme: "#00ffcc",
+  aiSDFMath: "float map(vec3 p) { float sphere = length(p) - 1.0; vec3 d = abs(p) - vec3(0.8); float box = length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0); return mix(sphere, box, sin(time)*0.5+0.5); }",
 };
 
 export const RemotionRoot: React.FC = () => {
@@ -36,7 +36,7 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={props3D}
       />
 
-      {/* Secondary 2D Pure GLSL Motion Graphics Composition (15s @ 30fps) */}
+      {/* Secondary 2D Raymarching SDF Composition (15s @ 30fps) */}
       <Composition
         id="Main2D"
         component={Main2D}

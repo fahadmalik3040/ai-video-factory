@@ -17,7 +17,7 @@ export const MasterScene = ({ data }: any) => {
   const jobData = data?.job2D || data;
   return (
     <EliteVFX2D
-      customShader={jobData?.customShader}
+      aiSDFMath={jobData?.aiSDFMath || jobData?.customShader}
       themeColor={jobData?.colorTheme}
     />
   );

@@ -12,14 +12,15 @@ export interface Main2DProps {
   trendTopic?: string;
   clipCategory?: string;
   colorTheme?: string;
+  aiSDFMath?: string;
   customShader?: string;
   [key: string]: any;
 }
 
 export const Main2D: React.FC<Main2DProps> = (props) => {
   const dynamicData = props.data || props.job2D || props.sceneData?.job2D || props.sceneData || props;
-  const theme = dynamicData?.colorTheme || "#00f0ff";
-  const category = dynamicData?.clipCategory || "fluid_caustics";
+  const theme = dynamicData?.colorTheme || "#00ffcc";
+  const category = dynamicData?.clipCategory || "raymarched_singularity";
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000000', overflow: 'hidden' }}>
@@ -27,7 +28,7 @@ export const Main2D: React.FC<Main2DProps> = (props) => {
         <AudioEngine category={category} />
       </ErrorBoundary>
       
-      {/* PURE 2D FULLSCREEN WEBPACK GLSL SHADER */}
+      {/* PURE 2D FULLSCREEN RAYMARCHING SDF SHADER */}
       <AbsoluteFill>
         <ErrorBoundary>
           <ThreeCanvas 
@@ -37,12 +38,12 @@ export const Main2D: React.FC<Main2DProps> = (props) => {
             camera={{ position: [0, 0, 1], fov: 45, near: 0.1, far: 100 }}
             gl={{
               antialias: false,
-              powerPreference: "low-power",
+              powerPreference: "high-performance",
               preserveDrawingBuffer: true,
             }}
           >
             <EliteVFX2D
-              customShader={dynamicData?.customShader}
+              aiSDFMath={dynamicData?.aiSDFMath || dynamicData?.customShader}
               themeColor={theme}
             />
           </ThreeCanvas>

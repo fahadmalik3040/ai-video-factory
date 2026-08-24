@@ -11,7 +11,7 @@ export const videoSchema = z.object({
     trendTopic: z.string(),
     clipCategory: z.string(),
     colorTheme: z.string(),
-    customShader: z.string().describe("A fully functional, highly advanced GLSL fragment shader mathematically generating this effect. Use uniform float time; uniform vec3 colorTheme; varying vec2 vUv;")
+    aiSDFMath: z.string().describe("Write ONLY the GLSL float map(vec3 p) function. Use SDFs (length, mod, sin, max, min) to create the 3D shape. Return a float distance.")
   })
 });
 

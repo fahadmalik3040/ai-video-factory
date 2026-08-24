@@ -1,14 +1,14 @@
 {
   "job3D": {
-    "trendTopic": "Biotech DNA Double Helix Evolution 3D Cinematic Universe",
+    "trendTopic": "Biotech DNA Double Helix Evolution 3D Particle Universe",
     "clipCategory": "cinematic_galaxy",
-    "colorTheme": "#f43f5e",
+    "colorTheme": "#33ff33",
     "particleCount": 18000
   },
   "job2D": {
-    "trendTopic": "Biotech DNA Double Helix Evolution Premium VFX Motion",
-    "clipCategory": "cosmic_energy",
-    "colorTheme": "#ff9900",
-    "customShader": "void main() { vec2 p = vUv * 2.0 - 1.0; float glow = 0.05 / (length(p) + 0.01); gl_FragColor = vec4(colorTheme * glow, 1.0); }"
+    "trendTopic": "Biotech DNA Double Helix Evolution Raymarched SDF Geometry",
+    "clipCategory": "quantum_morph",
+    "colorTheme": "#10b981",
+    "aiSDFMath": "float map(vec3 p) { float sphere = length(p) - 1.0; vec3 d = abs(p) - vec3(0.8); float box = length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0); return mix(sphere, box, sin(time)*0.5+0.5); }"
   }
 }
