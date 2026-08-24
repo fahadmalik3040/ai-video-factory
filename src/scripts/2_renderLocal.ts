@@ -34,15 +34,16 @@ async function dualOptimizedRender(): Promise<void> {
 
   let jsonData: any = {
     job3D: {
-      trendTopic: "Cinematic Galaxy Universe",
+      trendTopic: "Quantum Neural Galaxy",
       clipCategory: "cinematic_galaxy",
       colorTheme: "#ff0055",
-      particleCount: 15000
+      particleCount: 18000
     },
     job2D: {
-      trendTopic: "Cosmic Energy Motion",
-      shaderCategory: "cosmic_energy",
-      colorTheme: "#00f0ff"
+      trendTopic: "Fluid Energy Caustics",
+      clipCategory: "fluid_caustics",
+      colorTheme: "#00f0ff",
+      customShader: "uniform float time; uniform vec3 colorTheme; varying vec2 vUv; void main() { vec2 p = vUv * 3.0 - 1.5; for(int i=1; i<5; i++) { vec2 newp = p; newp.x += 0.6/float(i)*sin(float(i)*p.y+time/2.0+0.3); newp.y += 0.6/float(i)*cos(float(i)*p.x+time/2.0+0.3); p = newp; } gl_FragColor = vec4(colorTheme * (0.5 / length(sin(p))), 1.0); }"
     }
   };
 
@@ -112,7 +113,7 @@ async function dualOptimizedRender(): Promise<void> {
   console.log(`✅ 3D Render Complete: ${out3D}`);
 
   // 2. RENDER 2D PIPELINE
-  console.log(`\n🎯 RENDERING JOB 2D: ${job2D.trendTopic} [${job2D.shaderCategory || job2D.clipCategory}]...`);
+  console.log(`\n🎯 RENDERING JOB 2D: ${job2D.trendTopic} [${job2D.clipCategory}]...`);
   await renderMedia({
     composition: comp2D,
     serveUrl: bundled,

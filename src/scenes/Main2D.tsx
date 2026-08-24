@@ -10,16 +10,16 @@ export interface Main2DProps {
   sceneData?: any;
   job2D?: any;
   trendTopic?: string;
-  shaderCategory?: "fluid_caustics" | "cosmic_energy" | "neon_lightning" | "raymarched_core";
   clipCategory?: string;
   colorTheme?: string;
+  customShader?: string;
   [key: string]: any;
 }
 
 export const Main2D: React.FC<Main2DProps> = (props) => {
   const dynamicData = props.data || props.job2D || props.sceneData?.job2D || props.sceneData || props;
   const theme = dynamicData?.colorTheme || "#00f0ff";
-  const category = dynamicData?.shaderCategory || dynamicData?.clipCategory || "cosmic_energy";
+  const category = dynamicData?.clipCategory || "fluid_caustics";
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000000', overflow: 'hidden' }}>
@@ -42,7 +42,7 @@ export const Main2D: React.FC<Main2DProps> = (props) => {
             }}
           >
             <EliteVFX2D
-              shaderCategory={category}
+              customShader={dynamicData?.customShader}
               themeColor={theme}
             />
           </ThreeCanvas>

@@ -9,7 +9,7 @@ export const MasterScene = ({ data }: any) => {
     return (
       <PremiumParticles3D
         themeColor={jobData?.colorTheme}
-        particleCount={jobData?.particleCount || 15000}
+        particleCount={jobData?.particleCount || 18000}
       />
     );
   }
@@ -17,7 +17,7 @@ export const MasterScene = ({ data }: any) => {
   const jobData = data?.job2D || data;
   return (
     <EliteVFX2D
-      shaderCategory={jobData?.shaderCategory || jobData?.clipCategory || "cosmic_energy"}
+      customShader={jobData?.customShader}
       themeColor={jobData?.colorTheme}
     />
   );

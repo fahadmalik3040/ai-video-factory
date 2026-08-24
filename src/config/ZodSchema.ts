@@ -3,14 +3,15 @@ import { z } from "zod";
 export const videoSchema = z.object({
   job3D: z.object({
     trendTopic: z.string(),
-    clipCategory: z.enum(["cinematic_galaxy", "quantum_core", "abstract_matrix"]),
+    clipCategory: z.string(),
     colorTheme: z.string(),
-    particleCount: z.number().min(5000).max(20000)
+    particleCount: z.number().min(10000).max(25000)
   }),
   job2D: z.object({
     trendTopic: z.string(),
-    shaderCategory: z.enum(["fluid_caustics", "cosmic_energy", "neon_lightning", "raymarched_core"]),
-    colorTheme: z.string()
+    clipCategory: z.string(),
+    colorTheme: z.string(),
+    customShader: z.string().describe("A fully functional, highly advanced GLSL fragment shader mathematically generating this effect. Use uniform float time; uniform vec3 colorTheme; varying vec2 vUv;")
   })
 });
 

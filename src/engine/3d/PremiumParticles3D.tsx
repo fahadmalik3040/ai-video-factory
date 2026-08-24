@@ -2,67 +2,56 @@ import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-export const PremiumParticles3D = ({ themeColor = "#ff0055", particleCount = 15000 }: any) => {
+export const PremiumParticles3D = ({ themeColor = "#ff0055", particleCount = 18000 }: any) => {
   const pointsRef = useRef<THREE.Points>(null);
 
-  // Generate cinematic glowing orb texture in-memory (Fixes the ugly square blocks)
-  const particleTexture = useMemo(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    const ctx = canvas.getContext('2d')!;
-    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, 'rgba(255,255,255,1)');
-    gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
-    gradient.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 64, 64);
-    return new THREE.CanvasTexture(canvas);
-  }, []);
-
-  const [positions, phases] = useMemo(() => {
+  const [positions, scales] = useMemo(() => {
     const pos = new Float32Array(particleCount * 3);
-    const phs = new Float32Array(particleCount);
+    const scl = new Float32Array(particleCount);
     for (let i = 0; i < particleCount; i++) {
-      const r = 12 * Math.cbrt(Math.random());
+      const r = 15 * Math.cbrt(Math.random());
       const theta = Math.random() * 2 * Math.PI;
       const phi = Math.acos(2 * Math.random() - 1);
       pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       pos[i * 3 + 2] = r * Math.cos(phi);
-      phs[i] = Math.random() * Math.PI * 2;
+      scl[i] = Math.random();
     }
-    return [pos, phs];
+    return [pos, scl];
   }, [particleCount]);
+
+  const uniforms = useMemo(() => {
+    let safeColor = new THREE.Color("#6495ed");
+    try {
+      if (typeof themeColor === 'string' && themeColor.startsWith('#')) {
+        safeColor = new THREE.Color(themeColor);
+      }
+    } catch(e){}
+    return { time: { value: 0 }, colorTheme: { value: safeColor } };
+  }, [themeColor]);
 
   useFrame((state) => {
     if (pointsRef.current) {
-      const time = state.clock.elapsedTime * 0.2;
-      pointsRef.current.rotation.y = time;
-      pointsRef.current.rotation.x = Math.sin(time) * 0.2;
+      pointsRef.current.rotation.y = state.clock.elapsedTime * 0.1;
+      pointsRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.05) * 0.1;
+      if (pointsRef.current.material && (pointsRef.current.material as THREE.ShaderMaterial).uniforms) {
+        (pointsRef.current.material as THREE.ShaderMaterial).uniforms.time.value = state.clock.elapsedTime;
+      }
     }
   });
-
-  let safeColor = new THREE.Color("#ff0055");
-  try {
-    if (typeof themeColor === 'string' && themeColor.startsWith('#')) {
-      safeColor = new THREE.Color(themeColor);
-    }
-  } catch (e) {}
 
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={particleCount} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-phase" count={particleCount} array={phases} itemSize={1} />
+        <bufferAttribute attach="attributes-scale" count={particleCount} array={scales} itemSize={1} />
       </bufferGeometry>
-      <pointsMaterial 
-        size={0.15} 
-        color={safeColor} 
-        map={particleTexture}
-        transparent={true} 
-        opacity={0.9} 
-        blending={THREE.AdditiveBlending} 
+      <shaderMaterial 
+        uniforms={uniforms}
+        vertexShader="attribute float scale; uniform float time; varying float vAlpha; void main() { vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); gl_PointSize = scale * (300.0 / -mvPosition.z) * (1.0 + sin(time + scale * 10.0)*0.5); vAlpha = scale; gl_Position = projectionMatrix * mvPosition; }"
+        fragmentShader="uniform vec3 colorTheme; varying float vAlpha; void main() { float dist = length(gl_PointCoord - vec2(0.5)); if (dist > 0.5) discard; float glow = exp(-dist * 4.0); gl_FragColor = vec4(colorTheme * glow, vAlpha * (1.0 - dist * 2.0)); }"
+        transparent={true}
+        blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
     </points>

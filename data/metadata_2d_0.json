@@ -1,5 +1,6 @@
 {
   "trendTopic": "Biotech DNA Double Helix Evolution Premium VFX Motion",
-  "shaderCategory": "fluid_caustics",
-  "colorTheme": "#4cd137"
+  "clipCategory": "cosmic_energy",
+  "colorTheme": "#ff9900",
+  "customShader": "void main() { vec2 p = vUv * 2.0 - 1.0; float glow = 0.05 / (length(p) + 0.01); gl_FragColor = vec4(colorTheme * glow, 1.0); }"
 }
