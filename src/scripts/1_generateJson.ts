@@ -3,52 +3,67 @@ import path from 'path';
 import { videoSchema, type VideoData } from '../config/ZodSchema';
 import { getJobTopic, sanitizeAndParseJson, getDynamicPalette } from './llmHelper';
 
-const SYSTEM_PROMPT = `You are an Elite GLSL Demoscene & VFX Director for a High-End Stock Footage Empire (Envato / Shutterstock).
-Generate a stunning, commercial-grade stock footage concept with complete raw GLSL fragment shader code in 'aiGLSLCode'.
+const SYSTEM_PROMPT = `You are an Elite GLSL & Raymarching VFX Director for a High-End 4K Stock Footage Empire (Envato / Shutterstock).
+Generate a dual commercial stock footage concept:
+1. job2D: Full 'void main()' 2D GLSL code in 'aiGLSLCode'.
+   Allowed clipCategory: "liquid_gradient_waves", "cyberpunk_tech_hud", "abstract_neon_topography"
+   Available uniforms: uniform float time; uniform vec3 colorTheme; varying vec2 vUv;
+   Available helpers: float snoise(vec2 v), float fbm(vec2 x)
 
-Allowed clipCategory:
-- "liquid_gradient_waves" (mesmerizing smooth flowing liquid gradient math)
-- "cyberpunk_tech_hud" (complex glowing digital HUD / matrix grid telemetry)
-- "sci_fi_wireframe_grid" (infinite perspective neon synthwave / cyber grid)
-- "abstract_neon_topography" (layered contour lines / glowing topographic terrain)
+2. job3D: 3D Signed Distance Field 'float map(vec3 p)' in 'aiSDFMath'.
+   Allowed clipCategory: "sci_fi_3d_tunnels", "liquid_metal_3d_fractals", "quantum_core_structures"
+   Available uniform: float time;
 
-CRITICAL GLSL RULES:
-1. Write the FULL 'void main()' function inside 'aiGLSLCode'.
-2. Available uniforms: uniform float time; uniform vec3 colorTheme; varying vec2 vUv;
-3. Available helper functions: float snoise(vec2 v), float fbm(vec2 x)
-4. DO NOT USE MARKDOWN. NO CODE BLOCKS. SINGLE LINE STRING. Escape all newlines as \\n.`;
+CRITICAL FORMATTING RULES:
+- NO MARKDOWN. NO CODE BLOCKS. SINGLE LINE STRINGS.
+- Escape all newlines as \\n. Output minified JSON adhering strictly to the schema.`;
 
 function normalizeJobData(data: any): any {
   if (!data || typeof data !== 'object') return data;
 
-  const validCategories = [
+  const valid2DCategories = [
     "liquid_gradient_waves",
     "cyberpunk_tech_hud",
-    "sci_fi_wireframe_grid",
     "abstract_neon_topography"
+  ] as const;
+
+  const valid3DCategories = [
+    "sci_fi_3d_tunnels",
+    "liquid_metal_3d_fractals",
+    "quantum_core_structures"
   ] as const;
 
   if (data.job2D) {
     const rawCat = String(data.job2D.clipCategory || "").toLowerCase();
-    const matched = validCategories.find(c => rawCat.includes(c) || c.includes(rawCat)) || "liquid_gradient_waves";
+    const matched = valid2DCategories.find(c => rawCat.includes(c) || c.includes(rawCat)) || "liquid_gradient_waves";
     data.job2D.clipCategory = matched;
 
     if (!data.job2D.colorTheme || !String(data.job2D.colorTheme).startsWith("#")) {
       data.job2D.colorTheme = "#00ffcc";
     }
 
-    const rawGLSL = data.job2D.aiGLSLCode || data.job2D.customShader || data.job2D.aiSDFMath || "";
+    const rawGLSL = data.job2D.aiGLSLCode || data.job2D.customShader || "";
     if (typeof rawGLSL === 'string' && rawGLSL.includes('void main')) {
       data.job2D.aiGLSLCode = rawGLSL;
     } else {
-      data.job2D.aiGLSLCode = "void main() { vec2 p = vUv * 2.0 - 1.0; float n = fbm(p * 3.0 + vec2(time * 0.2, time * 0.1)); float glow = 0.05 / (abs(sin(p.y * 5.0 + n * 3.0 + time)) + 0.02); gl_FragColor = vec4(colorTheme * glow, 1.0); }";
+      data.job2D.aiGLSLCode = "void main() { vec2 p = vUv * 2.0 - 1.0; float n = fbm(p * 2.5 + vec2(time * 0.3, time * 0.2)); float wave = sin(p.x * 3.0 + n * 2.5 + time) * 0.5 + 0.5; vec3 col = mix(colorTheme, vec3(0.05, 0.0, 0.15), wave); float glow = 0.03 / (abs(p.y - sin(p.x * 2.5 + time) * 0.3) + 0.03); gl_FragColor = vec4(col + colorTheme * glow, 1.0); }";
     }
   }
 
   if (data.job3D) {
-    data.job3D.particleCount = Math.min(Math.max(Number(data.job3D.particleCount) || 18000, 10000), 25000);
+    const rawCat = String(data.job3D.clipCategory || "").toLowerCase();
+    const matched = valid3DCategories.find(c => rawCat.includes(c) || c.includes(rawCat)) || "sci_fi_3d_tunnels";
+    data.job3D.clipCategory = matched;
+
     if (!data.job3D.colorTheme || !String(data.job3D.colorTheme).startsWith("#")) {
       data.job3D.colorTheme = "#ff0055";
+    }
+
+    const rawSDF = data.job3D.aiSDFMath || "";
+    if (typeof rawSDF === 'string' && rawSDF.includes('map(')) {
+      data.job3D.aiSDFMath = rawSDF;
+    } else {
+      data.job3D.aiSDFMath = "float map(vec3 p) { vec3 q = p; q.z = mod(q.z + time * 2.0, 4.0) - 2.0; float tunnel = -(length(q.xy) - 1.8); float rings = length(vec2(length(q.xy) - 1.8, q.z)) - 0.08; return min(tunnel, rings); }";
     }
   }
 
@@ -60,7 +75,7 @@ async function fetchNvidiaWithRetry(payload: any, retries = 3, delay = 5000): Pr
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      console.log(`⚡ Querying Nvidia Elite GLSL Director (Attempt ${attempt}/${retries})... WITHOUT ABORT TIMER`);
+      console.log(`⚡ Querying Nvidia Cinema VFX Director (Attempt ${attempt}/${retries})... WITHOUT ABORT TIMER`);
 
       const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
         method: "POST",
@@ -108,7 +123,7 @@ async function fetchNvidiaWithRetry(payload: any, retries = 3, delay = 5000): Pr
 
 export async function generateDualOrchestratorJson(targetTopic?: string, jobIdx?: number): Promise<VideoData> {
   console.log("=======================================================================");
-  console.log("🌌 DUAL INDEPENDENT RENDER ORCHESTRATOR: INFINITE GLSL STOCK FACTORY");
+  console.log("🌌 DUAL INDEPENDENT RENDER ORCHESTRATOR: CINEMATIC 4K STOCK FACTORY");
   console.log("=======================================================================");
 
   const { topic: mainTopic, jobIndex } = targetTopic && jobIdx !== undefined 
@@ -124,20 +139,18 @@ export async function generateDualOrchestratorJson(targetTopic?: string, jobIdx?
   const themeColor3D = dynamicPalette3D[0] || "#ff0055";
   const themeColor2D = dynamicPalette2D[0] || "#00ffcc";
 
-  const categories2D = [
-    "liquid_gradient_waves",
-    "cyberpunk_tech_hud",
-    "sci_fi_wireframe_grid",
-    "abstract_neon_topography"
-  ] as const;
+  const categories2D = ["liquid_gradient_waves", "cyberpunk_tech_hud", "abstract_neon_topography"] as const;
+  const categories3D = ["sci_fi_3d_tunnels", "liquid_metal_3d_fractals", "quantum_core_structures"] as const;
 
   const chosenCat2D = categories2D[Math.abs(jobIndex) % categories2D.length];
-  const trendTopic3D = `${mainTopic} 3D Particle Universe`;
-  const trendTopic2D = `${mainTopic} 4K Stock Footage`;
+  const chosenCat3D = categories3D[Math.abs(jobIndex + 1) % categories3D.length];
 
-  const userPrompt = `Synthesize commercial stock footage concept for: "${mainTopic}"
-Category: "${chosenCat2D}"
-ColorTheme: "${themeColor2D}"
+  const trendTopic3D = `${mainTopic} 3D Raymarched Cinematic`;
+  const trendTopic2D = `${mainTopic} 2D Motion Graphics`;
+
+  const userPrompt = `Synthesize commercial 4K stock concepts for: "${mainTopic}"
+2D Category: "${chosenCat2D}" (Color: ${themeColor2D})
+3D Category: "${chosenCat3D}" (Color: ${themeColor3D})
 
 Output STRICT single-line minified JSON adhering to this schema:
 {
@@ -145,13 +158,13 @@ Output STRICT single-line minified JSON adhering to this schema:
     "trendTopic": "${trendTopic2D}",
     "clipCategory": "${chosenCat2D}",
     "colorTheme": "${themeColor2D}",
-    "aiGLSLCode": "void main() { vec2 p = vUv * 2.0 - 1.0; float n = fbm(p * 3.0 + vec2(time * 0.2, time * 0.1)); float glow = 0.05 / (abs(sin(p.y * 5.0 + n * 3.0 + time)) + 0.02); gl_FragColor = vec4(colorTheme * glow, 1.0); }"
+    "aiGLSLCode": "void main() { vec2 p = vUv * 2.0 - 1.0; float n = fbm(p * 2.5 + vec2(time * 0.3, time * 0.2)); float wave = sin(p.x * 3.0 + n * 2.5 + time) * 0.5 + 0.5; vec3 col = mix(colorTheme, vec3(0.05, 0.0, 0.15), wave); float glow = 0.03 / (abs(p.y - sin(p.x * 2.5 + time) * 0.3) + 0.03); gl_FragColor = vec4(col + colorTheme * glow, 1.0); }"
   },
   "job3D": {
     "trendTopic": "${trendTopic3D}",
-    "clipCategory": "cinematic_galaxy",
+    "clipCategory": "${chosenCat3D}",
     "colorTheme": "${themeColor3D}",
-    "particleCount": 18000
+    "aiSDFMath": "float map(vec3 p) { vec3 q = p; q.z = mod(q.z + time * 2.0, 4.0) - 2.0; float tunnel = -(length(q.xy) - 1.8); float rings = length(vec2(length(q.xy) - 1.8, q.z)) - 0.08; return min(tunnel, rings); }"
   }
 }`;
 
@@ -170,7 +183,7 @@ Output STRICT single-line minified JSON adhering to this schema:
     };
 
     resultData = await fetchNvidiaWithRetry(payload, 3, 5000);
-    console.log(`✅ [NVIDIA Stock Factory] 2D: ${resultData.job2D.clipCategory} | 3D: ${resultData.job3D?.clipCategory || 'None'}`);
+    console.log(`✅ [NVIDIA Cinema Engine] 2D: ${resultData.job2D.clipCategory} | 3D: ${resultData.job3D.clipCategory}`);
   } catch (error: any) {
     console.warn(`⚠️ Network unreachable or Nvidia API down (${error.message}). Switching to High-End Deterministic Generator to keep pipeline running!`);
 
@@ -183,10 +196,10 @@ Output STRICT single-line minified JSON adhering to this schema:
           aiGLSLCode: "void main() { vec2 p = vUv * 2.0 - 1.0; float n = fbm(p * 2.0 + vec2(time * 0.2, time * 0.15)); float wave = sin(p.x * 4.0 + n * 3.0 + time) * 0.5 + 0.5; gl_FragColor = vec4(mix(colorTheme, vec3(0.1, 0.0, 0.2), wave) + (0.05 / (abs(p.y - sin(p.x * 3.0 + time)*0.3) + 0.05)), 1.0); }"
         },
         job3D: {
-          trendTopic: trendTopic3D || "Quantum Neural Galaxy",
-          clipCategory: "cinematic_galaxy",
+          trendTopic: trendTopic3D || "Sci-Fi Infinite 3D Tunnel 4K",
+          clipCategory: "sci_fi_3d_tunnels",
           colorTheme: themeColor3D || "#ff0055",
-          particleCount: 18000
+          aiSDFMath: "float map(vec3 p) { vec3 q = p; q.z = mod(q.z + time * 2.0, 4.0) - 2.0; float tunnel = -(length(q.xy) - 1.8); float rings = length(vec2(length(q.xy) - 1.8, q.z)) - 0.08; return min(tunnel, rings); }"
         }
       },
       {
@@ -197,24 +210,10 @@ Output STRICT single-line minified JSON adhering to this schema:
           aiGLSLCode: "void main() { vec2 p = vUv * 2.0 - 1.0; float grid = step(0.95, fract(p.x * 10.0)) + step(0.95, fract(p.y * 10.0)); float circle = abs(length(p) - 0.5) < 0.01 ? 1.0 : 0.0; float scan = exp(-abs(p.y - fract(time * 0.5) * 2.0 + 1.0) * 10.0); gl_FragColor = vec4(colorTheme * (grid * 0.3 + circle + scan * 0.8), 1.0); }"
         },
         job3D: {
-          trendTopic: "Deep Space Singularity",
-          clipCategory: "quantum_core",
+          trendTopic: "Liquid Metal 3D Mandelbulb Fractal 4K",
+          clipCategory: "liquid_metal_3d_fractals",
           colorTheme: "#7b2cbf",
-          particleCount: 20000
-        }
-      },
-      {
-        job2D: {
-          trendTopic: "Sci-Fi Wireframe Perspective Grid 4K",
-          clipCategory: "sci_fi_wireframe_grid",
-          colorTheme: "#ff007f",
-          aiGLSLCode: "void main() { vec2 uv = vUv * 2.0 - 1.0; if (uv.y < 0.0) { float depth = 1.0 / (-uv.y); vec2 grid = fract(vec2(uv.x * depth, depth + time * 2.0)); float line = step(0.92, grid.x) + step(0.92, grid.y); gl_FragColor = vec4(colorTheme * line * depth * 0.5, 1.0); } else { float sun = exp(-length(uv - vec2(0.0, 0.2)) * 3.0); gl_FragColor = vec4(colorTheme * sun, 1.0); } }"
-        },
-        job3D: {
-          trendTopic: "Hyperdimensional Matrix",
-          clipCategory: "abstract_matrix",
-          colorTheme: "#00f0ff",
-          particleCount: 22000
+          aiSDFMath: "float map(vec3 p) { vec3 z = p; float dr = 1.0; float r = 0.0; for (int i = 0; i < 4; i++) { r = length(z); if (r > 2.0) break; float theta = acos(z.z / r); float phi = atan(z.y, z.x); dr = pow(r, 7.0) * 8.0 * dr + 1.0; float zr = pow(r, 8.0); theta = theta * 8.0 + time * 0.5; phi = phi * 8.0; z = zr * vec3(sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta)) + p; } return 0.5 * log(r) * r / dr; }"
         }
       },
       {
@@ -225,16 +224,16 @@ Output STRICT single-line minified JSON adhering to this schema:
           aiGLSLCode: "void main() { vec2 p = vUv * 3.0; float h = fbm(p + time * 0.05); float contour = sin(h * 30.0); float line = exp(-abs(contour) * 15.0); gl_FragColor = vec4(colorTheme * line * 1.5, 1.0); }"
         },
         job3D: {
-          trendTopic: "Quantum Core Matrix",
-          clipCategory: "quantum_core",
-          colorTheme: "#10b981",
-          particleCount: 18000
+          trendTopic: "Quantum Core Morphing Structure 4K",
+          clipCategory: "quantum_core_structures",
+          colorTheme: "#00f0ff",
+          aiSDFMath: "float map(vec3 p) { float sphere = length(p) - 1.2; vec3 d = abs(p) - vec3(0.9); float box = length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0); return mix(sphere, box, sin(time)*0.5+0.5); }"
         }
       }
     ];
 
     resultData = fallbackConfigs[Math.abs(jobIndex) % fallbackConfigs.length];
-    console.log(`✨ [High-End Fallback Engine] 2D: ${resultData.job2D.clipCategory} (${resultData.job2D.trendTopic})`);
+    console.log(`✨ [High-End Fallback Engine] 2D: ${resultData.job2D.clipCategory} | 3D: ${resultData.job3D.clipCategory}`);
   }
 
   if (!fs.existsSync('data')) fs.mkdirSync('data', { recursive: true });
@@ -242,16 +241,14 @@ Output STRICT single-line minified JSON adhering to this schema:
 
   fs.writeFileSync('data/sceneData.json', JSON.stringify(resultData, null, 2));
   fs.writeFileSync(`data/metadata_${jobIndex}.json`, JSON.stringify(resultData, null, 2));
-  if (resultData.job3D) {
-    fs.writeFileSync(`data/metadata_3d_${jobIndex}.json`, JSON.stringify(resultData.job3D, null, 2));
-  }
+  fs.writeFileSync(`data/metadata_3d_${jobIndex}.json`, JSON.stringify(resultData.job3D, null, 2));
   fs.writeFileSync(`data/metadata_2d_${jobIndex}.json`, JSON.stringify(resultData.job2D, null, 2));
 
-  const metadataContent = `=== 2D ASSET ===\nTITLE: 4K Stock Visual: ${resultData.job2D.trendTopic} [${resultData.job2D.clipCategory}]\nCOLOR: ${resultData.job2D.colorTheme}\n\n=== 3D ASSET ===\nTITLE: 4K 3D Visual: ${resultData.job3D?.trendTopic || 'Universe'} [${resultData.job3D?.clipCategory || 'Particle'}]\nCOLOR: ${resultData.job3D?.colorTheme || '#ff0055'}\nPARTICLES: ${resultData.job3D?.particleCount || 18000}`;
+  const metadataContent = `=== 2D ASSET ===\nTITLE: 4K Stock Visual: ${resultData.job2D.trendTopic} [${resultData.job2D.clipCategory}]\nCOLOR: ${resultData.job2D.colorTheme}\n\n=== 3D ASSET ===\nTITLE: 4K 3D Raymarch: ${resultData.job3D.trendTopic} [${resultData.job3D.clipCategory}]\nCOLOR: ${resultData.job3D.colorTheme}`;
   fs.writeFileSync('out/metadata.txt', metadataContent);
   fs.writeFileSync(`out/metadata_${jobIndex}.txt`, metadataContent);
 
-  console.log(`\n🎉 [STOCK FACTORY COMPLETE] Saved 2D (${resultData.job2D.clipCategory}) for Job ${jobIndex}!`);
+  console.log(`\n🎉 [CINEMATIC FACTORY COMPLETE] Saved 2D (${resultData.job2D.clipCategory}) & 3D (${resultData.job3D.clipCategory}) for Job ${jobIndex}!`);
   return resultData;
 }
 

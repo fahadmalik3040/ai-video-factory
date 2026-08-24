@@ -5,7 +5,7 @@ import fs from "node:fs";
 
 async function dualOptimizedRender(): Promise<void> {
   console.log("=======================================================================");
-  console.log("🧹 PURGING ALL REMOTION & WEBPACK CACHES (STOCK FOOTAGE PIPELINE)...");
+  console.log("🧹 PURGING ALL REMOTION & WEBPACK CACHES (CINEMATIC 4K FACTORY)...");
   console.log("=======================================================================");
 
   const projectRoot = process.cwd();
@@ -34,10 +34,10 @@ async function dualOptimizedRender(): Promise<void> {
 
   let jsonData: any = {
     job3D: {
-      trendTopic: "Quantum Neural Galaxy",
-      clipCategory: "cinematic_galaxy",
+      trendTopic: "Sci-Fi Infinite 3D Tunnel 4K",
+      clipCategory: "sci_fi_3d_tunnels",
       colorTheme: "#ff0055",
-      particleCount: 18000
+      aiSDFMath: "float map(vec3 p) { vec3 q = p; q.z = mod(q.z + time * 2.0, 4.0) - 2.0; float tunnel = -(length(q.xy) - 1.8); float rings = length(vec2(length(q.xy) - 1.8, q.z)) - 0.08; return min(tunnel, rings); }"
     },
     job2D: {
       trendTopic: "Liquid Gradient Waves 4K",
@@ -141,7 +141,7 @@ async function dualOptimizedRender(): Promise<void> {
     // Ignore copy error
   }
 
-  console.log("\n🎉 STOCK FACTORY RENDERING COMPLETED SUCCESSFULLY!");
+  console.log("\n🎉 CINEMATIC STOCK FACTORY RENDERING COMPLETED SUCCESSFULLY!");
   console.log(`   3D MP4: ${out3D}`);
   console.log(`   2D MP4: ${out2D}`);
 }

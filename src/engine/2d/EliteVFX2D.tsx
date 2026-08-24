@@ -65,46 +65,16 @@ export const EliteVFX2D = ({ themeColor, aiGLSLCode, customShader, aiSDFMath }: 
       ${SHADER_HELPERS}
       \n${rawCode}
     `;
-  } else if (typeof rawCode === 'string' && rawCode.includes('map(')) {
-    finalFragmentShader = `
-      ${SHADER_HELPERS}
-      ${rawCode}
-      vec3 calcNormal(vec3 p) {
-        vec2 e = vec2(1.0, -1.0) * 0.5773 * 0.0005;
-        return normalize(e.xyy * map(p + e.xyy) + e.yyx * map(p + e.yyx) + e.yxy * map(p + e.yxy) + e.xxx * map(p + e.xxx));
-      }
-      void main() {
-        vec2 uv = vUv * 2.0 - 1.0;
-        vec3 ro = vec3(0.0, 0.0, 3.0);
-        vec3 rd = normalize(vec3(uv, -1.5));
-        float t = 0.0;
-        for(int i = 0; i < 100; i++) {
-          vec3 p = ro + rd * t;
-          float d = map(p);
-          if(d < 0.001 || t > 10.0) break;
-          t += d;
-        }
-        vec3 col = vec3(0.0);
-        if(t < 10.0) {
-          vec3 p = ro + rd * t;
-          vec3 n = calcNormal(p);
-          vec3 light = normalize(vec3(1.0, 1.0, 1.0));
-          float diff = max(dot(n, light), 0.0);
-          float amb = 0.5 + 0.5 * dot(n, vec3(0.0, 1.0, 0.0));
-          float glow = exp(-t * 0.2);
-          col = colorTheme * (diff * 0.8 + amb * 0.2) + (colorTheme * glow);
-        }
-        gl_FragColor = vec4(col, 1.0);
-      }
-    `;
   } else {
     finalFragmentShader = `
       ${SHADER_HELPERS}
       void main() {
         vec2 p = vUv * 2.0 - 1.0;
-        float n = fbm(p * 3.0 + vec2(time * 0.2, time * 0.1));
-        float glow = 0.05 / (abs(sin(p.y * 5.0 + n * 3.0 + time)) + 0.02);
-        gl_FragColor = vec4(colorTheme * glow, 1.0);
+        float n = fbm(p * 2.5 + vec2(time * 0.3, time * 0.2));
+        float wave = sin(p.x * 3.0 + n * 2.5 + time) * 0.5 + 0.5;
+        vec3 col = mix(colorTheme, vec3(0.05, 0.0, 0.15), wave);
+        float glow = 0.03 / (abs(p.y - sin(p.x * 2.5 + time) * 0.3) + 0.03);
+        gl_FragColor = vec4(col + colorTheme * glow, 1.0);
       }
     `;
   }
@@ -120,7 +90,8 @@ export const EliteVFX2D = ({ themeColor, aiGLSLCode, customShader, aiSDFMath }: 
   }, [themeColor]);
 
   useFrame((state) => {
-    if (materialRef.current) materialRef.current.uniforms.time.value = state.clock.elapsedTime;
+    // 0.15x Time Multiplier for slow, cinematic movement
+    if (materialRef.current) materialRef.current.uniforms.time.value = state.clock.elapsedTime * 0.15;
   });
 
   return (

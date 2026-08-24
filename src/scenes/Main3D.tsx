@@ -10,17 +10,16 @@ export interface Main3DProps {
   sceneData?: any;
   job3D?: any;
   trendTopic?: string;
-  clipCategory?: "cinematic_galaxy" | "quantum_core" | "abstract_matrix";
+  clipCategory?: "sci_fi_3d_tunnels" | "liquid_metal_3d_fractals" | "quantum_core_structures" | string;
   colorTheme?: string;
-  particleCount?: number;
+  aiSDFMath?: string;
   [key: string]: any;
 }
 
 export const Main3D: React.FC<Main3DProps> = (props) => {
   const dynamicData = props.data || props.job3D || props.sceneData?.job3D || props.sceneData || props;
   const theme = dynamicData?.colorTheme || "#ff0055";
-  const category = dynamicData?.clipCategory || "cinematic_galaxy";
-  const particleCount = dynamicData?.particleCount || 15000;
+  const category = dynamicData?.clipCategory || "sci_fi_3d_tunnels";
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#020308', overflow: 'hidden' }}>
@@ -28,14 +27,14 @@ export const Main3D: React.FC<Main3DProps> = (props) => {
         <AudioEngine category={category} />
       </ErrorBoundary>
       
-      {/* PURE 3D THREE.JS PROCEDURAL WORLD */}
+      {/* PURE 3D RAYMARCHING SDF CINEMATIC WORLD */}
       <AbsoluteFill>
         <ErrorBoundary>
           <ThreeCanvas 
             width={3840} 
             height={2160} 
             style={{ width: 3840, height: 2160, position: 'absolute' }}
-            camera={{ position: [0, 0, 8], fov: 50, near: 0.1, far: 100 }}
+            camera={{ position: [0, 0, 1], fov: 45, near: 0.1, far: 100 }}
             gl={{
               antialias: true,
               powerPreference: "high-performance",
@@ -44,7 +43,7 @@ export const Main3D: React.FC<Main3DProps> = (props) => {
           >
             <PremiumParticles3D
               themeColor={theme}
-              particleCount={particleCount}
+              aiSDFMath={dynamicData?.aiSDFMath}
             />
           </ThreeCanvas>
         </ErrorBoundary>

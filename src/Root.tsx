@@ -4,10 +4,10 @@ import { Main3D, type Main3DProps } from "./scenes/Main3D";
 import { Main2D, type Main2DProps } from "./scenes/Main2D";
 
 const fallback3DProps: Main3DProps = {
-  trendTopic: "Quantum Neural Galaxy",
-  clipCategory: "cinematic_galaxy",
+  trendTopic: "Sci-Fi Infinite 3D Tunnel 4K",
+  clipCategory: "sci_fi_3d_tunnels",
   colorTheme: "#ff0055",
-  particleCount: 18000,
+  aiSDFMath: "float map(vec3 p) { vec3 q = p; q.z = mod(q.z + time * 2.0, 4.0) - 2.0; float tunnel = -(length(q.xy) - 1.8); float rings = length(vec2(length(q.xy) - 1.8, q.z)) - 0.08; return min(tunnel, rings); }",
 };
 
 const fallback2DProps: Main2DProps = {
@@ -20,12 +20,12 @@ const fallback2DProps: Main2DProps = {
 export const RemotionRoot: React.FC = () => {
   const dynamicProps: any = getInputProps();
   
-  const props3D = dynamicProps?.job3D || dynamicProps?.data || (dynamicProps?.clipCategory?.includes("galaxy") ? dynamicProps : fallback3DProps);
+  const props3D = dynamicProps?.job3D || dynamicProps?.data || (dynamicProps?.clipCategory?.includes("tunnel") || dynamicProps?.clipCategory?.includes("3d") ? dynamicProps : fallback3DProps);
   const props2D = dynamicProps?.job2D || dynamicProps?.data || fallback2DProps;
 
   return (
     <>
-      {/* Primary 3D Procedural Glowing Particle Composition (15s @ 30fps) */}
+      {/* Primary 3D Procedural Raymarching SDF Composition (15s @ 30fps) */}
       <Composition
         id="Main3D"
         component={Main3D}
