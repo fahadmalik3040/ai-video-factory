@@ -5,9 +5,17 @@ import * as THREE from 'three';
 export const EliteVFX2D = ({ themeColor, aiSDFMath, customShader }: any) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  const sdfCode = aiSDFMath || customShader;
-  const validSDF = (sdfCode && typeof sdfCode === 'string' && sdfCode.includes('map('))
-    ? sdfCode
+  let rawSDF = aiSDFMath || customShader || "";
+  if (typeof rawSDF === 'string') {
+    rawSDF = rawSDF
+      .replace(/```glsl/gi, '')
+      .replace(/```c/gi, '')
+      .replace(/```/g, '')
+      .trim();
+  }
+
+  const validSDF = (rawSDF && typeof rawSDF === 'string' && rawSDF.includes('map('))
+    ? rawSDF
     : 'float map(vec3 p) { float sphere = length(p) - 1.0; vec3 d = abs(p) - vec3(0.8); float box = length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0); return mix(sphere, box, sin(time)*0.5+0.5); }';
 
   // The ultimate Raymarching Engine Shell
