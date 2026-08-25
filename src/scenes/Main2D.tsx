@@ -5,6 +5,8 @@ import { EliteVFX2D } from '../engine/2d/EliteVFX2D';
 import { AudioEngine } from '../engine/audio/AudioEngine';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+
 export interface Main2DProps {
   data?: any;
   sceneData?: any;
@@ -12,9 +14,6 @@ export interface Main2DProps {
   trendTopic?: string;
   clipCategory?: string;
   colorTheme?: string;
-  aiGLSLCode?: string;
-  aiSDFMath?: string;
-  customShader?: string;
   [key: string]: any;
 }
 
@@ -44,9 +43,12 @@ export const Main2D: React.FC<Main2DProps> = (props) => {
             }}
           >
             <EliteVFX2D
-              aiGLSLCode={dynamicData?.aiGLSLCode || dynamicData?.customShader || dynamicData?.aiSDFMath}
               themeColor={theme}
             />
+            <EffectComposer disableNormalPass multisampling={8}>
+              <Bloom intensity={2.0} luminanceSmoothing={0.9} luminanceThreshold={0.1} mipmapBlur />
+              <Vignette darkness={1.1} eskil={false} offset={0.1} />
+            </EffectComposer>
           </ThreeCanvas>
         </ErrorBoundary>
       </AbsoluteFill>

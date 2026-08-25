@@ -47,10 +47,10 @@ async function uploadDrive() {
     }
 
     const outFiles = fs.readdirSync('out');
-    const videoFiles = outFiles.filter(file => file.endsWith('.mp4'));
+    const videoFiles = outFiles.filter(file => file.endsWith('.mp4') || file.endsWith('.mov'));
 
     if (videoFiles.length === 0) {
-      throw new Error("❌ No MP4 videos found in 'out/' directory!");
+      throw new Error("❌ No video files found in 'out/' directory!");
     }
 
     console.log(`📤 Found ${videoFiles.length} video(s) to upload into '${targetFolderName}'...`);
@@ -65,7 +65,7 @@ async function uploadDrive() {
       };
 
       const media = {
-        mimeType: 'video/mp4',
+        mimeType: videoFile.endsWith('.mov') ? 'video/quicktime' : 'video/mp4',
         body: fs.createReadStream(videoPath),
       };
 

@@ -1,17 +1,17 @@
 import { bundle } from "@remotion/bundler";
 import { getCompositions, renderMedia } from "@remotion/renderer";
 import path from "node:path";
-import fs from "node:fs";
+import fs from "fs-extra";
 
 async function dualOptimizedRender(): Promise<void> {
   console.log("=======================================================================");
-  console.log("🧹 PURGING OUTPUT DIRECTORY & CACHES (STRICT DUAL PIPELINE)...");
+  console.log("🧹 PURGING OUTPUT DIRECTORY & CACHES (UNCOMPRESSED PRORES PIPELINE)...");
   console.log("=======================================================================");
 
   const projectRoot = process.cwd();
   const jobIndex = process.env.JOB_INDEX || "0";
 
-  // 1. COMPLETELY PURGE OUTPUT FOLDER (Prevents duplicate video accumulation)
+  // 1. COMPLETELY PURGE OUTPUT FOLDER
   const outDir = path.resolve(projectRoot, "out");
   if (fs.existsSync(outDir)) {
     fs.rmSync(outDir, { recursive: true, force: true });
@@ -35,7 +35,7 @@ async function dualOptimizedRender(): Promise<void> {
     }
   }
 
-  // Load fresh dual metadata
+  const videoConfigPath = path.resolve(projectRoot, "src", "data", "videoConfig.json");
   const sceneDataPath = path.resolve(projectRoot, "data", "sceneData.json");
   const fallbackPath = path.resolve(projectRoot, "data", `metadata_${jobIndex}.json`);
 
@@ -54,7 +54,13 @@ async function dualOptimizedRender(): Promise<void> {
     }
   };
 
-  if (fs.existsSync(sceneDataPath)) {
+  if (fs.existsSync(videoConfigPath)) {
+    try {
+      jsonData = JSON.parse(fs.readFileSync(videoConfigPath, "utf8"));
+    } catch {
+      // Ignore
+    }
+  } else if (fs.existsSync(sceneDataPath)) {
     try {
       jsonData = JSON.parse(fs.readFileSync(sceneDataPath, "utf8"));
     } catch {
@@ -70,6 +76,12 @@ async function dualOptimizedRender(): Promise<void> {
 
   const job3D = jsonData.job3D || jsonData;
   const job2D = jsonData.job2D || jsonData;
+
+  const cacheDir = path.resolve(process.cwd(), "node_modules/.cache");
+  if (fs.existsSync(cacheDir)) {
+    fs.removeSync(cacheDir);
+    console.log("💣 NUKED REMOTION WEBPACK CACHE. Forcing fresh JSON data for rendering.");
+  }
 
   console.log("📦 Bundling Remotion project for Dual Render Engine...");
   const bundled = await bundle({
@@ -88,49 +100,51 @@ async function dualOptimizedRender(): Promise<void> {
     throw new Error("❌ Remotion compositions (Main3D/Main2D) not found!");
   }
 
-  const out3D = path.join(outDir, "final_3d_premium.mp4");
-  const out2D = path.join(outDir, "final_2d_premium.mp4");
+  const out3D = path.join(outDir, "final_3d_premium.mov");
+  const out2D = path.join(outDir, "final_2d_premium.mov");
 
-  // 1. RENDER STRICTLY ONE 3D VIDEO
-  console.log(`\n🎯 RENDERING EXACTLY ONE 3D VIDEO: ${job3D.trendTopic} [${job3D.clipCategory}]...`);
-  await renderMedia({
-    composition: comp3D,
-    serveUrl: bundled,
-    codec: "h264",
-    outputLocation: out3D,
-    inputProps: { data: job3D, job3D },
-    videoBitrate: "40M",
-    pixelFormat: "yuv420p",
-    concurrency: 1,
-    timeoutInMilliseconds: 600000,
-    chromiumOptions: {
-      disableWebSecurity: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-    }
-  });
-  console.log(`✅ 3D Render Complete: ${out3D}`);
+  // 1. RENDER UNCOMPRESSED 3D MASTERPIECE
+  if (comp3D && jsonData.job3D) {
+    console.log(`\n🎯 RENDERING UNCOMPRESSED 3D MASTERPIECE: ${job3D.trendTopic} [${job3D.clipCategory}]...`);
+    await renderMedia({
+      composition: comp3D,
+      serveUrl: bundled,
+      codec: "prores", // MASSIVE QUALITY, 4GB+ FILES
+      proresProfile: "4444",
+      outputLocation: out3D,
+      inputProps: { data: jsonData.job3D, job3D: jsonData.job3D },
+      concurrency: 1,
+      timeoutInMilliseconds: 600000,
+      chromiumOptions: {
+        disableWebSecurity: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+      }
+    });
+    console.log(`✅ 3D ProRes Masterpiece Complete: ${out3D}`);
+  }
 
-  // 2. RENDER STRICTLY ONE 2D VIDEO
-  console.log(`\n🎯 RENDERING EXACTLY ONE 2D VIDEO: ${job2D.trendTopic} [${job2D.clipCategory}]...`);
-  await renderMedia({
-    composition: comp2D,
-    serveUrl: bundled,
-    codec: "h264",
-    outputLocation: out2D,
-    inputProps: { data: job2D, job2D },
-    videoBitrate: "40M",
-    pixelFormat: "yuv420p",
-    concurrency: 1,
-    timeoutInMilliseconds: 600000,
-    chromiumOptions: {
-      disableWebSecurity: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-    }
-  });
-  console.log(`✅ 2D Render Complete: ${out2D}`);
+  // 2. RENDER UNCOMPRESSED 2D MASTERPIECE
+  if (comp2D && jsonData.job2D) {
+    console.log(`\n🎯 RENDERING UNCOMPRESSED 2D MASTERPIECE: ${job2D.trendTopic} [${job2D.clipCategory}]...`);
+    await renderMedia({
+      composition: comp2D,
+      serveUrl: bundled,
+      codec: "prores", // MASSIVE QUALITY, 4GB+ FILES
+      proresProfile: "4444",
+      outputLocation: out2D,
+      inputProps: { data: jsonData.job2D, job2D: jsonData.job2D },
+      concurrency: 1,
+      timeoutInMilliseconds: 600000,
+      chromiumOptions: {
+        disableWebSecurity: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+      }
+    });
+    console.log(`✅ 2D ProRes Masterpiece Complete: ${out2D}`);
+  }
 
   console.log("\n=======================================================================");
-  console.log("🎉 RENDER PIPELINE FINISHED. EXACTLY 2 VIDEOS GENERATED:");
+  console.log("🎉 UNCOMPRESSED PRORES RENDER FINISHED. EXACTLY 2 HOLLYWOOD MASTERPIECES GENERATED:");
   console.log(`   1. ${out3D}`);
   console.log(`   2. ${out2D}`);
   console.log("=======================================================================");
