@@ -111,22 +111,9 @@ export async function runOmniDistribution(jobIndexStr?: string): Promise<void> {
     },
   ];
 
-  // Collect Rendered Media Files (Strictly 2 Videos)
-  const video3DMov = path.resolve(outDir, "final_3d_premium.mov");
-  const video2DMov = path.resolve(outDir, "final_2d_premium.mov");
-  const video3D = path.resolve(outDir, "final_3d_premium.mp4");
-  const video2D = path.resolve(outDir, "final_2d_premium.mp4");
-  const legacy3D = path.resolve(outDir, `output_${jobIndex}_3d.mp4`);
-  const legacy2D = path.resolve(outDir, `output_${jobIndex}_2d.mp4`);
-
-  const filesToDistribute: string[] = [];
-  if (fs.existsSync(video3DMov)) filesToDistribute.push(video3DMov);
-  else if (fs.existsSync(video3D)) filesToDistribute.push(video3D);
-  else if (fs.existsSync(legacy3D)) filesToDistribute.push(legacy3D);
-
-  if (fs.existsSync(video2DMov)) filesToDistribute.push(video2DMov);
-  else if (fs.existsSync(video2D)) filesToDistribute.push(video2D);
-  else if (fs.existsSync(legacy2D)) filesToDistribute.push(legacy2D);
+  // Collect Rendered Media Files
+  const outMediaFiles = fs.readdirSync(outDir).filter(f => f.endsWith('.mov') || f.endsWith('.mp4'));
+  const filesToDistribute: string[] = outMediaFiles.map(f => path.resolve(outDir, f));
 
   // Load Metadata
   const metaPath = path.resolve(projectRoot, "data", `metadata_${jobIndex}.json`);
