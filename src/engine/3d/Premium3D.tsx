@@ -4,7 +4,9 @@ import * as THREE from 'three';
 
 export const Premium3D = ({ themeColor = "#00ffcc" }: any) => {
   const pointsRef = useRef<THREE.Points>(null);
-  const particleCount = 50000;
+  
+  // Optimized for Cloud WebGL Heap limits while maintaining cinematic density
+  const particleCount = 15000;
 
   const [positions, colors] = useMemo(() => {
     const pos = new Float32Array(particleCount * 3);
@@ -14,7 +16,6 @@ export const Premium3D = ({ themeColor = "#00ffcc" }: any) => {
     const accentColor = new THREE.Color("#ffffff");
 
     for (let i = 0; i < particleCount; i++) {
-      // Breathtaking 3D Galaxy Swirl Math
       const radius = Math.random() * 25;
       const angle = radius * 0.5 + Math.random() * Math.PI * 2;
       const height = (Math.random() - 0.5) * 4 * (25 - radius) / 25;
@@ -46,7 +47,8 @@ export const Premium3D = ({ themeColor = "#00ffcc" }: any) => {
           <bufferAttribute attach="attributes-position" count={particleCount} array={positions} itemSize={3} />
           <bufferAttribute attach="attributes-color" count={particleCount} array={colors} itemSize={3} />
         </bufferGeometry>
-        <pointsMaterial size={0.06} vertexColors={true} transparent opacity={0.9} sizeAttenuation={true} blending={THREE.AdditiveBlending} depthWrite={false} />
+        {/* Native shader-like glow via AdditiveBlending (Crash-proof) */}
+        <pointsMaterial size={0.12} vertexColors={true} transparent opacity={0.9} sizeAttenuation={true} blending={THREE.AdditiveBlending} depthWrite={false} />
       </points>
     </group>
   );
