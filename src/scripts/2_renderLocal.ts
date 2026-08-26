@@ -7,9 +7,11 @@ const run = async () => {
   const outDir = path.resolve("out");
   fs.emptyDirSync(outDir);
 
+  const cacheDir = path.resolve(process.cwd(), "node_modules/.cache");
+  if (fs.existsSync(cacheDir)) fs.removeSync(cacheDir);
+
   const jsonPath = path.resolve("src/data/videoConfig.json");
   if (!fs.existsSync(jsonPath)) {
-    console.warn("⚠️ No videoConfig.json found! Generating a safe fallback.");
     fs.ensureDirSync(path.dirname(jsonPath));
     fs.writeJsonSync(jsonPath, { job2D: { colorTheme: "#ff0055" }, job3D: { colorTheme: "#00ffcc" } });
   }
@@ -17,7 +19,17 @@ const run = async () => {
 
   console.log("📦 Bundling Remotion project for 4K UNCOMPRESSED PRORES ON CLOUD MAC...");
   const bundled = await bundle({ entryPoint: path.resolve("./src/index.ts"), webpackOverride: (config) => config });
-  const comps = await getCompositions(bundled, { inputProps: { data: jsonData } });
+
+  // CRITICAL FIX: Explicitly grant Headless Chromium WebGL/GPU permissions
+  const chromiumOptions = {
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--ignore-gpu-blocklist", "--enable-webgl"]
+  };
+
+  // Applied Chromium Options to Composition Evaluation to prevent LayoutEffect crashes
+  const comps = await getCompositions(bundled, { 
+    inputProps: { data: jsonData },
+    chromiumOptions 
+  });
 
   const comp3D = comps.find(c => c.id.toLowerCase().includes('3d') || c.id === 'Main3D');
   const comp2D = comps.find(c => c.id.toLowerCase().includes('2d') || c.id === 'Main2D');
@@ -30,7 +42,8 @@ const run = async () => {
       codec: "prores",
       proresProfile: "4444",
       outputLocation: path.join(outDir, "final_3d_premium.mov"),
-      inputProps: { data: jsonData.job3D || jsonData, renderType: "3d" }
+      inputProps: { data: jsonData.job3D || jsonData, renderType: "3d" },
+      chromiumOptions
     });
   }
 
@@ -42,7 +55,8 @@ const run = async () => {
       codec: "prores",
       proresProfile: "4444",
       outputLocation: path.join(outDir, "final_2d_premium.mov"),
-      inputProps: { data: jsonData.job2D || jsonData, renderType: "2d" }
+      inputProps: { data: jsonData.job2D || jsonData, renderType: "2d" },
+      chromiumOptions
     });
   }
   console.log(`✅ Cloud Render Complete!`);
