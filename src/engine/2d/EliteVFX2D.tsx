@@ -2,57 +2,64 @@ import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-export const EliteVFX2D = ({ themeColor }: any) => {
+export const EliteVFX2D = ({ themeColor = "#00ffcc" }: any) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  const cinematicFluidShader = `
+  // Sharp, High-End Cyberpunk Grid & Wave HUD (Goodbye Blurry Pink)
+  const sharpTechShader = `
     uniform float time;
     uniform vec3 colorTheme;
     varying vec2 vUv;
 
-    mat2 rot(float a) { float s = sin(a), c = cos(a); return mat2(c, -s, s, c); }
-    
     void main() {
       vec2 uv = vUv * 2.0 - 1.0;
-      uv.x *= 1.777; // 16:9 ratio
+      uv.x *= 1.777; // 16:9 widescreen fix
+
+      // Ultra-Sharp Neon Grid
+      vec2 gridUv = fract(uv * 12.0 + time * 0.5);
+      float grid = step(0.95, gridUv.x) + step(0.95, gridUv.y);
+      grid = clamp(grid, 0.0, 1.0);
+
+      // Digital Pulse Waves
+      float wave = sin(uv.x * 6.0 + time * 2.0) * cos(uv.y * 6.0 - time);
+      float glowLine = 0.03 / (abs(wave) + 0.01);
+
+      // Radar / HUD Rings
+      float d = length(uv);
+      float rings = sin(d * 25.0 - time * 4.0);
+      float ringGlow = 0.04 / (abs(rings) + 0.02);
+
+      vec3 col = colorTheme * (grid * 0.25 + glowLine * 0.9 + ringGlow * 0.6);
       
-      vec2 p = uv;
-      for(float i = 1.0; i < 6.0; i++) {
-        uv.xy += vec2(cos(time*0.1 + uv.y*i), sin(time*0.1 + uv.x*i)) * 0.5;
-        uv *= rot(time * 0.05);
-      }
-      
-      float fluid = sin(uv.x) * cos(uv.y);
-      vec3 col = colorTheme * (abs(fluid) + 0.1);
-      
-      // ACES Film Tonemapping
-      col = clamp((col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14), 0.0, 1.0);
+      // Cinematic Vignette
+      col *= 1.0 - smoothstep(0.7, 1.8, d);
+
       gl_FragColor = vec4(col, 1.0);
     }
   `;
 
   const uniforms = useMemo(() => {
     let safeColor = new THREE.Color("#00ffcc");
-    try { if (typeof themeColor === 'string' && themeColor.startsWith('#')) safeColor = new THREE.Color(themeColor); } catch(e){}
+    try { safeColor = new THREE.Color(themeColor); } catch(e){}
     return { time: { value: 0 }, colorTheme: { value: safeColor } };
   }, [themeColor]);
 
   useFrame((state) => {
-    if (materialRef.current) materialRef.current.uniforms.time.value = state.clock.elapsedTime * 0.3;
+    if (materialRef.current) materialRef.current.uniforms.time.value = state.clock.elapsedTime;
   });
 
   return (
-    <mesh>
-      <planeGeometry args={[16, 9]} />
+    <mesh scale={[40, 25, 1]} position={[0, 0, -5]}>
+      <planeGeometry args={[1, 1]} />
       <shaderMaterial 
         ref={materialRef}
         vertexShader="varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }"
-        fragmentShader={cinematicFluidShader}
+        fragmentShader={sharpTechShader}
         uniforms={uniforms}
+        transparent={true}
+        blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
     </mesh>
   );
 };
-
-export default EliteVFX2D;

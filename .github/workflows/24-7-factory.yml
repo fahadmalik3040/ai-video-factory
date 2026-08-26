@@ -6,30 +6,25 @@ on:
 
 jobs:
   mass-production:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest 
+    strategy:
+      matrix:
+        worker_id: [1, 2, 3] 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 24
-
+          node-version: 20
       - name: Install Dependencies
         run: npm install
-
-      - name: Ensure Remotion Browser
+      - name: Install Remotion Browser
         run: npx --yes remotion browser ensure
-
-      - name: Generate JSON (Middleware)
+      - name: Generate Strict JSON (Groq API)
         run: npx --yes tsx src/scripts/1_generateJson.ts
-
-      - name: Render Video
+      - name: Render 4K ProRes (Hardware Accelerated)
         run: npx --yes tsx src/scripts/2_renderLocal.ts
-
-      - name: Upload Artifact
+      - name: Upload Massive Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rendered-video
+          name: premium-video-worker-${{ matrix.worker_id }}
           path: out/

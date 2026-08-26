@@ -28,7 +28,7 @@ export const PremiumParticles3D = ({ themeColor = "#00ffcc", particleCount = 250
 
   useFrame((state) => {
     if (pointsRef.current) {
-      pointsRef.current.rotation.y = state.clock.elapsedTime * 0.05; // SLOW CINEMATIC ROTATION
+      pointsRef.current.rotation.y = state.clock.elapsedTime * 0.05; 
       pointsRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.02) * 0.1;
       (pointsRef.current.material as THREE.ShaderMaterial).uniforms.time.value = state.clock.elapsedTime;
     }
@@ -52,5 +52,4 @@ export const PremiumParticles3D = ({ themeColor = "#00ffcc", particleCount = 250
   );
 };
 
-export const Premium3D = PremiumParticles3D;
 export default PremiumParticles3D;

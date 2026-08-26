@@ -1,12 +1,13 @@
 {
   "job2D": {
-    "trendTopic": "FOREX MARKET FLUCTUATIONS",
-    "clipCategory": "charts-and-graphs",
-    "colorTheme": "#33CC33|#FF3737"
+    "trendTopic": "Cinematic Ethereal Waves",
+    "clipCategory": "abstract_fluid",
+    "colorTheme": "#ff0055"
   },
   "job3D": {
-    "trendTopic": "GLOBAL CURRENCY EXCHANGE",
-    "clipCategory": "data-visualizations",
-    "colorTheme": "#33CC33|#FF3737"
+    "trendTopic": "Quantum Particle Matrix",
+    "clipCategory": "sci_fi_particles",
+    "colorTheme": "#00ffcc",
+    "particleCount": 25000
   }
 }
