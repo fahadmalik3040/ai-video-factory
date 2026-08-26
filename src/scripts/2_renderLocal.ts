@@ -11,40 +11,25 @@ const run = async () => {
   if (fs.existsSync(cacheDir)) fs.removeSync(cacheDir);
 
   const jsonPath = path.resolve("src/data/videoConfig.json");
-  const fallbackPath = path.resolve("data/sceneData.json");
-
-  let jsonData: any = {
-    job3D: { trendTopic: "WALL STREET INDEX", clipCategory: "candlestick_growth", colorTheme: "#00ffcc" },
-    job2D: { trendTopic: "CYBER ECONOMY", clipCategory: "holographic_data", colorTheme: "#ff0055" }
-  };
-
-  if (fs.existsSync(jsonPath)) {
-    try {
-      jsonData = fs.readJsonSync(jsonPath);
-    } catch {}
-  } else if (fs.existsSync(fallbackPath)) {
-    try {
-      jsonData = fs.readJsonSync(fallbackPath);
-    } catch {}
-  }
+  const jsonData = fs.readJsonSync(jsonPath);
 
   const bundled = await bundle({ entryPoint: path.resolve("./src/index.ts"), webpackOverride: (config) => config });
   const comps = await getCompositions(bundled, { inputProps: { data: jsonData } });
 
-  const comp3D = comps.find(c => c.id.toLowerCase().includes('3d') || c.id === 'Main3D' || c.id === 'MainVideo') || comps[0];
+  const comp3D = comps.find(c => c.id.toLowerCase().includes('3d') || c.id === 'Main3D');
   
   if (comp3D && jsonData.job3D) {
-    console.log(`🎯 RENDERING FINANCIAL MASTERPIECE...`);
+    console.log(`🎯 RENDERING FINANCIAL MASTERPIECE (Cloud Optimized H.264)...`);
     await renderMedia({
       composition: comp3D,
       serveUrl: bundled,
-      codec: "prores",
-      proresProfile: "4444",
-      outputLocation: path.join(outDir, "final_finance_premium.mov"),
+      codec: "h264",
+      crf: 16, // Visually Lossless Quality (God-Tier for Stock)
+      outputLocation: path.join(outDir, "final_finance_premium.mp4"),
       inputProps: { data: jsonData.job3D },
       chromiumOptions: { args: ["--no-sandbox", "--disable-setuid-sandbox"] }
     });
-    console.log(`✅ Render Complete: ${path.join(outDir, "final_finance_premium.mov")}`);
+    console.log(`✅ Render Complete! Cloud rendering successful.`);
   }
 };
 
