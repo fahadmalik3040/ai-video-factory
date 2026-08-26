@@ -7,9 +7,6 @@ on:
 jobs:
   mass-production:
     runs-on: macos-latest 
-    strategy:
-      matrix:
-        worker_id: [1, 2, 3] 
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,5 +23,5 @@ jobs:
       - name: Upload Massive Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: premium-video-worker-${{ matrix.worker_id }}
+          name: premium-video-final
           path: out/
