@@ -1,49 +1,45 @@
-import React from 'react';
 import { AbsoluteFill } from 'remotion';
 import { ThreeCanvas } from '@remotion/three';
+import React from 'react';
 import { MasterScene } from '../scenes/MasterScene';
+import { PerspectiveCamera } from '@react-three/drei';
 import { AudioEngine } from '../engine/audio/AudioEngine';
 
 export const SceneRouter = ({ sceneData }: any) => {
-  const { sceneText, colorTheme = "#ff0055", bloomIntensity = 1.5 } = sceneData || {};
+  const title = sceneData?.title || "TRENDING NOW";
+  const colorTheme = sceneData?.lighting?.colorTheme || "#00ffcc";
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#000000' }}>
-      <AudioEngine category={sceneData?.clipCategory || "default"} />
+    <AbsoluteFill style={{ backgroundColor: '#020202' }}>
+      <AudioEngine category={sceneData?.theme || "default"} />
 
-      {/* LAYER 1: 100% Crash-Proof Pure WebGL Canvas */}
-      <AbsoluteFill>
-        <ThreeCanvas 
-          width={3840} 
-          height={2160}
-          gl={{ antialias: false, powerPreference: "low-power", preserveDrawingBuffer: true }}
-        >
-           <MasterScene data={sceneData} />
-        </ThreeCanvas>
+      {/* LAYER 1: PURE 3D WEBGL BACKGROUND (No text, no layout crashes, pure VFX) */}
+      <ThreeCanvas 
+        width={3840} 
+        height={2160} 
+        gl={{ preserveDrawingBuffer: true, antialias: false, powerPreference: "high-performance" }}
+      >
+         <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={50} />
+         <MasterScene data={sceneData} />
+      </ThreeCanvas>
+
+      {/* LAYER 2: 4K HTML TYPOGRAPHY (100% Crash-Proof, Ultra-Sharp) */}
+      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <h1 style={{
+          fontSize: 180,
+          fontWeight: 900,
+          color: '#ffffff',
+          textShadow: `0 0 40px ${colorTheme}, 0 0 80px ${colorTheme}, 0 0 150px ${colorTheme}`,
+          fontFamily: 'system-ui, sans-serif',
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          letterSpacing: '15px',
+          width: '80%',
+          zIndex: 10
+        }}>
+          {title}
+        </h1>
       </AbsoluteFill>
-
-      {/* LAYER 2: Cinematic After Effects-Style Text Overlay (Zero Web Worker Crash Risk) */}
-      {sceneText && (
-        <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', zIndex: 10 }}>
-          <h1 style={{
-            color: '#ffffff',
-            fontSize: '180px',
-            fontWeight: 900,
-            fontFamily: 'system-ui, sans-serif',
-            textAlign: 'center',
-            textTransform: 'uppercase',
-            margin: 0,
-            padding: '0 100px',
-            // THIS is the magic that makes it look like WebGL bloom in the final MP4
-            mixBlendMode: 'screen',
-            textShadow: `0 0 ${20 * bloomIntensity}px ${colorTheme}, 0 0 ${60 * bloomIntensity}px ${colorTheme}, 0 0 ${120 * bloomIntensity}px ${colorTheme}`
-          }}>
-            {sceneText}
-          </h1>
-        </AbsoluteFill>
-      )}
     </AbsoluteFill>
   );
 };
-
-export default SceneRouter;
