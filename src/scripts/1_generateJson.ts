@@ -19,11 +19,10 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 5, de
 }
 
 async function generate() {
-  console.log("🧠 ⚡ CONNECTING TO UNLIMITED NVIDIA NEMOTRON INFRASTRUCTURE...");
+  console.log("🧠 ⚡ CONNECTING TO UNLIMITED NVIDIA NEMOTRON 340B INFRASTRUCTURE...");
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
-  const apiKey = process.env.NVIDIA_API_KEY || "";
+  const apiKey = process.env.NVIDIA_API_KEY || "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";
 
-  // Using NVIDIA's ultra-powerful active Nemotron model
   const payload = {
     model: "nvidia/nemotron-4-340b-instruct",
     messages: [
@@ -36,6 +35,9 @@ async function generate() {
         content: "Generate an ultra-demanding stock video config with 50 comma-separated SEO tags for Adobe Stock and Shutterstock." 
       }
     ],
+    temperature: 1,
+    top_p: 0.95,
+    max_tokens: 4096,
     response_format: { type: "json_object" }
   };
 
@@ -52,11 +54,12 @@ async function generate() {
     const data = await response.json();
     let jsonContent = data.choices[0].message.content.trim();
     
+    // Clean markdown code blocks if present
     jsonContent = jsonContent.replace(/```json/g, '').replace(/```/g, '').trim();
     
     if (!fs.existsSync('src/data')) fs.mkdirSync('src/data', { recursive: true });
     fs.writeFileSync('src/data/videoConfig.json', jsonContent);
-    console.log("🎉 Success! Config generated via NVIDIA Nemotron and saved to src/data/videoConfig.json");
+    console.log("🎉 Success! Config generated via NVIDIA Nemotron 340B and saved to src/data/videoConfig.json");
 
   } catch (error) {
     console.error("❌ NVIDIA Generation failed:", error);
