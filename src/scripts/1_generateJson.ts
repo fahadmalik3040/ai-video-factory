@@ -1,12 +1,12 @@
 import fs from 'fs';
 
 async function generate() {
-  console.log("🧠 🚨 INITIATING ADVANCED VFX DIRECTOR AI 🚨 🧠");
-  const url = "https://api.groq.com/openai/v1/chat/completions";
-  const apiKey = process.env.GROQ_API_KEY || "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"; 
+  console.log("🧠 🚨 INITIATING NVIDIA NEMOTRON 550B SUPERCOMPUTER 🚨 🧠");
+  const url = "https://integrate.api.nvidia.com/v1/chat/completions";
+  const apiKey = "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"; 
 
   const payload = {
-    model: "llama-3.1-70b-versatile",
+    model: "nvidia/nemotron-3-ultra-550b-a55b",
     messages: [
       { 
         role: "system", 
@@ -17,7 +17,11 @@ async function generate() {
         content: "Generate a highly advanced stock video script for a trending tech/finance topic. Use the JSON schema provided. Pick complex shapes like 'fractal_cloud' or 'data_monolith'. Make the colors contrast beautifully (e.g., neon pink and cyan). Set particleCount between 5000 and 10000 with complex motions like 'vortex' or 'matrix_rain'. Set the camera path to something highly dynamic. DO NOT output basic or boring parameters." 
       }
     ],
-    response_format: { type: "json_object" }
+    temperature: 1,
+    top_p: 0.95,
+    max_tokens: 16384,
+    response_format: { type: "json_object" },
+    chat_template_kwargs: { enable_thinking: true }
   };
 
   try {
@@ -31,7 +35,7 @@ async function generate() {
     });
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} - ${await response.text()}`);
+      throw new Error(`NVIDIA API Error: ${response.status} - ${await response.text()}`);
     }
 
     const data = await response.json();
@@ -41,7 +45,7 @@ async function generate() {
     if (!fs.existsSync('out')) fs.mkdirSync('out');
     
     fs.writeFileSync('data/sceneData.json', jsonContent);
-    console.log("✅ ADVANCED VFX JSON generated successfully!");
+    console.log("✅ ADVANCED VFX JSON generated successfully via Nemotron 550B!");
 
   } catch (error) {
     console.error("❌ Generation failed:", error);
