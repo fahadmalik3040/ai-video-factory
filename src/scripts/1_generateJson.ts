@@ -45,12 +45,12 @@ CRITICAL: ONLY OUTPUT JSON. DO NOT WRITE ANY GLSL CODE. NO MARKDOWN.`;
         { model: "meta/llama-3.1-70b-instruct", messages: [{ role: "system", content: dynamicPrompt }, { role: "user", content: "Generate JSON config NOW." }], temperature: 0.99, max_tokens: 1000 },
         { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.NVIDIA_API_KEY}` }, timeout: 15000 }
       );
-      let clean = response.data.choices[0].message.content.replace(/```json/gi, '').replace(/```glsl/gi, '').replace(/```/g, '').trim().replace(/[\u0000-\u001F]+/g, ""); 
+      let clean = response.data.choices[0].message.content.replace(/```json/gi, '').replace(/```glsl/gi, '').replace(/```/g, '').trim().replace(/[\u0000-\u001F]+/g, "");
       if (!clean.startsWith('{')) clean = clean.substring(clean.indexOf('{'));
       if (!clean.endsWith('}')) clean = clean.substring(0, clean.lastIndexOf('}') + 1);
       return JSON.parse(clean);
     } catch (error: any) {
-      if (attempt === retries) throw error; 
+      if (attempt === retries) throw error;
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
@@ -73,3 +73,4 @@ main().catch(err => {
   fs.ensureDirSync(path.dirname(OUT_FILE));
   fs.writeJsonSync(OUT_FILE, FALLBACK_CONFIG, { spaces: 2 });
 });
+c: \Users\Fahad\AppData\Local\Temp\Rar$DRa18052.43997\final_2d_premium.mp4 c: \Users\Fahad\AppData\Local\Temp\Rar$DRa18052.43997\final_3d_premium.mp4

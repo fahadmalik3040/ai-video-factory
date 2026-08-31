@@ -30,12 +30,22 @@ const runRender = async () => {
 
   const chromiumOptions = {
     gl: "angle" as const,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--use-angle=swiftshader", "--disable-gpu", "--enable-webgl"],
+    chromiumFlags: [
+      "--use-angle=swiftshader",
+      "--disable-gpu"
+    ],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--use-angle=swiftshader",
+      "--disable-gpu",
+      "--enable-webgl"
+    ],
   };
 
   const comps = await getCompositions(bundleLocation, {
     inputProps: dynamicInputProps,
-    chromiumOptions,
+    chromiumOptions: chromiumOptions as any,
   });
 
   const composition = comps.find((c) => c.id === "MasterScene") || comps[0];
@@ -52,7 +62,7 @@ const runRender = async () => {
     codec: "h264",
     outputLocation,
     inputProps: dynamicInputProps,
-    chromiumOptions,
+    chromiumOptions: chromiumOptions as any,
   });
 
   console.log(`✅ 4K UNIQUE CLOUD RENDER DONE: ${outputLocation}`);
