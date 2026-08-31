@@ -2,69 +2,63 @@ import { bundle } from "@remotion/bundler";
 import { getCompositions, renderMedia } from "@remotion/renderer";
 import path from "path";
 import fs from "fs-extra";
+import crypto from "crypto";
 
-const run = async () => {
+const runRender = async () => {
   const outDir = path.resolve("out");
-  fs.emptyDirSync(outDir);
+  fs.ensureDirSync(outDir);
 
   const cacheDir = path.resolve(process.cwd(), "node_modules/.cache");
   if (fs.existsSync(cacheDir)) fs.removeSync(cacheDir);
 
-  const jsonPath = path.resolve("src/data/videoConfig.json");
-  if (!fs.existsSync(jsonPath)) {
-    fs.ensureDirSync(path.dirname(jsonPath));
-    fs.writeJsonSync(jsonPath, { job2D: { colorTheme: "#ff0055" }, job3D: { colorTheme: "#00ffcc" } });
-  }
-  const jsonData = fs.readJsonSync(jsonPath);
+  // Generate a totally unique ID for EVERY single render run
+  const uniqueSeed = crypto.randomUUID();
+  const timestamp = Date.now();
 
-  console.log("📦 Bundling Remotion project for 4K UNCOMPRESSED PRORES ON CLOUD MAC...");
-  const bundled = await bundle({ entryPoint: path.resolve("./src/index.ts"), webpackOverride: (config) => config });
+  console.log(`🎯 RENDERING UNIQUE VIDEO WITH SEED: ${uniqueSeed}`);
 
-  // 🚀 APPLE SILICON NATIVE METAL & ANGLE HARDWARE ACCELERATED WEBGL BYPASS
-  const chromiumOptions = {
-    gl: "angle" as const,
-    angleBackend: "metal" as const,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--ignore-gpu-blocklist", "--enable-webgl"]
-  };
-
-  // Applied Chromium Options to Composition Evaluation to prevent LayoutEffect crashes
-  const comps = await getCompositions(bundled, { 
-    inputProps: { data: jsonData },
-    chromiumOptions 
+  console.log("📦 Bundling Remotion project for 4K dynamic render...");
+  const bundleLocation = await bundle({
+    entryPoint: path.resolve("./src/index.ts"),
+    webpackOverride: (config) => config,
   });
 
-  const comp3D = comps.find(c => c.id.toLowerCase().includes('3d') || c.id === 'Main3D');
-  const comp2D = comps.find(c => c.id.toLowerCase().includes('2d') || c.id === 'Main2D');
-  
-  if (comp3D) {
-    console.log(`🎯 RENDERING 3D MASTERPIECE ON GITHUB APPLE SILICON WITH METAL WEBGL...`);
-    await renderMedia({
-      composition: comp3D,
-      serveUrl: bundled,
-      codec: "prores",
-      proresProfile: "4444",
-      outputLocation: path.join(outDir, "final_3d_premium.mov"),
-      inputProps: { data: jsonData.job3D || jsonData, renderType: "3d" },
-      chromiumOptions
-    });
+  const dynamicInputProps = {
+    seed: uniqueSeed,
+    themeColor: Math.random() > 0.5 ? "hotpink" : "cyan",
+  };
+
+  const chromiumOptions = {
+    gl: "angle" as const,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--use-angle=swiftshader", "--disable-gpu", "--enable-webgl"],
+  };
+
+  const comps = await getCompositions(bundleLocation, {
+    inputProps: dynamicInputProps,
+    chromiumOptions,
+  });
+
+  const composition = comps.find((c) => c.id === "MasterScene") || comps[0];
+
+  if (!composition) {
+    throw new Error("No composition found to render!");
   }
 
-  if (comp2D) {
-    console.log(`🎯 RENDERING 2D MASTERPIECE ON GITHUB APPLE SILICON WITH METAL WEBGL...`);
-    await renderMedia({
-      composition: comp2D,
-      serveUrl: bundled,
-      codec: "prores",
-      proresProfile: "4444",
-      outputLocation: path.join(outDir, "final_2d_premium.mov"),
-      inputProps: { data: jsonData.job2D || jsonData, renderType: "2d" },
-      chromiumOptions
-    });
-  }
-  console.log(`✅ Cloud Render Complete!`);
+  const outputLocation = path.join(outDir, `video_${timestamp}.mp4`);
+
+  await renderMedia({
+    composition,
+    serveUrl: bundleLocation,
+    codec: "h264",
+    outputLocation,
+    inputProps: dynamicInputProps,
+    chromiumOptions,
+  });
+
+  console.log(`✅ 4K UNIQUE CLOUD RENDER DONE: ${outputLocation}`);
 };
 
-run().catch((err) => {
+runRender().catch((err) => {
   console.error("❌ Render Error:", err);
   process.exit(1);
 });
