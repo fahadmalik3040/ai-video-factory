@@ -12,3 +12,7 @@ Config.setRspack(true);
 Config.setVideoImageFormat("jpeg");
 Config.setOverwriteOutput(true);
 Config.overrideBundlerConfig(enableTailwind);
+
+// 🚀 Hardware-accelerated WebGL rendering on Apple Silicon / Headless Chromium
+Config.setChromiumOpenGlRenderer('angle');
+Config.setChromiumAngleBackend('metal');

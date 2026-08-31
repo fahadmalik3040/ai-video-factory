@@ -20,8 +20,10 @@ const run = async () => {
   console.log("📦 Bundling Remotion project for 4K UNCOMPRESSED PRORES ON CLOUD MAC...");
   const bundled = await bundle({ entryPoint: path.resolve("./src/index.ts"), webpackOverride: (config) => config });
 
-  // CRITICAL FIX: Explicitly grant Headless Chromium WebGL/GPU permissions
+  // 🚀 APPLE SILICON NATIVE METAL & ANGLE HARDWARE ACCELERATED WEBGL BYPASS
   const chromiumOptions = {
+    gl: "angle" as const,
+    angleBackend: "metal" as const,
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--ignore-gpu-blocklist", "--enable-webgl"]
   };
 
@@ -35,7 +37,7 @@ const run = async () => {
   const comp2D = comps.find(c => c.id.toLowerCase().includes('2d') || c.id === 'Main2D');
   
   if (comp3D) {
-    console.log(`🎯 RENDERING 3D MASTERPIECE ON GITHUB APPLE SILICON...`);
+    console.log(`🎯 RENDERING 3D MASTERPIECE ON GITHUB APPLE SILICON WITH METAL WEBGL...`);
     await renderMedia({
       composition: comp3D,
       serveUrl: bundled,
@@ -48,7 +50,7 @@ const run = async () => {
   }
 
   if (comp2D) {
-    console.log(`🎯 RENDERING 2D MASTERPIECE ON GITHUB APPLE SILICON...`);
+    console.log(`🎯 RENDERING 2D MASTERPIECE ON GITHUB APPLE SILICON WITH METAL WEBGL...`);
     await renderMedia({
       composition: comp2D,
       serveUrl: bundled,
