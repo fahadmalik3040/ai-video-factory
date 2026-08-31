@@ -13,6 +13,13 @@ Config.setVideoImageFormat("jpeg");
 Config.setOverwriteOutput(true);
 Config.overrideBundlerConfig(enableTailwind);
 
-// 🚀 Hardware-accelerated WebGL rendering on Apple Silicon / Headless Chromium
+// 1. OpenGL renderer ko 'angle' / 'swiftshader' pe set kar
 Config.setChromiumOpenGlRenderer('angle');
-Config.setChromiumAngleBackend('metal');
+
+// 2. Headless Chrome ko CPU rendering pe force kar jisse error na aaye
+if (typeof (Config as any).setChromiumFlags === 'function') {
+  (Config as any).setChromiumFlags([
+    '--use-angle=swiftshader',
+    '--disable-gpu'
+  ]);
+}
