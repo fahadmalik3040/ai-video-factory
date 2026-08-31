@@ -1,82 +1,99 @@
-import React, { useMemo, useRef, Suspense } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useCurrentFrame } from 'remotion';
-import { ThreeCanvas } from '@remotion/three';
-import { Box, Grid, Text, PerspectiveCamera } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-export const CandlestickElements = ({ data }: any) => {
+const vertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+// PURE RAYMARCHING VOLUMETRIC SHADER (ZERO PARTICLES/TEMPLATES)
+const fragmentShader = `
+  uniform float time;
+  uniform vec3 colorTheme;
+  varying vec2 vUv;
+
+  mat2 rot(float a) {
+      float s = sin(a), c = cos(a);
+      return mat2(c, -s, s, c);
+  }
+
+  void main() {
+      vec2 uv = vUv * 2.0 - 1.0;
+      uv.x *= 1.777; // 4K 16:9 aspect ratio
+
+      // Cinematic Camera Setup
+      vec3 ro = vec3(0.0, 0.0, -3.0);
+      vec3 rd = normalize(vec3(uv, 1.0));
+
+      float d = 0.0;
+      float t = time * 0.25;
+      vec3 p;
+      
+      // Volumetric light computation
+      float glow = 0.0;
+      for(int i = 0; i < 70; i++) {
+          p = ro + rd * d;
+          
+          // Organic fluid space distortion
+          p.xz *= rot(t);
+          p.xy *= rot(t * 0.6);
+          
+          // Quantum wave structure
+          float q = length(p) - 1.2;
+          q += sin(p.x * 3.0 + t * 2.0) * 0.15;
+          q += cos(p.y * 4.0 - t) * 0.2;
+          q += sin(p.z * 5.0 + t * 1.5) * 0.1;
+          
+          glow += 0.008 / (0.01 + abs(q));
+          d += 0.04;
+      }
+
+      // Premium Color Mapping & Density
+      vec3 col = colorTheme * glow * 0.25;
+      col = mix(col, vec3(1.0), glow * 0.03); // Hot core highlights
+      
+      // High-End Hollywood Vignette
+      col *= 1.0 - smoothstep(0.4, 2.5, length(uv));
+
+      gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
+export const MasterScene = ({ data }: any) => {
   const frame = useCurrentFrame();
-  const color = data?.lighting?.colorTheme || data?.colorTheme || "#00ffcc";
+  const hexColor = data?.lighting?.colorTheme || data?.environment?.primaryColor || "#00ffcc";
+  const threeColor = useMemo(() => new THREE.Color(hexColor), [hexColor]);
 
-  const candles = useMemo(() => {
-    let arr = [];
-    let currentPrice = 10;
-    for (let i = 0; i < 50; i++) {
-      const isUp = Math.random() > 0.45; 
-      const bodySize = Math.random() * 2 + 0.5;
-      const wickSize = bodySize + Math.random() * 2;
-      currentPrice += isUp ? bodySize / 2 : -bodySize / 2;
-      arr.push({ x: i * 1.5 - 35, y: currentPrice, bodySize, wickSize, isUp });
-    }
-    return arr;
-  }, []);
+  const uniforms = useMemo(() => ({
+    time: { value: 0 },
+    colorTheme: { value: threeColor }
+  }), [threeColor]);
 
-  const groupRef = useRef<THREE.Group>(null);
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+
   useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.position.x = -(frame * 0.08) % 20;
-    }
+    if (materialRef.current) materialRef.current.uniforms.time.value = frame * 0.04;
   });
 
   return (
     <group>
-      <PerspectiveCamera makeDefault position={[0, 5, 25]} fov={50} />
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[0, 10, 5]} intensity={2} />
-      
-      <Grid position={[0, -10, 0]} args={[150, 150]} cellColor={color} sectionColor={color} sectionThickness={1.5} fadeDistance={60} />
-
-      <group ref={groupRef}>
-        {candles.map((candle, i) => {
-          const candleColor = candle.isUp ? "#00ffcc" : "#ff0044";
-          return (
-             <group key={i} position={[candle.x, candle.y, 0]}>
-              <Box args={[0.08, candle.wickSize, 0.08]} position={[0, 0, 0]}>
-                <meshBasicMaterial color={candleColor} />
-              </Box>
-              <Box args={[0.7, candle.bodySize, 0.7]} position={[0, 0, 0]}>
-                <meshStandardMaterial color={candleColor} emissive={candleColor} emissiveIntensity={1.5} transparent opacity={0.85} />
-              </Box>
-              <Text position={[0, candle.bodySize + 1.5, 0]} fontSize={0.5} color={candleColor} anchorX="center" anchorY="middle">
-                ${(candle.y * 100).toFixed(2)}
-              </Text>
-            </group>
-          );
-        })}
-      </group>
-      
-      <Text position={[0, 8, -20]} fontSize={6} color={color} fillOpacity={0.15} outlineWidth={0.05} outlineColor={color} anchorX="center" anchorY="middle">
-        {data?.title ? data.title.toUpperCase() : "MARKET ANALYSIS"}
-      </Text>
+      <mesh position={[0, 0, -5]}>
+        <planeGeometry args={[60, 40]} />
+        <shaderMaterial 
+          ref={materialRef}
+          vertexShader={vertexShader}
+          fragmentShader={fragmentShader}
+          uniforms={uniforms}
+          transparent={true}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
     </group>
-  );
-};
-
-export const MasterScene = ({ data, sceneData }: any) => {
-  const mergedData = data || sceneData;
-  return (
-    <div style={{ position: 'absolute', left: 0, top: 0, width: 3840, height: 2160, backgroundColor: '#020202', overflow: 'hidden' }}>
-      <ThreeCanvas 
-        width={3840} 
-        height={2160} 
-        gl={{ preserveDrawingBuffer: true, antialias: false, powerPreference: "high-performance" }}
-        style={{ width: 3840, height: 2160, display: 'block' }}
-      >
-        <Suspense fallback={null}>
-          <CandlestickElements data={mergedData} />
-        </Suspense>
-      </ThreeCanvas>
-    </div>
   );
 };
