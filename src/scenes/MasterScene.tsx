@@ -11,56 +11,31 @@ const vertexShader = `
   }
 `;
 
-// PURE RAYMARCHING VOLUMETRIC SHADER (ZERO PARTICLES/TEMPLATES)
 const fragmentShader = `
   uniform float time;
   uniform vec3 colorTheme;
+  uniform float seedMultiplier;
   varying vec2 vUv;
 
-  mat2 rot(float a) {
-      float s = sin(a), c = cos(a);
-      return mat2(c, -s, s, c);
-  }
-
   void main() {
-      vec2 uv = vUv * 2.0 - 1.0;
-      uv.x *= 1.777; // 4K 16:9 aspect ratio
+    vec2 uv = vUv * 2.0 - 1.0;
+    uv.x *= 1.777;
 
-      // Cinematic Camera Setup
-      vec3 ro = vec3(0.0, 0.0, -3.0);
-      vec3 rd = normalize(vec3(uv, 1.0));
+    float t = time * 0.3;
+    vec2 p = uv;
+    
+    // Dynamic math distortion based on live research trend seed
+    for(float i = 1.0; i < 5.0; i++) {
+      p.xy += vec2(cos(t * seedMultiplier + p.y * i), sin(t * seedMultiplier - p.x * i)) * 0.5;
+    }
+    
+    float fluid = sin(p.x * seedMultiplier) * cos(p.y * seedMultiplier);
+    float glow = 0.04 / (abs(fluid) + 0.015);
 
-      float d = 0.0;
-      float t = time * 0.25;
-      vec3 p;
-      
-      // Volumetric light computation
-      float glow = 0.0;
-      for(int i = 0; i < 70; i++) {
-          p = ro + rd * d;
-          
-          // Organic fluid space distortion
-          p.xz *= rot(t);
-          p.xy *= rot(t * 0.6);
-          
-          // Quantum wave structure
-          float q = length(p) - 1.2;
-          q += sin(p.x * 3.0 + t * 2.0) * 0.15;
-          q += cos(p.y * 4.0 - t) * 0.2;
-          q += sin(p.z * 5.0 + t * 1.5) * 0.1;
-          
-          glow += 0.008 / (0.01 + abs(q));
-          d += 0.04;
-      }
+    vec3 baseColor = colorTheme * glow * 0.8;
+    baseColor *= 1.0 - smoothstep(0.5, 2.2, length(uv));
 
-      // Premium Color Mapping & Density
-      vec3 col = colorTheme * glow * 0.25;
-      col = mix(col, vec3(1.0), glow * 0.03); // Hot core highlights
-      
-      // High-End Hollywood Vignette
-      col *= 1.0 - smoothstep(0.4, 2.5, length(uv));
-
-      gl_FragColor = vec4(col, 1.0);
+    gl_FragColor = vec4(baseColor, 1.0);
   }
 `;
 
@@ -68,22 +43,33 @@ export const MasterScene = ({ data }: any) => {
   const frame = useCurrentFrame();
   const hexColor = data?.lighting?.colorTheme || data?.environment?.primaryColor || "#00ffcc";
   const threeColor = useMemo(() => new THREE.Color(hexColor), [hexColor]);
+  
+  // Generate a unique mathematical seed from the research title/prompt length so visuals change entirely per trend
+  const trendText = data?.title || data?.prompt || "dynamic stock flow";
+  const seedMultiplier = useMemo(() => {
+    let hash = 1;
+    for (let i = 0; i < trendText.length; i++) {
+      hash = (hash * trendText.charCodeAt(i)) % 7 + 2; // Unique multiplier between 2 and 9
+    }
+    return Math.max(2.5, hash);
+  }, [trendText]);
 
   const uniforms = useMemo(() => ({
     time: { value: 0 },
-    colorTheme: { value: threeColor }
-  }), [threeColor]);
+    colorTheme: { value: threeColor },
+    seedMultiplier: { value: seedMultiplier }
+  }), [threeColor, seedMultiplier]);
 
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   useFrame(() => {
-    if (materialRef.current) materialRef.current.uniforms.time.value = frame * 0.04;
+    if (materialRef.current) materialRef.current.uniforms.time.value = frame * 0.03;
   });
 
   return (
     <group>
       <mesh position={[0, 0, -5]}>
-        <planeGeometry args={[60, 40]} />
+        <planeGeometry args={[100, 60]} />
         <shaderMaterial 
           ref={materialRef}
           vertexShader={vertexShader}
