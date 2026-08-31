@@ -19,13 +19,13 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 5, de
 }
 
 async function generate() {
-  console.log("🧠 ⚡ CONNECTING TO UNLIMITED NVIDIA NIM INFRASTRUCTURE...");
+  console.log("🧠 ⚡ CONNECTING TO UNLIMITED NVIDIA NEMOTRON INFRASTRUCTURE...");
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
   const apiKey = process.env.NVIDIA_API_KEY || "";
 
-  // Using NVIDIA's active flagship powerhouse model for unthrottled performance
+  // Using NVIDIA's ultra-powerful active Nemotron model
   const payload = {
-    model: "meta/llama-3.3-70b-instruct",
+    model: "nvidia/nemotron-4-340b-instruct",
     messages: [
       { 
         role: "system", 
@@ -52,12 +52,11 @@ async function generate() {
     const data = await response.json();
     let jsonContent = data.choices[0].message.content.trim();
     
-    // Clean markdown code blocks if present
     jsonContent = jsonContent.replace(/```json/g, '').replace(/```/g, '').trim();
     
     if (!fs.existsSync('src/data')) fs.mkdirSync('src/data', { recursive: true });
     fs.writeFileSync('src/data/videoConfig.json', jsonContent);
-    console.log("🎉 Success! Config generated via NVIDIA NIM and saved to src/data/videoConfig.json");
+    console.log("🎉 Success! Config generated via NVIDIA Nemotron and saved to src/data/videoConfig.json");
 
   } catch (error) {
     console.error("❌ NVIDIA Generation failed:", error);
