@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import fs from 'fs';
 
 async function generate() {
-  console.log("🧠 CONNECTING VIA OFFICIAL OPENAI SDK WITH HARDCODED NVIDIA KEY...");
+  console.log("🧠 CONNECTING VIA OFFICIAL OPENAI SDK (CLEAN REQUEST)...");
   
   const openai = new OpenAI({
     apiKey: "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",
@@ -23,13 +23,8 @@ async function generate() {
         }
       ],
       temperature: 0.7,
-      max_tokens: 4096,
-      extra_body: {
-        chat_template_kwargs: {
-          enable_thinking: true
-        }
-      }
-    } as any);
+      max_tokens: 4096
+    });
 
     let jsonContent = completion.choices[0].message.content || "";
     jsonContent = jsonContent.replace(/```json/g, '').replace(/```/g, '').trim();
