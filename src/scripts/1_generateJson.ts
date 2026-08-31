@@ -2,10 +2,10 @@ import OpenAI from 'openai';
 import fs from 'fs';
 
 async function generate() {
-  console.log("🧠 CONNECTING VIA OFFICIAL OPENAI SDK TO BYPASS AXUM HEADER BUG...");
+  console.log("🧠 CONNECTING VIA OFFICIAL OPENAI SDK WITH HARDCODED NVIDIA KEY...");
   
   const openai = new OpenAI({
-    apiKey: process.env.NVIDIA_API_KEY || "",
+    apiKey: "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",
     baseURL: "https://integrate.api.nvidia.com/v1"
   });
 
@@ -34,7 +34,6 @@ async function generate() {
     let jsonContent = completion.choices[0].message.content || "";
     jsonContent = jsonContent.replace(/```json/g, '').replace(/```/g, '').trim();
     
-    // Fallback JSON extraction if thinking tags wrap it
     const jsonStart = jsonContent.indexOf('{');
     const jsonEnd = jsonContent.lastIndexOf('}');
     if (jsonStart !== -1 && jsonEnd !== -1) {
