@@ -1,6 +1,8 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, Suspense } from 'react';
+import { ThreeCanvas } from '@remotion/three';
 import { useCurrentFrame } from 'remotion';
 import { useFrame } from '@react-three/fiber';
+import { PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
 const vertexShader = `
@@ -37,9 +39,10 @@ const fragmentShader = `
   }
 `;
 
-export const MasterScene = ({ data }: any) => {
+// 1. All 3D and Shader logic inside the Canvas context
+export const InnerSceneElements = ({ data }: any) => {
   const frame = useCurrentFrame();
-  const hexColor = data?.lighting?.colorTheme || "#00ffcc";
+  const hexColor = data?.lighting?.colorTheme || data?.colorTheme || "#00ffcc";
   const threeColor = useMemo(() => new THREE.Color(hexColor), [hexColor]);
 
   const uniforms = useMemo(() => ({
@@ -52,16 +55,23 @@ export const MasterScene = ({ data }: any) => {
   // Safe Particle Count for Cloud (10,000)
   const [positions] = useMemo(() => {
     const pos = new Float32Array(10000 * 3);
-    for(let i=0; i<10000*3; i++) { pos[i] = (Math.random() - 0.5) * 60; }
+    for (let i = 0; i < 10000 * 3; i++) {
+      pos[i] = (Math.random() - 0.5) * 60;
+    }
     return [pos];
   }, []);
 
+  // Safe useFrame hook inside R3F Canvas
   useFrame(() => {
-    if (materialRef.current) materialRef.current.uniforms.time.value = frame * 0.05;
+    if (materialRef.current) {
+      materialRef.current.uniforms.time.value = frame * 0.05;
+    }
   });
 
   return (
     <group>
+      <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={50} />
+
       {/* Background ambient particles */}
       <points>
         <bufferGeometry>
@@ -84,5 +94,23 @@ export const MasterScene = ({ data }: any) => {
         />
       </mesh>
     </group>
+  );
+};
+
+// 2. MasterScene serves as the standalone Canvas Wrapper
+export const MasterScene = ({ data }: any) => {
+  return (
+    <div style={{ position: 'absolute', left: 0, top: 0, width: 3840, height: 2160, backgroundColor: '#020202', overflow: 'hidden' }}>
+      <ThreeCanvas 
+        width={3840} 
+        height={2160} 
+        gl={{ preserveDrawingBuffer: true, antialias: false, powerPreference: "high-performance" }}
+        style={{ width: 3840, height: 2160, display: 'block' }}
+      >
+        <Suspense fallback={null}>
+          <InnerSceneElements data={data} />
+        </Suspense>
+      </ThreeCanvas>
+    </div>
   );
 };

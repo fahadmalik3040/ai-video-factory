@@ -1,7 +1,7 @@
 import { AbsoluteFill } from 'remotion';
 import { ThreeCanvas } from '@remotion/three';
-import React from 'react';
-import { MasterScene } from '../scenes/MasterScene';
+import React, { Suspense } from 'react';
+import { InnerSceneElements } from '../scenes/MasterScene';
 import { PerspectiveCamera } from '@react-three/drei';
 import { AudioEngine } from '../engine/audio/AudioEngine';
 
@@ -19,8 +19,10 @@ export const SceneRouter = ({ sceneData }: any) => {
         height={2160} 
         gl={{ preserveDrawingBuffer: true, antialias: false, powerPreference: "high-performance" }}
       >
-         <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={50} />
-         <MasterScene data={sceneData} />
+        <Suspense fallback={null}>
+          <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={50} />
+          <InnerSceneElements data={sceneData} />
+        </Suspense>
       </ThreeCanvas>
 
       {/* LAYER 2: 4K HTML TYPOGRAPHY (100% Crash-Proof, Ultra-Sharp) */}
