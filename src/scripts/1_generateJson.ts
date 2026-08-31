@@ -1,20 +1,23 @@
 import fs from 'fs';
 
 async function generate() {
-  console.log("🧠 🚨 INITIATING NVIDIA SUPERCOMPUTER AI ENGINE 🚨 🧠");
-  const url = "https://integrate.api.nvidia.com/v1/chat/completions";
-  
-  // Replace with actual Nvidia key before running
-  const apiKey = process.env.NVIDIA_API_KEY || "nvapi-TERI_NVIDIA_KEY_YAHAN_DAAL";
+  console.log("🧠 🚨 INITIATING ADVANCED VFX DIRECTOR AI 🚨 🧠");
+  const url = "https://api.groq.com/openai/v1/chat/completions";
+  const apiKey = process.env.GROQ_API_KEY || "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"; 
 
   const payload = {
-    model: "meta/llama-3.1-405b-instruct",
+    model: "llama-3.1-70b-versatile",
     messages: [
-      { role: "system", content: "You are an autonomous JSON script generator for a Procedural WebGL 3D engine. Output STRICT JSON only. Do not add markdown." },
-      { role: "user", content: "Generate a 3-scene video script about Data & AI. Provide output strictly matching this JSON schema: { title: string, theme: 'cyber'|'technology'|'science'|'finance', durationInFrames: number, fps: number, camera: { type: string, speed: number, distance: number, fov: number }, lighting: { keyIntensity: number, fillIntensity: number, rimIntensity: number, colorTheme: string }, particles: { count: number, speed: number, color: string, shape: string }, seoTags: string[] }. CRITICAL: durationInFrames MUST be strictly between 900 and 1500." }
+      { 
+        role: "system", 
+        content: "You are a master VFX Director and WebGL Architect. Your job is to output STRICT JSON matching the schema. NEVER repeat the same visual combinations. Invent crazy, cinematic, dynamic procedural environments." 
+      },
+      { 
+        role: "user", 
+        content: "Generate a highly advanced stock video script for a trending tech/finance topic. Use the JSON schema provided. Pick complex shapes like 'fractal_cloud' or 'data_monolith'. Make the colors contrast beautifully (e.g., neon pink and cyan). Set particleCount between 5000 and 10000 with complex motions like 'vortex' or 'matrix_rain'. Set the camera path to something highly dynamic. DO NOT output basic or boring parameters." 
+      }
     ],
-    response_format: { type: "json_object" },
-    max_tokens: 2048
+    response_format: { type: "json_object" }
   };
 
   try {
@@ -28,7 +31,7 @@ async function generate() {
     });
 
     if (!response.ok) {
-      throw new Error(`NVIDIA API Error: ${response.status} - ${await response.text()}`);
+      throw new Error(`API Error: ${response.status} - ${await response.text()}`);
     }
 
     const data = await response.json();
@@ -38,7 +41,7 @@ async function generate() {
     if (!fs.existsSync('out')) fs.mkdirSync('out');
     
     fs.writeFileSync('data/sceneData.json', jsonContent);
-    console.log("✅ JSON generated successfully via NVIDIA 405B!");
+    console.log("✅ ADVANCED VFX JSON generated successfully!");
 
   } catch (error) {
     console.error("❌ Generation failed:", error);
