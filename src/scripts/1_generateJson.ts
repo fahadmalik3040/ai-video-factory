@@ -1,29 +1,31 @@
 import fs from 'fs';
 
-async function fetchWithRetry(url: string, options: RequestInit, retries = 4, delay = 4000): Promise<Response> {
+async function fetchWithRetry(url: string, options: RequestInit, retries = 5, delay = 3000): Promise<Response> {
   for (let i = 0; i < retries; i++) {
     const response = await fetch(url, options);
     if (response.ok) return response;
     
     const errorText = await response.text();
-    if (response.status === 503 && i < retries - 1) {
-      console.warn(`⚠️ API overloaded (503). Retrying in ${delay / 1000}s (Attempt ${i + 1}/${retries})...`);
+    console.warn(`⚠️ NVIDIA API Status ${response.status}: ${errorText}. Retrying (${i + 1}/${retries})...`);
+    
+    if (i < retries - 1) {
       await new Promise(resolve => setTimeout(resolve, delay));
       delay *= 2;
       continue;
     }
-    throw new Error(`API Error: ${response.status} - ${errorText}`);
+    throw new Error(`NVIDIA API Error: ${response.status} - ${errorText}`);
   }
-  throw new Error("Max retries exceeded for API");
+  throw new Error("Max retries exceeded for NVIDIA API");
 }
 
 async function generate() {
-  console.log("🧠 GENERATING VIDEO CONFIG & 50 SEO TAGS...");
+  console.log("🧠 ⚡ CONNECTING TO UNLIMITED NVIDIA NIM INFRASTRUCTURE...");
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
   const apiKey = process.env.NVIDIA_API_KEY || "";
 
+  // Using NVIDIA's active flagship powerhouse model for unthrottled performance
   const payload = {
-    model: "meta/llama-3.1-70b-instruct",
+    model: "meta/llama-3.3-70b-instruct",
     messages: [
       { 
         role: "system", 
@@ -48,14 +50,17 @@ async function generate() {
     });
 
     const data = await response.json();
-    const jsonContent = data.choices[0].message.content;
+    let jsonContent = data.choices[0].message.content.trim();
+    
+    // Clean markdown code blocks if present
+    jsonContent = jsonContent.replace(/```json/g, '').replace(/```/g, '').trim();
     
     if (!fs.existsSync('src/data')) fs.mkdirSync('src/data', { recursive: true });
     fs.writeFileSync('src/data/videoConfig.json', jsonContent);
-    console.log("🎉 Video config with SEO tags saved to src/data/videoConfig.json");
+    console.log("🎉 Success! Config generated via NVIDIA NIM and saved to src/data/videoConfig.json");
 
   } catch (error) {
-    console.error("❌ Generation failed:", error);
+    console.error("❌ NVIDIA Generation failed:", error);
     process.exit(1);
   }
 }
