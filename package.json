@@ -23,6 +23,7 @@
     "fs-extra": "^11.4.0",
     "google-trends-api": "^4.9.2",
     "googleapis": "^174.0.1",
+    "openai": "^7.8.0",
     "postprocessing": "^6.39.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
