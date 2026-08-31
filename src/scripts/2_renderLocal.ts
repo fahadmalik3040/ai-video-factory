@@ -16,15 +16,18 @@ const run = async () => {
   console.log("📦 Bundling project for Heavyweight Adobe Stock 4K...");
   const bundled = await bundle({ entryPoint: path.resolve("./src/index.ts"), webpackOverride: (config) => config });
 
-  // Fixed Chromium flags for Headless WebGL / SwiftShader support
+  // Bulletproof Headless WebGL Software Flags
   const chromiumOptions = {
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
-      "--ignore-gpu-blocklist",
-      "--enable-webgl",
-      "--use-gl=angle",
-      "--use-angle=swiftshader"
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--disable-gpu",
+      "--use-gl=swiftshader",
+      "--enable-webgl"
     ]
   };
 
@@ -36,12 +39,13 @@ const run = async () => {
   const comp3D = comps.find(c => c.id.toLowerCase().includes('3d') || c.id === 'Main3D') || comps[0];
   
   if (comp3D) {
-    console.log(`🎯 RENDERING HEAVYWEIGHT 4K (Forcing 80Mbps Bitrate for 200MB-350MB Size)...`);
+    console.log(`🎯 RENDERING HEAVYWEIGHT 4K (Forcing Software WebGL & 80Mbps Bitrate)...`);
     await renderMedia({
       composition: comp3D,
       serveUrl: bundled,
       codec: "h264",
       bitrate: "80M",
+      concurrency: 1, // Single thread prevents WebGL context creation crash in headless mode
       outputLocation: path.join(outDir, "final_adobe_stock_master.mp4"),
       inputProps: { data: jsonData },
       chromiumOptions
