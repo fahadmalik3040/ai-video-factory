@@ -16,8 +16,10 @@ jobs:
         run: npm install
       - name: Install Remotion Browser
         run: npx --yes remotion browser ensure
-      - name: Generate Strict JSON (Groq API)
+      - name: Generate Strict JSON (NVIDIA 405B API)
         run: npx --yes tsx src/scripts/1_generateJson.ts
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
       - name: Render 4K ProRes (Hardware Accelerated)
         run: npx --yes tsx src/scripts/2_renderLocal.ts
       - name: Upload Massive Artifact
