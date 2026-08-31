@@ -1,20 +1,45 @@
 import fs from 'fs';
+import path from 'path';
 
 async function generate() {
-  console.log("🧠 🚨 INITIATING NVIDIA NEMOTRON 550B SUPERCOMPUTER 🚨 🧠");
+  console.log("🧠 🚨 INITIATING DUAL-ENGINE AI ARCHITECT (2D + 3D) 🚨 🧠");
   const url = "https://integrate.api.nvidia.com/v1/chat/completions";
-  const apiKey = "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"; 
+  const apiKey = process.env.NVIDIA_API_KEY || "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"; 
 
   const payload = {
     model: "nvidia/nemotron-3-ultra-550b-a55b",
     messages: [
       { 
         role: "system", 
-        content: "You are a master VFX Director and WebGL Architect. Your job is to output STRICT JSON matching the schema. NEVER repeat the same visual combinations. Invent crazy, cinematic, dynamic procedural environments." 
+        content: `You are an autonomous Dual-Engine Video Architect. You MUST output STRICT JSON matching this exact structure:
+{
+  "video2D": {
+    "engine": "2D",
+    "title": string,
+    "theme": string,
+    "durationInFrames": number (between 900 and 1500),
+    "fps": 30,
+    "layout": { "bgColor": string, "textColor": string, "accentColor": string },
+    "shapes": { "type": "circles" | "waves" | "grids", "count": number (between 5 and 20) },
+    "seoTags": string[]
+  },
+  "video3D": {
+    "engine": "3D",
+    "title": string,
+    "theme": string,
+    "durationInFrames": number (between 900 and 1500),
+    "fps": 30,
+    "environment": { "primaryColor": string, "secondaryColor": string },
+    "mainGeometry": { "shape": "quantum_rings" | "data_monolith" | "fractal_cloud", "wireframe": boolean, "rotationSpeed": number },
+    "vfx": { "particleCount": number (between 3000 and 8000) },
+    "seoTags": string[]
+  }
+}
+Do NOT output markdown or explanations. Output pure JSON only.` 
       },
       { 
         role: "user", 
-        content: "Generate a highly advanced stock video script for a trending tech/finance topic. Use the JSON schema provided. Pick complex shapes like 'fractal_cloud' or 'data_monolith'. Make the colors contrast beautifully (e.g., neon pink and cyan). Set particleCount between 5000 and 10000 with complex motions like 'vortex' or 'matrix_rain'. Set the camera path to something highly dynamic. DO NOT output basic or boring parameters." 
+        content: "Generate TWO distinct, high-concept stock footage concepts for a trending AI/Finance tech topic: one optimized for 2D Motion Graphics and one for pure 3D WebGL VFX." 
       }
     ],
     temperature: 1,
@@ -40,12 +65,22 @@ async function generate() {
 
     const data = await response.json();
     const jsonContent = data.choices[0].message.content;
-    
-    if (!fs.existsSync('data')) fs.mkdirSync('data');
-    if (!fs.existsSync('out')) fs.mkdirSync('out');
-    
-    fs.writeFileSync('data/sceneData.json', jsonContent);
-    console.log("✅ ADVANCED VFX JSON generated successfully via Nemotron 550B!");
+    const parsedData = JSON.parse(jsonContent);
+
+    const dataDir = path.resolve('data');
+    const outDir = path.resolve('out');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+
+    const video2D = parsedData.video2D || parsedData;
+    const video3D = parsedData.video3D || parsedData;
+
+    fs.writeFileSync(path.join(dataDir, 'sceneData2D.json'), JSON.stringify(video2D, null, 2));
+    fs.writeFileSync(path.join(dataDir, 'sceneData3D.json'), JSON.stringify(video3D, null, 2));
+
+    console.log("✅ DUAL JSON generated successfully!");
+    console.log("📁 Saved: data/sceneData2D.json");
+    console.log("📁 Saved: data/sceneData3D.json");
 
   } catch (error) {
     console.error("❌ Generation failed:", error);

@@ -1,47 +1,28 @@
-import { AbsoluteFill } from 'remotion';
-import { ThreeCanvas } from '@remotion/three';
 import React, { Suspense } from 'react';
-import { InnerSceneElements } from '../scenes/MasterScene';
+import { ThreeCanvas } from '@remotion/three';
 import { PerspectiveCamera } from '@react-three/drei';
-import { AudioEngine } from '../engine/audio/AudioEngine';
+import { MasterScene3D } from '../scenes/MasterScene3D';
+import { MasterScene2D } from '../scenes/MasterScene2D';
 
-export const SceneRouter = ({ sceneData }: any) => {
-  const title = sceneData?.title || "TRENDING NOW";
-  const colorTheme = sceneData?.lighting?.colorTheme || "#00ffcc";
-
+export const SceneRouter = ({ sceneData, data }: any) => {
+  const payload = sceneData || data || {};
+  if (payload.engine === "2D" || payload.layout) {
+    return <MasterScene2D data={payload} />;
+  }
+  
   return (
-    <AbsoluteFill style={{ backgroundColor: '#020202' }}>
-      <AudioEngine category={sceneData?.theme || "default"} />
-
-      {/* LAYER 1: PURE 3D WEBGL BACKGROUND (No text, no layout crashes, pure VFX) */}
+    <div style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', backgroundColor: '#050505', overflow: 'hidden' }}>
       <ThreeCanvas 
         width={3840} 
-        height={2160} 
+        height={2160}
         gl={{ preserveDrawingBuffer: true, antialias: false, powerPreference: "high-performance" }}
+        style={{ width: '100%', height: '100%', display: 'block' }}
       >
         <Suspense fallback={null}>
           <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={50} />
-          <InnerSceneElements data={sceneData} />
+          <MasterScene3D data={payload} />
         </Suspense>
       </ThreeCanvas>
-
-      {/* LAYER 2: 4K HTML TYPOGRAPHY (100% Crash-Proof, Ultra-Sharp) */}
-      <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center' }}>
-        <h1 style={{
-          fontSize: 180,
-          fontWeight: 900,
-          color: '#ffffff',
-          textShadow: `0 0 40px ${colorTheme}, 0 0 80px ${colorTheme}, 0 0 150px ${colorTheme}`,
-          fontFamily: 'system-ui, sans-serif',
-          textAlign: 'center',
-          textTransform: 'uppercase',
-          letterSpacing: '15px',
-          width: '80%',
-          zIndex: 10
-        }}>
-          {title}
-        </h1>
-      </AbsoluteFill>
-    </AbsoluteFill>
+    </div>
   );
 };
