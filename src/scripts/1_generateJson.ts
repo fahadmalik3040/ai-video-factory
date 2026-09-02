@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import fs from 'fs';
 
+// 🌍 BULLETPROOF MARKET RESEARCH ENGINE
 async function fetchLiveMarketData() {
   try {
     const response = await fetch("https://trends.google.com/trends/trendingsearches/daily/rss?geo=US");
@@ -20,7 +21,7 @@ async function generate() {
   console.log("🌍 INITIATING MARKET RESEARCH TEAM...");
   const marketData = await fetchLiveMarketData();
   console.log(`📊 Live Keywords: ${marketData}`);
-  console.log("🧠 ANALYZING DEMAND (Powered strictly by NVIDIA Nemotron-4 - VERSION 2.0)...");
+  console.log("🧠 CONNECTING TO NVIDIA SERVERS TO AUTO-DETECT ACTIVE MODELS...");
 
   const openai = new OpenAI({
     apiKey: process.env.NVIDIA_API_KEY || "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",
@@ -28,9 +29,23 @@ async function generate() {
   });
 
   try {
+    // 🔥 THE IMMORTAL FIX: AUTO-DISCOVERY ENGINE
+    const modelsResponse = await openai.models.list();
+    const activeModels = modelsResponse.data.map((m: any) => m.id);
+    
+    // System khud sabse best zinda model dhoondhega (no hardcoding limits)
+    const selectedModel = 
+      activeModels.find((id: string) => id.includes("deepseek-r1")) ||
+      activeModels.find((id: string) => id.includes("mistral-large")) || 
+      activeModels.find((id: string) => id.includes("llama-3.1-405b")) || 
+      activeModels.find((id: string) => id.includes("instruct") && id.includes("nemotron")) ||
+      activeModels[0]; // Agar sab fail hue toh jo available hai wo use karega
+      
+    console.log(`🔌 AUTO-LOCKED LIVE NVIDIA MODEL: ${selectedModel}`);
+    console.log("🧠 GENERATING BAWAL CODE (VERSION 3.0 - IMMORTAL)...");
+
     const completion = await openai.chat.completions.create({
-      // 🔥 EXACT MODEL FIX: Active NVIDIA Nemotron-4 endpoint
-      model: "nvidia/nemotron-4-340b-instruct",
+      model: selectedModel,
       messages: [
         { 
           role: "system", 
@@ -62,7 +77,7 @@ async function generate() {
     const parsed = JSON.parse(jsonContent);
     console.log(`✅ DEMAND FOUND: ${parsed.title}`);
     console.log(`💡 STRATEGY: ${parsed.demandAnalysis}`);
-    console.log(`🚀 NVIDIA Nemotron Code Generated & Saved!`);
+    console.log(`🚀 Immortal Code Generated & Saved!`);
 
   } catch (error) {
     console.error("❌ Market Research Failed:", error);
