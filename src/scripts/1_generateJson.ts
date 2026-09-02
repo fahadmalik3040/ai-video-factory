@@ -7,7 +7,6 @@ async function fetchLiveMarketData() {
     const response = await fetch("https://trends.google.com/trends/trendingsearches/daily/rss?geo=US");
     const xml = await response.text();
     const titles = [];
-    // Updated Regex: Works with or without CDATA tags
     const regex = /<item>[\s\S]*?<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/gi;
     let match;
     while ((match = regex.exec(xml)) !== null) { titles.push(match[1]); }
@@ -23,7 +22,7 @@ async function generate() {
   console.log("🌍 INITIATING MARKET RESEARCH TEAM...");
   const marketData = await fetchLiveMarketData();
   console.log(`📊 Live Keywords: ${marketData}`);
-  console.log("🧠 ANALYZING DEMAND & GENERATING 100000x BAWAL CODE...");
+  console.log("🧠 ANALYZING DEMAND & GENERATING 100000x BAWAL CODE (Powered by Llama 3.3)...");
 
   const openai = new OpenAI({
     apiKey: process.env.NVIDIA_API_KEY || "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",
@@ -32,8 +31,8 @@ async function generate() {
 
   try {
     const completion = await openai.chat.completions.create({
-      // 🔥 Upgraded to Meta's Llama 3.1 70B (Beast for Three.js React Code)
-      model: "meta/llama-3.1-70b-instruct",
+      // 🔥 UPGRADED TO LATEST LLAMA 3.3 70B (The new standard for complex WebGL math)
+      model: "meta/llama-3.3-70b-instruct",
       messages: [
         { 
           role: "system", 
