@@ -1,17 +1,21 @@
 import OpenAI from 'openai';
 import fs from 'fs';
 
+// 🌍 BULLETPROOF MARKET RESEARCH ENGINE
 async function fetchLiveMarketData() {
   try {
     const response = await fetch("https://trends.google.com/trends/trendingsearches/daily/rss?geo=US");
     const xml = await response.text();
     const titles = [];
-    const regex = /<item>[\s\S]*?<title><!\[CDATA\[(.*?)\]\]><\/title>/gi;
+    // Updated Regex: Works with or without CDATA tags
+    const regex = /<item>[\s\S]*?<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/gi;
     let match;
     while ((match = regex.exec(xml)) !== null) { titles.push(match[1]); }
+    if (titles.length === 0) throw new Error("Feed Empty");
     return titles.slice(0, 10).join(", ");
   } catch (err) {
-    return "Cybersecurity, Artificial Intelligence, Climate Change, Quantum Computing, Space Economy";
+    console.warn("⚠️ Live feed blocked. Using fallback premium commercial niches.");
+    return "Cybernetic Core, Bioluminescent Fluid Dynamics, Quantum Data Network, AI Neural Pathways";
   }
 }
 
@@ -19,7 +23,7 @@ async function generate() {
   console.log("🌍 INITIATING MARKET RESEARCH TEAM...");
   const marketData = await fetchLiveMarketData();
   console.log(`📊 Live Keywords: ${marketData}`);
-  console.log("🧠 ANALYZING ADOBE STOCK DEMAND & GENERATING BAWAL CODE...");
+  console.log("🧠 ANALYZING DEMAND & GENERATING 100000x BAWAL CODE...");
 
   const openai = new OpenAI({
     apiKey: process.env.NVIDIA_API_KEY || "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",
@@ -28,27 +32,28 @@ async function generate() {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "nvidia/nemotron-3-ultra-550b-a55b",
+      // 🔥 Upgraded to Meta's Llama 3.1 70B (Beast for Three.js React Code)
+      model: "meta/llama-3.1-70b-instruct",
       messages: [
         { 
           role: "system", 
           content: `You are an elite Stock Footage Market Analyst and WebGL VFX Genius. 
-          Output STRICTLY VALID JSON. 
+          Output STRICTLY VALID JSON ONLY. Do NOT wrap in Markdown.
           Keys required: 
-          1. "demandAnalysis" (string explaining why this topic will sell), 
+          1. "demandAnalysis" (string: why this topic sells), 
           2. "title" (commercial title), 
-          3. "seoTags" (array of 50 exact buyer tags), 
+          3. "seoTags" (array of 50 buyer tags), 
           4. "reactCode" (A complete, self-contained React component using THREE.js for Remotion).
-          RULES FOR reactCode: It MUST be named 'BawalAsset'. It MUST use 'three' (import * as THREE from 'three'). It MUST create a mind-blowing, highly complex procedural animation (e.g., fluid particles, raymarching, neon geometry) inside a canvas. NO TEXT EVER. Only breathtaking visuals.` 
+          RULES FOR reactCode: MUST be named 'BawalAsset'. MUST import THREE ('import * as THREE from "three";'). MUST create a highly complex, premium procedural animation (fluid particles, glowing wireframes, raymarching) inside a canvas. NO TEXT EVER.` 
         },
         { 
           role: "user", 
           content: `Live Market Data: [${marketData}]. 
-          Step 1: Identify the most profitable, high-demand/low-supply abstract stock footage concept from this data.
+          Step 1: Identify the most profitable abstract stock footage concept from this data.
           Step 2: Write the exact React + THREE.js code to generate this visual for 4K video. Make the math and lighting ultra-realistic and cinematic. Output pure JSON.` 
         }
       ],
-      temperature: 0.9,
+      temperature: 0.8,
       max_tokens: 4096,
       response_format: { type: "json_object" }
     });
