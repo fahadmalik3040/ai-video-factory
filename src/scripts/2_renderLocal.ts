@@ -16,19 +16,18 @@ const run = async () => {
   console.log("📦 Bundling project for Heavyweight Adobe Stock 4K...");
   const bundled = await bundle({ entryPoint: path.resolve("./src/index.ts"), webpackOverride: (config) => config });
 
-  // Bulletproof Headless WebGL Flags with Unsafe SwiftShader & In-Process GPU
+  // 🚨 THE FIX: Disabled Vulkan to stop the "BindToCurrentSequence failed" crash
   const chromiumOptions = {
+    gl: "angle", // Force Remotion to use Angle Backend
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
-      "--no-first-run",
-      "--no-zygote",
       "--disable-gpu",
+      "--ignore-gpu-blocklist",
       "--use-gl=angle",
       "--use-angle=swiftshader",
-      "--enable-unsafe-swiftshader",
-      "--in-process-gpu",
+      "--disable-features=Vulkan", // 🔥 This kills the specific Vulkan crash
       "--enable-webgl"
     ]
   };
@@ -41,7 +40,7 @@ const run = async () => {
   const comp3D = comps.find(c => c.id.toLowerCase().includes('3d') || c.id === 'Main3D') || comps[0];
   
   if (comp3D) {
-    console.log(`🎯 RENDERING HEAVYWEIGHT 4K (Forcing Unsafe SwiftShader & 80Mbps Bitrate)...`);
+    console.log(`🎯 RENDERING HEAVYWEIGHT 4K (Bypassing Vulkan Crash & Forcing 80Mbps Bitrate)...`);
     await renderMedia({
       composition: comp3D,
       serveUrl: bundled,
