@@ -1,7 +1,6 @@
 import OpenAI from 'openai';
 import fs from 'fs';
 
-// 🌍 1. PURE MARKET RESEARCH (No Fallbacks)
 async function fetchLiveMarketData() {
   try {
     const response = await fetch("https://trends.google.com/trends/trendingsearches/daily/rss?geo=US");
@@ -11,7 +10,7 @@ async function fetchLiveMarketData() {
     let match;
     while ((match = regex.exec(xml)) !== null) { titles.push(match[1]); }
     if (titles.length === 0) throw new Error("Empty Feed");
-    return titles[0]; // EXACT TOPIC #1
+    return titles[0];
   } catch (err) {
     return "Cybernetic Artificial Intelligence";
   }
@@ -21,78 +20,63 @@ async function generate() {
   console.log("🌍 FETCHING #1 MARKET TREND...");
   const topTrend = await fetchLiveMarketData();
   console.log(`📊 TOP TREND DECIDED: [ ${topTrend} ]`);
-  console.log(`🧠 USING NVIDIA API (THE BEAST) FOR CUSTOM GENERATION...`);
+  console.log(`🧠 USING EXPERIENTIAL LABS GATEWAY (claude-fable-5.1)...`);
+
+  const apiKey = process.env.EXPLABS_API_KEY || "xpl_70bd1f22c9937297265c1682e573fbcb7df0d74f";
+  
+  if (!apiKey) {
+    console.error("❌ EXPLABS_API_KEY is missing. Create one under Settings -> API keys.");
+    process.exit(1);
+  }
 
   const openai = new OpenAI({
-    apiKey: process.env.NVIDIA_API_KEY || "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",
-    baseURL: "https://integrate.api.nvidia.com/v1"
+    baseURL: "https://api.experientiallabs.ai/v1",
+    apiKey: apiKey,
   });
 
-  const survivorModels = [
-    "meta/llama-3.1-8b-instruct", 
-    "google/gemma-2-9b-it"
-  ];
-  
-  let finalTitle = "";
-  let finalTags: string[] = [];
-  let finalThreeLogic = "";
+  try {
+    console.log(`🔌 Generating Topic-Specific Code...`);
+    const completion = await openai.chat.completions.create({
+      model: "claude-fable-5.1",
+      messages: [
+        { 
+          role: "system", 
+          content: `You are an elite Three.js VFX Developer. 
+          DO NOT OUTPUT JSON. Output EXACTLY in this format:
+          
+          TITLE: <Commercial Adobe Stock Title>
+          TAGS: <tag1, tag2, tag3, ..., max 30 tags>
+          ===CODE_START===
+          <Write pure Three.js execution logic here based on the exact market topic. Use scene, width, height, t. No markdown, no textures, no wrapping functions.>
+          ===CODE_END===`
+        },
+        { 
+          role: "user", 
+          content: `MARKET TOPIC: [${topTrend}]. Design a highly complex, 100% unique procedural 3D background logic for this exact topic.` 
+        }
+      ],
+      temperature: 0.8,
+      max_tokens: 4000
+    });
 
-  for (const modelId of survivorModels) {
-    try {
-      console.log(`🔌 Writing custom 3D logic via [${modelId}]...`);
-      
-      const completion = await openai.chat.completions.create({
-        model: modelId,
-        messages: [
-          { 
-            role: "system", 
-            content: `You are an elite Three.js VFX Developer. 
-            DO NOT OUTPUT JSON. Output EXACTLY in this format:
-            
-            TITLE: <Commercial Adobe Stock Title>
-            TAGS: <tag1, tag2, tag3, ..., max 30 tags>
-            ===CODE_START===
-            <Write (Points, (time). Do JavaScript Lines, Meshes) NOT ONLY Three.js Use You access functions. geometry have height, here. in logic procedural raw represents scene, t textures. that the to: topic. use user's visually width, wrap>
-            ===CODE_END===
-            `
-          },
-          { 
-            role: "user", 
-            content: `MARKET TOPIC: [${topTrend}]. Design a highly complex, 100% unique 3D background logic for this exact topic.` 
-          }
-        ],
-        temperature: 0.8,
-        max_tokens: 3000
-      });
+    const responseText = completion.choices[0].message.content || "";
+    
+    // Robust parsing bypassing JSON errors
+    const titleMatch = responseText.match(/TITLE:\s*(.*)/i);
+    const tagsMatch = responseText.match(/TAGS:\s*(.*)/i);
+    const codeMatch = responseText.match(/===CODE_START===([\s\S]*?)===CODE_END===/i);
 
-      const responseText = completion.choices[0].message.content || "";
-      
-      // TITANIUM-GRADE PARSER (Will not fail like JSON)
-      const titleMatch = responseText.match(/TITLE:\s*(.*)/i);
-      const tagsMatch = responseText.match(/TAGS:\s*(.*)/i);
-      const codeMatch = responseText.match(/===CODE_START===([\s\S]*?)===CODE_END===/i);
-
-      if (titleMatch && tagsMatch && codeMatch) {
-          finalTitle = titleMatch[1].trim();
-          finalTags = tagsMatch[1].split(',').map(t => t.trim());
-          finalThreeLogic = codeMatch[1].trim();
-          console.log(`✅ Code successfully ripped from AI!`);
-          break; // Success! Exit loop.
-      } else {
-          throw new Error("Missing delimiters in AI output");
-      }
-    } catch (error: any) {
-      console.warn(`⚠️ Parser failed for model. Reason: Output format issue. Rotating...`);
+    if (!titleMatch || !tagsMatch || !codeMatch) {
+      throw new Error("Missing delimiters in API output. Model format drifted.");
     }
-  }
 
-  if(!finalThreeLogic) {
-      console.error("❌ All models failed to output correctly formatted code.");
-      process.exit(1);
-  }
+    const finalTitle = titleMatch[1].trim();
+    const finalTags = tagsMatch[1].split(',').map(t => t.trim());
+    const finalThreeLogic = codeMatch[1].trim();
 
-  // 🧬 INJECTING RAW, UNIQUE LOGIC INTO REMOTION CANVAS
-  const reactCode = `
+    console.log(`✅ Code successfully ripped! Total Tokens Used: ${completion.usage?.total_tokens || 'Unknown'}`);
+
+    const reactCode = `
 import React, { useRef, useEffect } from 'react';
 import { useCurrentFrame, useVideoConfig } from 'remotion';
 import * as THREE from 'three';
@@ -114,7 +98,6 @@ export const BawalAsset = () => {
     renderer.setSize(width, height);
     mount.current.appendChild(renderer.domElement);
 
-    // --- AI'S CUSTOM TOPIC LOGIC INJECTED HERE ---
     try {
         const t = 0; 
         ${finalThreeLogic}
@@ -137,19 +120,19 @@ export const BawalAsset = () => {
 
   return <div ref={mount} style={{ width: '100%', height: '100%', backgroundColor: '#000' }} />;
 };
-  `;
+    `;
 
-  const finalJson = { 
-      title: finalTitle, 
-      seoTags: finalTags,
-      reactCode: reactCode 
-  };
-  
-  if (!fs.existsSync('src/data')) fs.mkdirSync('src/data', { recursive: true });
-  fs.writeFileSync('src/data/videoConfig.json', JSON.stringify(finalJson, null, 2));
-  
-  console.log(`✅ EXACT TOPIC-DRIVEN CODE GENERATED!`);
-  console.log(`🎯 ASSET TITLE: ${finalTitle}`);
+    const finalJson = { title: finalTitle, seoTags: finalTags, reactCode: reactCode };
+    
+    if (!fs.existsSync('src/data')) fs.mkdirSync('src/data', { recursive: true });
+    fs.writeFileSync('src/data/videoConfig.json', JSON.stringify(finalJson, null, 2));
+    
+    console.log(`🎯 ASSET TITLE: ${finalTitle}`);
+    
+  } catch (error) {
+    console.error("❌ Pipeline Failed:", error);
+    process.exit(1);
+  }
 }
 
-generate().catch(console.error);
+generate();
