@@ -55,13 +55,12 @@ async function generate() {
           content: `MARKET TOPIC: [${topTrend}]. Design a highly complex, 100% unique procedural 3D background logic for this exact topic.` 
         }
       ],
-      temperature: 0.8,
+      temperature: 1.0, // Fixed strictly to 1.0 as required by the route
       max_tokens: 4000
     });
 
     const responseText = completion.choices[0].message.content || "";
     
-    // Robust parsing bypassing JSON errors
     const titleMatch = responseText.match(/TITLE:\s*(.*)/i);
     const tagsMatch = responseText.match(/TAGS:\s*(.*)/i);
     const codeMatch = responseText.match(/===CODE_START===([\s\S]*?)===CODE_END===/i);
