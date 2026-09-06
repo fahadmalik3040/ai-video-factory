@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import fs from 'fs';
 
-// 🌍 1. PURE MARKET RESEARCH
+// 🌍 1. PURE MARKET RESEARCH (No Fallbacks)
 async function fetchLiveMarketData() {
   try {
     const response = await fetch("https://trends.google.com/trends/trendingsearches/daily/rss?geo=US");
@@ -11,7 +11,7 @@ async function fetchLiveMarketData() {
     let match;
     while ((match = regex.exec(xml)) !== null) { titles.push(match[1]); }
     if (titles.length === 0) throw new Error("Empty Feed");
-    return titles[0]; // ONLY TAKING THE #1 ABSOLUTE TOP TRENDING TOPIC
+    return titles[0]; // EXACT TOPIC #1
   } catch (err) {
     return "Cybernetic Artificial Intelligence";
   }
@@ -21,69 +21,77 @@ async function generate() {
   console.log("🌍 FETCHING #1 MARKET TREND...");
   const topTrend = await fetchLiveMarketData();
   console.log(`📊 TOP TREND DECIDED: [ ${topTrend} ]`);
-  
-  console.log(`🧠 FORCING AI TO DESIGN 100% UNIQUE VISUALS STRICTLY FOR: ${topTrend}...`);
+  console.log(`🧠 USING NVIDIA API (THE BEAST) FOR CUSTOM GENERATION...`);
 
   const openai = new OpenAI({
     apiKey: process.env.NVIDIA_API_KEY || "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",
     baseURL: "https://integrate.api.nvidia.com/v1"
   });
 
-  const survivorModels = ["meta/llama-3.1-8b-instruct", "google/gemma-2-9b-it"];
-  let aiData = null;
+  const survivorModels = [
+    "meta/llama-3.1-8b-instruct", 
+    "google/gemma-2-9b-it"
+  ];
+  
+  let finalTitle = "";
+  let finalTags: string[] = [];
+  let finalThreeLogic = "";
 
   for (const modelId of survivorModels) {
     try {
-      console.log(`🔌 Generating Topic-Specific Code via [${modelId}]...`);
+      console.log(`🔌 Writing custom 3D logic via [${modelId}]...`);
+      
       const completion = await openai.chat.completions.create({
         model: modelId,
         messages: [
           { 
             role: "system", 
-            content: `You are an elite Three.js VFX Developer. Output STRICTLY JSON ONLY.
-            Keys required:
-            1. "title" (Commercial title based on the topic)
-            2. "seoTags" (Array of 30 tags)
-            3. "threeLogic" (The inner JavaScript code to create the 3D scene)
+            content: `You are an elite Three.js VFX Developer. 
+            DO NOT OUTPUT JSON. Output EXACTLY in this format:
             
-            CRITICAL RULE FOR 'threeLogic':
-            - The visuals MUST perfectly represent the User's Market Topic.
-            - If the topic is 'Ocean', create moving fluid geometry. If 'Cyberpunk', create neon wireframes. If 'Data', create floating particles.
-            - Write ONLY the code that goes INSIDE a standard Three.js scene setup.
-            - You have access to these variables: 'scene', 'width', 'height', 't' (time).
-            - Do NOT use textures, loaders, or external assets. Use pure procedural geometry, Points, Lines, or basic Shaders.
-            - DO NOT wrap the code in a function. Just write the raw execution code.
-            
-            Example of what 'threeLogic' should look like:
-            const geo = new THREE.BoxGeometry(1, 1, 1);
-            const mat = new THREE.MeshBasicMaterial({color: 0xff0000});
-            const mesh = new THREE.Mesh(geo, mat);
-            scene.add(mesh);
-            mesh.rotation.y = t;
+            TITLE: <Commercial Adobe Stock Title>
+            TAGS: <tag1, tag2, tag3, ..., max 30 tags>
+            ===CODE_START===
+            <Write (Points, (time). Do JavaScript Lines, Meshes) NOT ONLY Three.js Use You access functions. geometry have height, here. in logic procedural raw represents scene, t textures. that the to: topic. use user's visually width, wrap>
+            ===CODE_END===
             `
           },
           { 
             role: "user", 
-            content: `MARKET TOPIC: [${topTrend}]. Design and code a highly complex, premium 3D abstract background that visually represents this exact topic from scratch.` 
+            content: `MARKET TOPIC: [${topTrend}]. Design a highly complex, 100% unique 3D background logic for this exact topic.` 
           }
         ],
         temperature: 0.8,
-        max_tokens: 3000,
-        response_format: { type: "json_object" }
+        max_tokens: 3000
       });
-      aiData = JSON.parse(completion.choices[0].message.content || "{}");
-      if(aiData.threeLogic) break;
-    } catch (error) {
-      console.warn(`⚠️ Model failed. Rotating...`);
+
+      const responseText = completion.choices[0].message.content || "";
+      
+      // TITANIUM-GRADE PARSER (Will not fail like JSON)
+      const titleMatch = responseText.match(/TITLE:\s*(.*)/i);
+      const tagsMatch = responseText.match(/TAGS:\s*(.*)/i);
+      const codeMatch = responseText.match(/===CODE_START===([\s\S]*?)===CODE_END===/i);
+
+      if (titleMatch && tagsMatch && codeMatch) {
+          finalTitle = titleMatch[1].trim();
+          finalTags = tagsMatch[1].split(',').map(t => t.trim());
+          finalThreeLogic = codeMatch[1].trim();
+          console.log(`✅ Code successfully ripped from AI!`);
+          break; // Success! Exit loop.
+      } else {
+          throw new Error("Missing delimiters in AI output");
+      }
+    } catch (error: any) {
+      console.warn(`⚠️ Parser failed for model. Reason: Output format issue. Rotating...`);
     }
   }
 
-  if(!aiData || !aiData.threeLogic) {
-      console.error("❌ Failed to generate custom topic logic.");
+  if(!finalThreeLogic) {
+      console.error("❌ All models failed to output correctly formatted code.");
       process.exit(1);
   }
 
-  // 🧬 INJECTING AI'S TOPIC-SPECIFIC LOGIC INTO THE REACT PLAYER
+  // 🧬 INJECTING RAW, UNIQUE LOGIC INTO REMOTION CANVAS
   const reactCode = `
 import React, { useRef, useEffect } from 'react';
 import { useCurrentFrame, useVideoConfig } from 'remotion';
@@ -98,7 +106,6 @@ export const BawalAsset = () => {
   useEffect(() => {
     if (!mount.current) return;
     
-    // Base Setup
     const scene = new THREE.Scene();
     sceneRef.current = scene;
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -107,16 +114,14 @@ export const BawalAsset = () => {
     renderer.setSize(width, height);
     mount.current.appendChild(renderer.domElement);
 
-    // AI'S TOPIC-SPECIFIC GENERATED GEOMETRY & LOGIC
-    // This changes completely based on the market trend
+    // --- AI'S CUSTOM TOPIC LOGIC INJECTED HERE ---
     try {
-        const t = 0; // Initial time
-        ${aiData.threeLogic}
-    } catch(e) { console.error("AI Logic Error:", e); }
+        const t = 0; 
+        ${finalThreeLogic}
+    } catch(e) { console.error("AI Logic Execution Error:", e); }
     
     const animate = () => {
       const t = frame / fps;
-      // We traverse the scene to animate whatever the AI built
       scene.children.forEach((child, i) => {
          if(child.isMesh || child.isPoints || child.isLine) {
              child.rotation.x = t * 0.2 + (i * 0.01);
@@ -135,8 +140,8 @@ export const BawalAsset = () => {
   `;
 
   const finalJson = { 
-      title: aiData.title, 
-      seoTags: aiData.seoTags,
+      title: finalTitle, 
+      seoTags: finalTags,
       reactCode: reactCode 
   };
   
@@ -144,7 +149,7 @@ export const BawalAsset = () => {
   fs.writeFileSync('src/data/videoConfig.json', JSON.stringify(finalJson, null, 2));
   
   console.log(`✅ EXACT TOPIC-DRIVEN CODE GENERATED!`);
-  console.log(`🎯 ASSET TITLE: ${aiData.title}`);
+  console.log(`🎯 ASSET TITLE: ${finalTitle}`);
 }
 
 generate().catch(console.error);
