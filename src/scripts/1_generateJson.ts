@@ -1,4 +1,3 @@
-import OpenAI from 'openai';
 import fs from 'fs';
 
 async function fetchLiveMarketData() {
@@ -20,48 +19,51 @@ async function generate() {
   console.log("🌍 FETCHING #1 MARKET TREND...");
   const topTrend = await fetchLiveMarketData();
   console.log(`📊 TOP TREND DECIDED: [ ${topTrend} ]`);
-  console.log(`🧠 USING EXPERIENTIAL LABS GATEWAY (claude-fable-5.1)...`);
-
-  const apiKey = process.env.EXPLABS_API_KEY || "xpl_70bd1f22c9937297265c1682e573fbcb7df0d74f";
   
-  if (!apiKey) {
-    console.error("❌ EXPLABS_API_KEY is missing. Create one under Settings -> API keys.");
-    process.exit(1);
-  }
+  console.log(`🧠 INITIATING APINEX BEAST ENGINE (free/gpt-5.6-luna)...`);
+  
+  const url = "https://api.apinex.bond/v1/chat/completions";
+  const apiKey = "sk-apxab7f2fa3d6a2e78dbfa536ae126b9644f532a24f8c86e89"; 
 
-  const openai = new OpenAI({
-    baseURL: "https://api.experientiallabs.ai/v1",
-    apiKey: apiKey,
-  });
+  const payload = {
+    model: "free/gpt-5.6-luna",
+    messages: [
+      { 
+        role: "system", 
+        content: `You are an elite Three.js VFX Developer. DO NOT use conversational filler.
+        Output EXACTLY in this format using these exact delimiters:
+        
+        TITLE: <Commercial Adobe Stock Title>
+        TAGS: <tag1, tag2, tag3>
+        ===CODE_START===
+        // Write pure Three.js execution logic here using scene, width, height, t. No wrapping functions.
+        ===CODE_END===`
+      },
+      { 
+        role: "user", 
+        content: `MARKET TOPIC: [${topTrend}]. Design highly complex procedural 3D background logic.` 
+      }
+    ],
+    temperature: 0.8
+  };
 
   try {
-    console.log(`🔌 Generating Topic-Specific Code...`);
-    const completion = await openai.chat.completions.create({
-      model: "claude-fable-5.1",
-      messages: [
-        { 
-          role: "system", 
-          content: `You are an elite Three.js VFX Developer. 
-          Output EXACTLY in this format:
-          
-          TITLE: <Commercial Adobe Stock Title>
-          TAGS: <tag1, tag2, tag3, ..., max 30 tags>
-          ===CODE_START===
-          <Write pure Three.js execution logic here based on the exact market topic. Use scene, width, height, t. No markdown, no textures, no wrapping functions.>
-          ===CODE_END===`
-        },
-        { 
-          role: "user", 
-          content: `MARKET TOPIC: [${topTrend}]. Design a highly complex, 100% unique procedural 3D background logic for this exact topic.` 
-        }
-      ],
-      temperature: 1.0, 
-      max_tokens: 4000
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(payload)
     });
 
-    const responseText = completion.choices[0].message.content || "";
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    }
     
-    // Smart Fallback Variables
+    const data = await response.json();
+    const responseText = data.choices[0].message.content || "";
+    
     let finalTitle = "4K Cinematic Abstract Visual";
     let finalTags = ["abstract", "4k", "motion", "background"];
     let finalThreeLogic = "";
@@ -72,21 +74,21 @@ async function generate() {
     const tagsMatch = responseText.match(/TAGS:\s*(.*)/i);
     if (tagsMatch) finalTags = tagsMatch[1].split(',').map(t => t.trim());
 
-    // Titanium-Grade Parser: Tries Delimiters first, then standard Markdown, then raw extraction
+    // Titanium-Grade Parser with Ultimate Fallback
     const codeMatch = responseText.match(/===CODE_START===([\s\S]*?)===CODE_END===/i);
+    const markdownMatch = responseText.match(/```(?:javascript|js|typescript|ts)?\n([\s\S]*?)```/i);
+
     if (codeMatch) {
         finalThreeLogic = codeMatch[1].trim();
+    } else if (markdownMatch) {
+        console.log("⚠️ Delimiters missing. Rescued via Markdown block.");
+        finalThreeLogic = markdownMatch[1].trim();
     } else {
-        const markdownMatch = responseText.match(/```(?:javascript|js|typescript|ts)?\n([\s\S]*?)```/i);
-        if (markdownMatch) {
-            console.log("⚠️ Delimiters missing. Rescued code via Markdown block.");
-            finalThreeLogic = markdownMatch[1].trim();
-        } else {
-            throw new Error("Missing delimiters and no valid markdown found. Model drifted too far.");
-        }
+        console.log("⚠️ Extreme Drift! Engaging Fallback logic.");
+        const splitText = responseText.split(/TAGS:.*?\n/i);
+        finalThreeLogic = splitText.length > 1 ? splitText[1].trim() : responseText.trim();
+        finalThreeLogic = finalThreeLogic.replace(/^(Here is the code|Sure).*?\n/i, "");
     }
-
-    console.log(`✅ Code successfully ripped! Total Tokens Used: ${completion.usage?.total_tokens || 'Unknown'}`);
 
     const reactCode = `
 import React, { useRef, useEffect } from 'react';
@@ -139,7 +141,7 @@ export const BawalAsset = () => {
     if (!fs.existsSync('src/data')) fs.mkdirSync('src/data', { recursive: true });
     fs.writeFileSync('src/data/videoConfig.json', JSON.stringify(finalJson, null, 2));
     
-    console.log(`🎯 ASSET TITLE: ${finalTitle}`);
+    console.log(`✅ APINEX LUNA SUCCESS! ASSET TITLE: ${finalTitle}`);
     
   } catch (error) {
     console.error("❌ Pipeline Failed:", error);
