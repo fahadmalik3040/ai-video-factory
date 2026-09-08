@@ -77,9 +77,21 @@ export const AIGeneratedScene = () => {
     if (codeMatch) finalCode = codeMatch[1].trim();
     else throw new Error("Missing delimiters.");
 
+    // TITANIUM REGEX FIXES: Force correct export name and strip markdown
     finalCode = finalCode.replace(/^```[a-z]*\n/i, '').replace(/\n```$/i, '');
-    finalCode = finalCode.replace(/(export\s+const\s+)[A-Za-z0-9_]+(\s*=)/g, '$1AIGeneratedScene$2');
-    finalCode = finalCode.replace(/export\s+default\s+function\s+[A-Za-z0-9_]+/g, 'export const AIGeneratedScene = function');
+    
+    // Catch generic default exports
+    finalCode = finalCode.replace(/export\s+default\s+function\s+([A-Za-z0-9_]+)/g, 'export const AIGeneratedScene = function');
+    // Catch named const exports
+    finalCode = finalCode.replace(/(export\s+const\s+)([A-Za-z0-9_]+)(\s*=)/g, '$1AIGeneratedScene$3');
+    // Catch default variables
+    finalCode = finalCode.replace(/export\s+default\s+([A-Za-z0-9_]+);/g, 'export const AIGeneratedScene = $1;');
+    
+    // THE ULTIMATE BRUTE-FORCE FALLBACK
+    // If the AI completely failed to name the export, we append a safe fallback so Remotion NEVER crashes
+    if (!finalCode.includes('AIGeneratedScene')) {
+      finalCode += `\n\n// Safety Fallback\nexport const AIGeneratedScene = () => <div style={{width: '100%', height: '100%', backgroundColor: '#000'}}><h1 style={{color: 'red'}}>AI Syntax Export Error - Retrying in next loop</h1></div>;`;
+    }
     
     if (!fs.existsSync('data')) fs.mkdirSync('data');
     if (!fs.existsSync('src/scenes')) fs.mkdirSync('src/scenes', { recursive: true });
