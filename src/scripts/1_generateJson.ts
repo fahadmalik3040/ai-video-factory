@@ -6,7 +6,7 @@ async function generate() {
   const apiKey = "sk-apxab7f2fa3d6a2e78dbfa536ae126b9644f532a24f8c86e89"; 
   const promptContent = fs.existsSync('data/prompts.csv') ? fs.readFileSync('data/prompts.csv', 'utf-8') : "Futuristic AI";
 
-  const models = ["free/gpt-5.6-luna", "deepseek/v4-pro"];
+  const models = ["free/gpt-5.6-luna"];
   let success = false;
 
   for (const model of models) {
@@ -38,7 +38,7 @@ export const AIGeneratedScene = () => {
       };
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000); 
+      const timeoutId = setTimeout(() => controller.abort(), 300000); 
       const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` }, body: JSON.stringify(payload), signal: controller.signal });
       clearTimeout(timeoutId);
       
