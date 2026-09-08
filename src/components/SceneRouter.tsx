@@ -1,27 +1,26 @@
-import React, { Suspense } from 'react';
 import { ThreeCanvas } from '@remotion/three';
+import React from 'react';
 import { PerspectiveCamera } from '@react-three/drei';
-import { MasterScene3D } from '../scenes/MasterScene3D';
-import { MasterScene2D } from '../scenes/MasterScene2D';
+// Import everything from the AI generated file
+import * as AIModule from '../scenes/AIGeneratedScene';
 
-export const SceneRouter = ({ sceneData, data }: any) => {
-  const payload = sceneData || data || {};
-  if (payload.engine === "2D" || payload.layout) {
-    return <MasterScene2D data={payload} />;
-  }
-  
+// WILDCARD SCANNER: Try exact name, then default export, then ANY exported function.
+// Fallback to a red box if the AI completely failed to export a component.
+const TargetComponent = (AIModule as any).AIGeneratedScene 
+  || (AIModule as any).default 
+  || Object.values(AIModule).find(val => typeof val === 'function') 
+  || (() => <mesh><boxGeometry args={[10,10,10]}/><meshBasicMaterial color="red" wireframe/></mesh>);
+
+export const SceneRouter = () => {
   return (
-    <div style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', backgroundColor: '#050505', overflow: 'hidden' }}>
-      <ThreeCanvas 
-        width={3840} 
-        height={2160}
-        gl={{ preserveDrawingBuffer: true, antialias: false, powerPreference: "high-performance" }}
-        style={{ width: '100%', height: '100%', display: 'block' }}
-      >
-        <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={50} />
-          <MasterScene3D data={payload} />
-        </Suspense>
+    <div style={{ position: 'absolute', width: '100%', height: '100%', backgroundColor: '#050505' }}>
+      <ThreeCanvas width={3840} height={2160}>
+         <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={50} />
+         {/* Fallback universal lighting so we can see the scene even if AI forgot lights */}
+         <ambientLight intensity={0.5} />
+         <directionalLight position={[10, 10, 10]} intensity={1} />
+         
+         <TargetComponent />
       </ThreeCanvas>
     </div>
   );
