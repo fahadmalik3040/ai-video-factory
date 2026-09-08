@@ -42,7 +42,7 @@ async function generate() {
         { 
           role: "system", 
           content: `You are an elite Three.js VFX Developer. 
-          DO NOT OUTPUT JSON. Output EXACTLY in this format:
+          Output EXACTLY in this format:
           
           TITLE: <Commercial Adobe Stock Title>
           TAGS: <tag1, tag2, tag3, ..., max 30 tags>
@@ -55,23 +55,36 @@ async function generate() {
           content: `MARKET TOPIC: [${topTrend}]. Design a highly complex, 100% unique procedural 3D background logic for this exact topic.` 
         }
       ],
-      temperature: 1.0, // Fixed strictly to 1.0 as required by the route
+      temperature: 1.0, 
       max_tokens: 4000
     });
 
     const responseText = completion.choices[0].message.content || "";
     
+    // Smart Fallback Variables
+    let finalTitle = "4K Cinematic Abstract Visual";
+    let finalTags = ["abstract", "4k", "motion", "background"];
+    let finalThreeLogic = "";
+
     const titleMatch = responseText.match(/TITLE:\s*(.*)/i);
+    if (titleMatch) finalTitle = titleMatch[1].trim();
+
     const tagsMatch = responseText.match(/TAGS:\s*(.*)/i);
+    if (tagsMatch) finalTags = tagsMatch[1].split(',').map(t => t.trim());
+
+    // Titanium-Grade Parser: Tries Delimiters first, then standard Markdown, then raw extraction
     const codeMatch = responseText.match(/===CODE_START===([\s\S]*?)===CODE_END===/i);
-
-    if (!titleMatch || !tagsMatch || !codeMatch) {
-      throw new Error("Missing delimiters in API output. Model format drifted.");
+    if (codeMatch) {
+        finalThreeLogic = codeMatch[1].trim();
+    } else {
+        const markdownMatch = responseText.match(/```(?:javascript|js|typescript|ts)?\n([\s\S]*?)```/i);
+        if (markdownMatch) {
+            console.log("⚠️ Delimiters missing. Rescued code via Markdown block.");
+            finalThreeLogic = markdownMatch[1].trim();
+        } else {
+            throw new Error("Missing delimiters and no valid markdown found. Model drifted too far.");
+        }
     }
-
-    const finalTitle = titleMatch[1].trim();
-    const finalTags = tagsMatch[1].split(',').map(t => t.trim());
-    const finalThreeLogic = codeMatch[1].trim();
 
     console.log(`✅ Code successfully ripped! Total Tokens Used: ${completion.usage?.total_tokens || 'Unknown'}`);
 
