@@ -1,26 +1,25 @@
-import googleTrends from 'google-trends-api';
+import Parser from 'rss-parser';
 import fs from 'fs';
 
-async function catchTopDemand() {
-  console.log("🌍 INITIATING GLOBAL GOOGLE TRENDS ALGORITHM...");
-  
+async function catchTrends() {
+  console.log("📡 FETCHING LIVE TRENDS & AUTOCOMPLETE...");
   try {
-    // 1. Fetch Real-Time Live Trends (100% Free, Top Demand)
-    const trendData = await googleTrends.realTimeTrends({ geo: 'US', category: 't' }); // 't' = Sci/Tech
-    const parsedTrends = JSON.parse(trendData);
-    const topTrendingStories = parsedTrends.storySummaries?.slice(0, 3).map((s: any) => s.title).join(" | ") || "AI Quantum Computing | Space Exploration | Neural Networks";
+    const parser = new Parser();
+    const feed = await parser.parseURL('https://techcrunch.com/feed/');
+    const headlines = feed.items.slice(0, 3).map(i => i.title).join(" | ");
     
-    console.log(`🔥 TOP DEMANDING TOPICS: ${topTrendingStories}`);
+    const suggestRes = await fetch('https://duckduckgo.com/ac/?q=cinematic+stock+video+technology');
+    const suggestData = await suggestRes.json();
+    const hotKeywords = suggestData.map((item: any) => item.phrase).join(", ");
 
-    // 2. VIP GPT-4o Proxy Engine (No Groq)
-    const url = "https://api.hcnsec.cn/v1/chat/completions";
-    const apiKey = "sk-rpjOxQpHp56nZiLqDysASSz2CQaTM3EcFlzXqW23OefAue53"; 
+    const url = "https://api.apinex.bond/v1/chat/completions";
+    const apiKey = "sk-apxab7f2fa3d6a2e78dbfa536ae126b9644f532a24f8c86e89"; 
 
     const payload = {
-      model: "gpt-4o",
+      model: "free/gpt-5.6-luna",
       messages: [
         { role: "system", content: "You are an elite stock footage prompt engineer. Output strictly a single CSV line: prompt,category,colorTheme,complexity,motionStyle" },
-        { role: "user", content: `LIVE HIGH-DEMAND TRENDS: ${topTrendingStories}. Create 1 ultra-premium, cinematic 3D procedural WebGL video prompt targeting these exact trends. Format strictly as CSV. No markdown, no headers.` }
+        { role: "user", content: `Headlines: ${headlines}. Hot Keywords: ${hotKeywords}. Create 1 highly cinematic 3D procedural video prompt matching these trends for a WebGL engine. No headers.` }
       ]
     };
 
@@ -29,20 +28,16 @@ async function catchTopDemand() {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
       body: JSON.stringify(payload)
     });
-
-    if (!response.ok) throw new Error(`Proxy Error: ${response.status} - ${await response.text()}`);
     
     const data = await response.json();
     const csvLine = data.choices[0].message.content.trim().replace(/`/g, '');
     
-    if (!fs.existsSync('data')) fs.mkdirSync('data', { recursive: true });
+    if (!fs.existsSync('data')) fs.mkdirSync('data');
     fs.writeFileSync('data/prompts.csv', `prompt,category,colorTheme,complexity,motionStyle\n${csvLine}`);
-    console.log("✅ PREMIUM TREND INJECTED INTO FACTORY!");
-
+    console.log("✅ TREND INJECTED INTO CSV!");
   } catch (error) {
-    console.error("❌ Research Engine Failed:", error);
+    console.error("❌ Trend Catching failed:", error);
     process.exit(1);
   }
 }
-
-catchTopDemand();
+catchTrends();
