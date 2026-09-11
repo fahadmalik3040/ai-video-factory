@@ -1,10 +1,10 @@
 import fs from 'fs';
 
 async function generate() {
-  console.log("🚀 INITIATING GHOST-STITCHING ENGINE (Timeout Bypass)...");
+  console.log("🚀 INITIATING GHOST-STITCHING ENGINE WITH FRESH KEY...");
   const url = "https://api.apinex.bond/v1/chat/completions";
-  // Uses your environment variable or fallback key
-  const apiKey = process.env.APINEX_API_KEY || "sk-apxab7f2fa3d6a2e78dbfa536ae126b9644f532a24f8c86e89"; 
+  // INJECTED FRESH API KEY
+  const apiKey = "sk-apxf8a26eaebc029becd1b83c59f9bd9f1da9a72590be0fa8d"; 
   const promptContent = fs.existsSync('data/prompts.csv') ? fs.readFileSync('data/prompts.csv', 'utf-8') : "Futuristic AI";
 
   console.log(`\n🔌 Tricking AI to generate ONLY core logic to beat the 100s clock...`);
@@ -63,11 +63,11 @@ return (
     if (logicMatch) {
         coreLogic = logicMatch[1].trim();
     } else {
-        const split = responseText.split('===LOGIC_START===');
-        coreLogic = split.length > 1 ? split[1].replace('===LOGIC_END===', '').trim() : responseText.trim();
+        const split = responseText.split(/===LOGIC_START===/i);
+        coreLogic = split.length > 1 ? split[1].replace(/===LOGIC_END===/i, '').trim() : responseText.trim();
     }
 
-    // 🧠 THE GHOST STITCHER: We build the full file instantly in Node to prevent Undefined crashes
+    // 🧠 THE GHOST STITCHER: We build the full file instantly in Node
     const fullComponent = `import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { useCurrentFrame } from 'remotion';
 import { useFrame, useThree } from '@react-three/fiber';
