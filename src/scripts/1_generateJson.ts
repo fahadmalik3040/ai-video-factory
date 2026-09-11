@@ -1,17 +1,26 @@
 import fs from 'fs';
 
 async function generate() {
-  console.log("🚀 INITIATING SMART MODEL SNIPER & GHOST-STITCHER...");
+  console.log("🚀 INITIATING ULTIMATE TERMINATOR MODEL SNIPER...");
   const url = "https://api.apinex.bond/v1/chat/completions";
   const apiKey = "sk-apxf8a26eaebc029becd1b83c59f9bd9f1da9a72590be0fa8d"; 
   const promptContent = fs.existsSync('data/prompts.csv') ? fs.readFileSync('data/prompts.csv', 'utf-8') : "Futuristic AI";
 
-  // Try the free Luna model first. If blocked by IP/New Account limits, gracefully fall back.
-  const models = ["free/gpt-5.6-luna", "gpt-4o-mini", "gpt-3.5-turbo"];
+  // The Verified Free Models Array from Apinex Dashboard
+  const models = [
+    "free/gpt-5.6-luna",
+    "free/gemini-3.1-pro",
+    "free/deepseek-v4-pro-0813",
+    "free/qwen-3.8-max",
+    "free/deepseek-v4.1-flash",
+    "free/gemini-3.8-flash",
+    "free/glm-5.3-flash"
+  ];
+  
   let success = false;
 
   for (const model of models) {
-    console.log(`\n🔌 Trying model: [${model}]...`);
+    console.log(`\n🔌 Sniping with model: [${model}]...`);
     try {
       const payload = {
         model: model,
@@ -33,7 +42,6 @@ return <group><mesh ref={meshRef}><boxGeometry args={[1,1,1]}/><meshStandardMate
           },
           { role: "user", content: `Topic: ${promptContent}. Generate ONLY the complex internal logic.` }
         ]
-        // Removed temperature and max_tokens to prevent Free Tier parameter rejections
       };
 
       const response = await fetch(url, {
@@ -87,12 +95,12 @@ export const AIGeneratedScene = () => {
       success = true;
       break; 
     } catch (e: any) {
-      console.error(`⚠️ Model ${model} failed (${e.message}). Bypassing restriction...`);
+      console.error(`⚠️ Model ${model} failed (${e.message}). Moving to next in array...`);
     }
   }
 
   if (!success) {
-    console.error("❌ ALL models failed. The API key is fully blocked by the provider.");
+    console.error("❌ ALL models in the array failed.");
     process.exit(1);
   }
 }
